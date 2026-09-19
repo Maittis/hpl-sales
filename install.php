@@ -11,15 +11,26 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 try {
     $connection = new mysqli(DB_HOST, DB_USER, DB_PASS);
     $connection->set_charset(DB_CHARSET);
-    $connection->query('CREATE DATABASE IF NOT EXISTS `' . DB_NAME . '` CHARACTER SET ' . DB_CHARSET . ' COLLATE ' . DB_CHARSET . '_unicode_ci');
+
+    try {
+        $connection->query('CREATE DATABASE IF NOT EXISTS `' . DB_NAME . '` CHARACTER SET ' . DB_CHARSET . ' COLLATE ' . DB_CHARSET . '_unicode_ci');
+        $steps[] = 'Database "' . DB_NAME . '" created / verified.';
+    } catch (mysqli_sql_exception $e) {
+        $steps[] = 'Using existing database "' . DB_NAME . '".';
+    }
+
     $connection->select_db(DB_NAME);
-    $steps[] = 'Database "' . DB_NAME . '" created / verified.';
 
     $connection->query('CREATE TABLE IF NOT EXISTS settings (key_name VARCHAR(80) PRIMARY KEY, value MEDIUMTEXT) ENGINE=InnoDB DEFAULT CHARSET=' . DB_CHARSET);
     $connection->query('CREATE TABLE IF NOT EXISTS admins (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(60) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=' . DB_CHARSET);
     $connection->query('CREATE TABLE IF NOT EXISTS leads (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(120) NOT NULL, phone VARCHAR(40) NOT NULL, knowledge TEXT NOT NULL, wants_to_learn VARCHAR(10) NOT NULL, submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=' . DB_CHARSET);
-    $connection->query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT \'new\'');
-    $connection->query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS contacted_at TIMESTAMP NULL DEFAULT NULL');
+
+    $colCheck = $connection->query("SELECT COUNT(*) AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" . $connection->real_escape_string(DB_NAME) . "' AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'status'");
+    if ((int)$colCheck->fetch_assoc()['c'] === 0) {
+        $connection->query("ALTER TABLE leads ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'new'");
+        $connection->query("ALTER TABLE leads ADD COLUMN contacted_at TIMESTAMP NULL DEFAULT NULL");
+    }
+
     $steps[] = 'Tables "settings", "admins" and "leads" created / verified.';
 
     $seed = $connection->prepare('INSERT IGNORE INTO settings (key_name, value) VALUES (?, ?)');
@@ -90,7 +101,7 @@ try {
     <p class="sub">One-time installer for the landing page admin panel.</p>
 
     <?php if ($fatal !== null): ?>
-      <div class="error">Database error: <?= h($fatal) ?>. Check DB_HOST / DB_USER / DB_PASS in <b>config.php</b> and confirm MySQL is running in XAMPP.</div>
+      <div class="error">Database error: <?= h($fatal) ?>. Check DB_HOST / DB_USER / DB_PASS in <b>config.php</b> and confirm MySQL is running.</div>
     <?php else: ?>
       <?php foreach ($steps as $step): ?>
         <div class="step"><?= h($step) ?></div>
