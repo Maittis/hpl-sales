@@ -1,0 +1,23 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment / credentials
+config.php
+
+# IDE / editor
+.kilo/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PHP
+*.cache
+
+# Uploaded media (re-upload via admin panel)
+img/offer.mp4
