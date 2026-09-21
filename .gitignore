@@ -21,3 +21,6 @@ Thumbs.db
 
 # Uploaded media (re-upload via admin panel)
 img/offer.mp4
+
+# Local deploy zips (do not commit)
+*.zip
