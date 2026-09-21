@@ -165,7 +165,22 @@ function art_block(string $file, string $fallbackClass = ''): string
     .footer-legal li { padding-right:15px; }
     .footer-legal a { color:#ffffff; font-size:16px; font-weight:400; }
     .disclaimer { color:#ffffff; font-size:16px; font-weight:300; line-height:1.3em; margin:0; padding:9px 0 10px; text-align:center; }
+    .cookie-banner { background:#111a38; border-top:1px solid #d4a52c; bottom:0; color:#fff; left:0; padding:20px 24px; position:fixed; right:0; z-index:1000; }
+    .cookie-banner.hidden { display:none; }
+    .cookie-content { align-items:center; display:flex; gap:16px; justify-content:space-between; max-width:1170px; margin:0 auto; }
+    .cookie-text { color:#d9deea; font-size:14px; line-height:1.4; }
+    .cookie-text a { color:#f4ca5b; text-decoration:underline; }
+    .cookie-buttons { display:flex; gap:10px; }
+    .cookie-btn { border:0; border-radius:6px; cursor:pointer; font-size:13px; font-weight:700; padding:10px 20px; text-transform:uppercase; }
+    .cookie-btn.accept { background:#d4a52c; color:#111a38; }
+    .cookie-btn.accept:hover { background:#f4ca5b; }
+    .cookie-btn.deny { background:#eef0f4; color:#2c3e6e; }
+    .cookie-btn.deny:hover { background:#fff; }
     @media (max-width:640px) {
+  .cookie-banner { padding:16px 14px; }
+  .cookie-content { flex-direction:column; align-items:flex-start; gap:12px; }
+  .cookie-buttons { width:100%; justify-content:space-between; }
+  .cookie-btn { flex:1; text-align:center; }
   .topline { font-size:9px; padding:8px 12px; }
   header { padding:16px 16px; }
   .nav { gap:8px; }
@@ -277,8 +292,106 @@ function art_block(string $file, string $fallbackClass = ''): string
       </ul>
       <p class="disclaimer"><?= h($s['disclaimer']) ?></p>
     </div></footer>
+
+    <div class="cookie-banner hidden" id="cookieBanner">
+      <div class="cookie-content">
+        <div class="cookie-text">We use cookies to improve your experience and analyze site traffic. <a href="#faq">Learn more</a></div>
+        <div class="cookie-buttons">
+          <button class="cookie-btn accept" id="acceptCookies">Accept</button>
+          <button class="cookie-btn deny" id="denyCookies">Deny</button>
+        </div>
+      </div>
+    </div>
   </div>
   <script>
+    (function () {
+      var sessionId = 'sess_' + Math.random().toString(36).substr(2, 16) + Date.now().toString(36);
+      var cookiesAccepted = localStorage.getItem('hpl_cookies_accepted');
+
+      function trackEvent(eventType, eventData) {
+        if (cookiesAccepted !== 'true') return;
+        var data = {
+          event_type: eventType,
+          event_data: eventData || {},
+          session_id: sessionId
+        };
+        fetch('admin/analytics.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        }).catch(function() {});
+      }
+
+      if (cookiesAccepted === 'true') {
+        trackEvent('page_view', { page: 'landing' });
+      }
+
+      var cookieBanner = document.getElementById('cookieBanner');
+      var acceptBtn = document.getElementById('acceptCookies');
+      var denyBtn = document.getElementById('denyCookies');
+
+      if (!cookiesAccepted && cookieBanner) {
+        cookieBanner.classList.remove('hidden');
+      }
+
+      if (acceptBtn) {
+        acceptBtn.addEventListener('click', function() {
+          localStorage.setItem('hpl_cookies_accepted', 'true');
+          cookiesAccepted = 'true';
+          if (cookieBanner) cookieBanner.classList.add('hidden');
+          trackEvent('page_view', { page: 'landing' });
+        });
+      }
+
+      if (denyBtn) {
+        denyBtn.addEventListener('click', function() {
+          localStorage.setItem('hpl_cookies_accepted', 'false');
+          if (cookieBanner) cookieBanner.classList.add('hidden');
+        });
+      }
+
+      var buttons = document.querySelectorAll('.button');
+      for (var i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener('click', function() {
+          trackEvent('cta_click', { text: this.textContent.trim(), href: this.getAttribute('href') });
+        });
+      }
+
+      var promoVideo = document.getElementById('promoVideo');
+      if (promoVideo) {
+        promoVideo.addEventListener('play', function() {
+          trackEvent('video_play', { video: 'promo' });
+        });
+      }
+
+      var offerVideo = document.getElementById('offerVideo');
+      if (offerVideo) {
+        offerVideo.addEventListener('play', function() {
+          trackEvent('video_play', { video: 'offer' });
+        });
+      }
+
+      var scrollTracked = { 25: false, 50: false, 75: false, 100: false };
+      window.addEventListener('scroll', function() {
+        var scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+        if (scrollPercent >= 25 && !scrollTracked[25]) {
+          scrollTracked[25] = true;
+          trackEvent('scroll', { depth: 25 });
+        }
+        if (scrollPercent >= 50 && !scrollTracked[50]) {
+          scrollTracked[50] = true;
+          trackEvent('scroll', { depth: 50 });
+        }
+        if (scrollPercent >= 75 && !scrollTracked[75]) {
+          scrollTracked[75] = true;
+          trackEvent('scroll', { depth: 75 });
+        }
+        if (scrollPercent >= 100 && !scrollTracked[100]) {
+          scrollTracked[100] = true;
+          trackEvent('scroll', { depth: 100 });
+        }
+      });
+    })();
     (function () {
       var v = document.getElementById('promoVideo');
       var b = document.getElementById('soundBtn');

@@ -72,7 +72,7 @@ $videoSlots = [
 
 $settings = hpl_settings();
 $activeTab = (string)($_POST['tab'] ?? $_GET['tab'] ?? 'leads');
-if (!in_array($activeTab, ['leads', 'settings', 'images'], true)) {
+if (!in_array($activeTab, ['leads', 'settings', 'images', 'analytics'], true)) {
     $activeTab = 'leads';
 }
 $message = '';
@@ -91,6 +91,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     fputcsv($out, ['Name', 'Phone', 'Knowledge', 'Wants to learn', 'Status', 'Submitted']);
     $result = $connection->query('SELECT name, phone, knowledge, wants_to_learn, status, submitted_at FROM leads ORDER BY id DESC');
     while ($row = $result->fetch_assoc()) {
+        $row['phone'] = "\t" . $row['phone'];
+        $row['submitted_at'] = date('Y-m-d H:i:s', strtotime($row['submitted_at']));
         fputcsv($out, $row);
     }
     fclose($out);
@@ -247,14 +249,50 @@ $leads = [];
 $totalLeads = 0;
 $todayLeads = 0;
 $newLeads = 0;
+$notifications = [];
 if ($connection) {
     $totalLeads = (int)$connection->query('SELECT COUNT(*) AS c FROM leads')->fetch_assoc()['c'];
     $todayLeads = (int)$connection->query('SELECT COUNT(*) AS c FROM leads WHERE DATE(submitted_at) = CURDATE()')->fetch_assoc()['c'];
     $newLeads = (int)$connection->query('SELECT COUNT(*) AS c FROM leads WHERE status = \'new\'')->fetch_assoc()['c'];
+    if ($newLeads > 0) {
+        $notifResult = $connection->query('SELECT id, name, submitted_at FROM leads WHERE status = \'new\' ORDER BY submitted_at DESC LIMIT 10');
+        if ($notifResult) {
+            while ($row = $notifResult->fetch_assoc()) {
+                $notifications[] = $row;
+            }
+        }
+    }
     $leadResult = $connection->query('SELECT id, name, phone, knowledge, wants_to_learn, status, submitted_at FROM leads ORDER BY id DESC LIMIT 100');
     if ($leadResult) {
         while ($row = $leadResult->fetch_assoc()) {
             $leads[] = $row;
+        }
+    }
+}
+
+$analytics = [];
+$totalPageViews = 0;
+$totalCtaClicks = 0;
+$totalVideoPlays = 0;
+$totalScrollEvents = 0;
+$uniqueSessions = 0;
+$analyticsTableExists = false;
+if ($connection) {
+    $checkTable = $connection->query("SHOW TABLES LIKE 'analytics'");
+    $analyticsTableExists = $checkTable && $checkTable->num_rows > 0;
+
+    if ($analyticsTableExists) {
+        $totalPageViews = (int)$connection->query('SELECT COUNT(*) AS c FROM analytics WHERE event_type = \'page_view\'')->fetch_assoc()['c'];
+        $totalCtaClicks = (int)$connection->query('SELECT COUNT(*) AS c FROM analytics WHERE event_type = \'cta_click\'')->fetch_assoc()['c'];
+        $totalVideoPlays = (int)$connection->query('SELECT COUNT(*) AS c FROM analytics WHERE event_type = \'video_play\'')->fetch_assoc()['c'];
+        $totalScrollEvents = (int)$connection->query('SELECT COUNT(*) AS c FROM analytics WHERE event_type = \'scroll\'')->fetch_assoc()['c'];
+        $uniqueSessions = (int)$connection->query('SELECT COUNT(DISTINCT session_id) AS c FROM analytics')->fetch_assoc()['c'];
+
+        $analyticsResult = $connection->query('SELECT event_type, COUNT(*) as count, DATE(created_at) as date FROM analytics WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) GROUP BY event_type, DATE(created_at) ORDER BY date DESC, event_type');
+        if ($analyticsResult) {
+            while ($row = $analyticsResult->fetch_assoc()) {
+                $analytics[] = $row;
+            }
         }
     }
 }
@@ -272,54 +310,101 @@ if ($connection) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-primary: #eef0f4;
+      --bg-secondary: #fff;
+      --text-primary: #182038;
+      --text-secondary: #8b93a5;
+      --border-color: #cfd4dc;
+      --accent: #d4a52c;
+      --accent-hover: #f4ca5b;
+      --nav-bg: #111a38;
+      --nav-text: #d9deea;
+    }
+    .dark-mode {
+      --bg-primary: #0f1419;
+      --bg-secondary: #1a1f2e;
+      --text-primary: #e8eaed;
+      --text-secondary: #9aa0a6;
+      --border-color: #3c4043;
+      --accent: #d4a52c;
+      --accent-hover: #f4ca5b;
+      --nav-bg: #0a0e14;
+      --nav-text: #e8eaed;
+    }
     * { box-sizing:border-box; }
-    body { margin:0; background:#eef0f4; color:#182038; font-family:'DM Sans',sans-serif; }
-    .topbar { background:#111a38; color:#fff; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    body { margin:0; background:var(--bg-primary); color:var(--text-primary); font-family:'DM Sans',sans-serif; transition:background 0.3s,color 0.3s; }
+    .topbar { background:var(--nav-bg); color:#fff; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
     .topbar .brand { font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; }
-    .topbar a { color:#d9deea; font-size:13px; text-decoration:none; margin-left:18px; }
-    .topbar a:hover { color:#f4ca5b; }
+    .topbar a { color:var(--nav-text); font-size:13px; text-decoration:none; margin-left:18px; }
+    .topbar a:hover { color:var(--accent-hover); }
     .wrap { max-width:960px; margin:0 auto; padding:30px 18px 60px; }
     .notice { background:#eaf5ee; border-left:4px solid #2e8b57; color:#23402f; font-size:14px; margin:0 0 18px; padding:12px 16px; }
     .error { background:#fbeeec; border-left:4px solid #c0392b; color:#7a2c25; font-size:14px; margin:0 0 18px; padding:12px 16px; }
     .stats { display:grid; gap:14px; grid-template-columns:repeat(3,1fr); margin:0 0 22px; }
-    .stat { background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(17,26,56,.08); padding:18px 20px; }
-    .stat .num { color:#111a38; font-family:'Space Grotesk',sans-serif; font-size:30px; font-weight:700; line-height:1; }
-    .stat .lbl { color:#8b93a5; font-size:12px; font-weight:700; letter-spacing:.05em; margin-top:7px; text-transform:uppercase; }
-    .card { background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(17,26,56,.08); margin-bottom:22px; padding:24px; }
-    .card h2 { font-family:'Space Grotesk',sans-serif; font-size:18px; margin:0 0 16px; color:#111a38; }
+    .stats.five { grid-template-columns:repeat(5,1fr); }
+    .stat { background:var(--bg-secondary); border-radius:10px; box-shadow:0 1px 3px rgba(17,26,56,.08); padding:18px 20px; }
+    .stat .num { color:var(--text-primary); font-family:'Space Grotesk',sans-serif; font-size:30px; font-weight:700; line-height:1; }
+    .stat .lbl { color:var(--text-secondary); font-size:12px; font-weight:700; letter-spacing:.05em; margin-top:7px; text-transform:uppercase; }
+    .card { background:var(--bg-secondary); border-radius:10px; box-shadow:0 1px 3px rgba(17,26,56,.08); margin-bottom:22px; padding:24px; }
+    .card h2 { font-family:'Space Grotesk',sans-serif; font-size:18px; margin:0 0 16px; color:var(--text-primary); }
     .card-head { align-items:center; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
     .card-head h2 { margin:0; }
     .grid { display:grid; gap:14px; grid-template-columns:1fr 1fr; }
     .grid .full { grid-column:1/-1; }
-    label { display:block; font-size:12px; font-weight:700; margin-bottom:4px; color:#3a4457; }
-    .hint { display:block; font-size:11px; color:#8b93a5; margin-top:3px; }
-    input[type=text], input[type=password], textarea { border:1px solid #cfd4dc; border-radius:6px; font:15px/1.5 'DM Sans',sans-serif; padding:10px 12px; width:100%; }
+    label { display:block; font-size:12px; font-weight:700; margin-bottom:4px; color:var(--text-primary); }
+    .hint { display:block; font-size:11px; color:var(--text-secondary); margin-top:3px; }
+    input[type=text], input[type=password], textarea { border:1px solid var(--border-color); border-radius:6px; font:15px/1.5 'DM Sans',sans-serif; padding:10px 12px; width:100%; background:var(--bg-secondary); color:var(--text-primary); }
     textarea { min-height:90px; resize:vertical; }
-    .btn { background:#d4a52c; border:0; border-radius:6px; color:#111a38; cursor:pointer; font-size:13px; font-weight:700; padding:13px 30px; text-transform:uppercase; }
-    .btn:hover { background:#f4ca5b; }
+    .btn { background:var(--accent); border:0; border-radius:6px; color:#111a38; cursor:pointer; font-size:13px; font-weight:700; padding:13px 30px; text-transform:uppercase; }
+    .btn:hover { background:var(--accent-hover); }
     .btn-row { margin-top:18px; }
-    .link-btn { background:#eef0f4; border:1px solid #cfd4dc; border-radius:6px; color:#2c3e6e; cursor:pointer; display:inline-block; font-size:12px; font-weight:700; padding:9px 14px; text-decoration:none; }
-    .link-btn:hover { background:#fff; }
+    .link-btn { background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:#2c3e6e; cursor:pointer; display:inline-block; font-size:12px; font-weight:700; padding:9px 14px; text-decoration:none; }
+    .link-btn:hover { background:var(--bg-secondary); }
     .link-btn.danger { color:#c0392b; }
     .link-btn.wa { background:#25d366; border-color:#1da851; color:#fff; }
     table.leads { border-collapse:collapse; font-size:14px; min-width:620px; width:100%; }
     .table-scroll { -webkit-overflow-scrolling:touch; overflow-x:auto; }
-    table.leads th, table.leads td { border-bottom:1px solid #e3e6ea; padding:10px; text-align:left; vertical-align:top; }
-    table.leads th { color:#3a4457; font-size:12px; text-transform:uppercase; }
-    .img-thumb { background:#fff; border:1px solid #cfd4dc; border-radius:6px; display:block; height:70px; margin:6px 0 10px; object-fit:cover; width:120px; }
-    .img-empty { border:1px dashed #cfd4dc; border-radius:6px; color:#8b93a5; font-size:12px; margin:6px 0 10px; padding:24px 12px; text-align:center; }
-    .card p.hint { color:#8b93a5; font-size:13px; line-height:1.5; margin:0 0 16px; }
-    table.leads .muted { color:#8b93a5; }
+    table.leads th, table.leads td { border-bottom:1px solid var(--border-color); padding:10px; text-align:left; vertical-align:top; }
+    table.leads th { color:var(--text-primary); font-size:12px; text-transform:uppercase; }
+    .img-thumb { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:6px; display:block; height:70px; margin:6px 0 10px; object-fit:cover; width:120px; }
+    .img-empty { border:1px dashed var(--border-color); border-radius:6px; color:var(--text-secondary); font-size:12px; margin:6px 0 10px; padding:24px 12px; text-align:center; }
+    .card p.hint { color:var(--text-secondary); font-size:13px; line-height:1.5; margin:0 0 16px; }
+    table.leads .muted { color:var(--text-secondary); }
     table.leads td .ops { align-items:center; display:flex; flex-wrap:nowrap; gap:6px; }
     table.leads td .ops form { margin:0; }
     table.leads td .ops .link-btn { white-space:nowrap; }
     .badge { border-radius:20px; display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; text-transform:uppercase; }
     .badge.new { background:#fff3d6; color:#8a6200; }
     .badge.contacted { background:#eaf5ee; color:#2e8b57; }
-    .tabs { border-bottom:2px solid #dfe3ea; display:flex; gap:6px; margin:0 0 22px; }
-    .tab-btn { background:none; border:0; border-bottom:3px solid transparent; color:#5a6478; cursor:pointer; font-size:13px; font-weight:700; letter-spacing:.06em; margin-bottom:-2px; padding:12px 18px; text-transform:uppercase; }
-    .tab-btn:hover { color:#111a38; }
-    .tab-btn.active { border-bottom-color:#d4a52c; color:#111a38; }
+    .lead-name { color:#2c3e6e; cursor:pointer; text-decoration:underline; }
+    .lead-name:hover { color:var(--accent); }
+    .modal-overlay { background:rgba(17,26,56,0.6); display:none; inset:0; position:fixed; z-index:1000; }
+    .modal { background:var(--bg-secondary); border-radius:10px; box-shadow:0 4px 20px rgba(17,26,56,0.2); left:50%; max-height:90vh; max-width:600px; overflow-y:auto; padding:30px; position:fixed; top:50%; transform:translate(-50%,-50%); width:90%; }
+    .modal h2 { font-family:'Space Grotesk',sans-serif; font-size:20px; margin:0 0 20px; color:var(--text-primary); }
+    .modal-row { margin-bottom:16px; }
+    .modal-label { color:var(--text-primary); font-size:12px; font-weight:700; text-transform:uppercase; }
+    .modal-value { color:var(--text-primary); font-size:14px; line-height:1.6; margin-top:4px; word-wrap:break-word; }
+    .modal-close { background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:#2c3e6e; cursor:pointer; font-size:13px; font-weight:700; padding:10px 20px; text-transform:uppercase; }
+    .modal-close:hover { background:var(--bg-secondary); }
+    .dark-mode-toggle { background:none; border:0; color:var(--nav-text); cursor:pointer; font-size:18px; margin-left:18px; }
+    .dark-mode-toggle:hover { color:var(--accent-hover); }
+    .notification-bell { background:none; border:0; color:var(--nav-text); cursor:pointer; font-size:18px; margin-left:18px; position:relative; }
+    .notification-bell:hover { color:var(--accent-hover); }
+    .notification-badge { background:#c0392b; border-radius:50%; color:#fff; font-size:10px; font-weight:700; height:18px; line-height:18px; position:absolute; right:-8px; text-align:center; top:-6px; width:18px; }
+    .notification-dropdown { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; box-shadow:0 4px 20px rgba(17,26,56,0.15); display:none; max-height:400px; overflow-y:auto; position:absolute; right:24px; top:60px; width:320px; z-index:100; }
+    .notification-dropdown.show { display:block; }
+    .notification-item { border-bottom:1px solid var(--border-color); padding:12px 16px; }
+    .notification-item:last-child { border-bottom:none; }
+    .notification-item .name { color:var(--text-primary); font-weight:600; font-size:14px; }
+    .notification-item .time { color:var(--text-secondary); font-size:12px; margin-top:4px; }
+    .notification-item .view-btn { background:var(--accent); border:0; border-radius:4px; color:#111a38; cursor:pointer; font-size:11px; font-weight:700; margin-top:8px; padding:6px 12px; text-transform:uppercase; }
+    .notification-item .view-btn:hover { background:var(--accent-hover); }
+    .notification-empty { color:var(--text-secondary); font-size:13px; padding:20px 16px; text-align:center; }
+    .tabs { border-bottom:2px solid var(--border-color); display:flex; gap:6px; margin:0 0 22px; }
+    .tab-btn { background:none; border:0; border-bottom:3px solid transparent; color:var(--text-secondary); cursor:pointer; font-size:13px; font-weight:700; letter-spacing:.06em; margin-bottom:-2px; padding:12px 18px; text-transform:uppercase; }
+    .tab-btn:hover { color:var(--text-primary); }
+    .tab-btn.active { border-bottom-color:var(--accent); color:var(--text-primary); }
     .tab-panel { display:none; }
     .tab-panel.active { display:block; }
     @media (max-width:640px) {
@@ -335,7 +420,29 @@ if ($connection) {
 <body>
   <div class="topbar">
     <span class="brand">HPL GOLD — Admin</span>
-    <span class="links"><a href="../index.php">View site</a><a href="logout.php">Log out</a></span>
+    <span class="links">
+      <button class="dark-mode-toggle" id="darkModeToggle" type="button">🌙</button>
+      <button class="notification-bell" id="notificationBell" type="button">
+        🔔
+        <?php if ($newLeads > 0): ?>
+          <span class="notification-badge"><?= $newLeads > 9 ? '9+' : $newLeads ?></span>
+        <?php endif; ?>
+      </button>
+      <div class="notification-dropdown" id="notificationDropdown">
+        <?php if (empty($notifications)): ?>
+          <div class="notification-empty">No new notifications</div>
+        <?php else: ?>
+          <?php foreach ($notifications as $notif): ?>
+            <div class="notification-item">
+              <div class="name"><?= h($notif['name']) ?></div>
+              <div class="time"><?= h(date('M j, Y H:i', strtotime($notif['submitted_at']))) ?></div>
+              <button class="view-btn" onclick="switchTab('leads')">View Lead</button>
+            </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </div>
+      <a href="../index.php">View site</a><a href="logout.php">Log out</a>
+    </span>
   </div>
   <div class="wrap">
     <?php if ($message !== ''): ?><div class="notice"><?= $message ?></div><?php endif; ?>
@@ -343,6 +450,7 @@ if ($connection) {
 
     <div class="tabs" role="tablist">
       <button class="tab-btn <?= $activeTab === 'leads' ? 'active' : '' ?>" type="button" role="tab" aria-selected="<?= $activeTab === 'leads' ? 'true' : 'false' ?>" data-tab="leads">Leads</button>
+      <button class="tab-btn <?= $activeTab === 'analytics' ? 'active' : '' ?>" type="button" role="tab" aria-selected="<?= $activeTab === 'analytics' ? 'true' : 'false' ?>" data-tab="analytics">Analytics</button>
       <button class="tab-btn <?= $activeTab === 'settings' ? 'active' : '' ?>" type="button" role="tab" aria-selected="<?= $activeTab === 'settings' ? 'true' : 'false' ?>" data-tab="settings">Settings</button>
       <button class="tab-btn <?= $activeTab === 'images' ? 'active' : '' ?>" type="button" role="tab" aria-selected="<?= $activeTab === 'images' ? 'true' : 'false' ?>" data-tab="images">Images</button>
     </div>
@@ -371,7 +479,7 @@ if ($connection) {
           <?php foreach ($leads as $lead): ?>
             <tr>
               <td class="muted"><?= h(date('M j, Y H:i', strtotime($lead['submitted_at']))) ?></td>
-              <td><?= h($lead['name']) ?></td>
+              <td><span class="lead-name" data-id="<?= (int)$lead['id'] ?>" data-name="<?= htmlspecialchars(json_encode($lead['name']), ENT_QUOTES) ?>" data-phone="<?= htmlspecialchars(json_encode($lead['phone']), ENT_QUOTES) ?>" data-knowledge="<?= htmlspecialchars(json_encode($lead['knowledge']), ENT_QUOTES) ?>" data-wants="<?= htmlspecialchars(json_encode($lead['wants_to_learn']), ENT_QUOTES) ?>" data-status="<?= htmlspecialchars(json_encode($lead['status']), ENT_QUOTES) ?>" data-submitted="<?= htmlspecialchars(json_encode(date('M j, Y H:i', strtotime($lead['submitted_at']))), ENT_QUOTES) ?>"><?= h($lead['name']) ?></span></td>
               <td><?= h($lead['phone']) ?></td>
               <td class="muted"><?= h($lead['knowledge']) ?></td>
               <td><?= h($lead['wants_to_learn']) ?></td>
@@ -406,6 +514,56 @@ $waUrl = 'https://wa.me/' . $waDigits . '?text=' . rawurlencode(str_replace('{na
         </div>
       <?php endif; ?>
     </div>
+    </div>
+
+    <div class="tab-panel <?= $activeTab === 'analytics' ? 'active' : '' ?>" id="panel-analytics" role="tabpanel">
+    <?php if (!$analyticsTableExists): ?>
+      <div class="card">
+        <h2>Analytics Setup Required</h2>
+        <p style="color:#8b93a5;font-size:14px">The analytics table has not been created yet. Run the following SQL in phpMyAdmin or MySQL to enable analytics:</p>
+        <pre style="background:#f4f4f4;border:1px solid #ddd;border-radius:6px;font-size:12px;margin:16px 0;overflow-x:auto;padding:12px">CREATE TABLE IF NOT EXISTS analytics (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  event_type VARCHAR(50) NOT NULL,
+  event_data TEXT,
+  session_id VARCHAR(100),
+  ip_address VARCHAR(45),
+  user_agent TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_event_type (event_type),
+  INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;</pre>
+      </div>
+    <?php else: ?>
+      <div class="stats five">
+        <div class="stat"><div class="num"><?= $totalPageViews ?></div><div class="lbl">Page Views</div></div>
+        <div class="stat"><div class="num"><?= $uniqueSessions ?></div><div class="lbl">Unique Sessions</div></div>
+        <div class="stat"><div class="num"><?= $totalCtaClicks ?></div><div class="lbl">CTA Clicks</div></div>
+        <div class="stat"><div class="num"><?= $totalVideoPlays ?></div><div class="lbl">Video Plays</div></div>
+        <div class="stat"><div class="num"><?= $totalScrollEvents ?></div><div class="lbl">Scroll Events</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Recent Activity (Last 7 Days)</h2>
+        <?php if (empty($analytics)): ?>
+          <p style="color:#8b93a5;font-size:14px">No analytics data yet. Visit the frontend site to start tracking.</p>
+        <?php else: ?>
+          <div class="table-scroll">
+          <table class="leads">
+            <thead><tr><th>Date</th><th>Event Type</th><th>Count</th></tr></thead>
+            <tbody>
+            <?php foreach ($analytics as $row): ?>
+              <tr>
+                <td class="muted"><?= h($row['date']) ?></td>
+                <td><?= h($row['event_type']) ?></td>
+                <td><?= (int)$row['count'] ?></td>
+              </tr>
+            <?php endforeach; ?>
+            </tbody>
+          </table>
+          </div>
+        <?php endif; ?>
+      </div>
+    <?php endif; ?>
     </div>
 
     <div class="tab-panel <?= $activeTab === 'settings' ? 'active' : '' ?>" id="panel-settings" role="tabpanel">
@@ -506,7 +664,77 @@ foreach ($groups as $title => $group):
       </form>
     </div>
   </div>
+
+  <div class="modal-overlay" id="leadModalOverlay" onclick="hideLeadModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2 id="modalLeadName">Lead Details</h2>
+      <div class="modal-row">
+        <div class="modal-label">Name</div>
+        <div class="modal-value" id="modalName"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Phone</div>
+        <div class="modal-value" id="modalPhone"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Knowledge about detectors</div>
+        <div class="modal-value" id="modalKnowledge"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Wants to learn</div>
+        <div class="modal-value" id="modalWantsToLearn"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Status</div>
+        <div class="modal-value" id="modalStatus"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Submitted</div>
+        <div class="modal-value" id="modalSubmitted"></div>
+      </div>
+      <div style="margin-top:24px;text-align:right">
+        <button class="modal-close" onclick="hideLeadModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    function showLeadModal(element) {
+      var name = JSON.parse(element.dataset.name);
+      var phone = JSON.parse(element.dataset.phone);
+      var knowledge = JSON.parse(element.dataset.knowledge);
+      var wantsToLearn = JSON.parse(element.dataset.wants);
+      var status = JSON.parse(element.dataset.status);
+      var submitted = JSON.parse(element.dataset.submitted);
+
+      document.getElementById('modalLeadName').textContent = name;
+      document.getElementById('modalName').textContent = name;
+      document.getElementById('modalPhone').textContent = phone;
+      document.getElementById('modalKnowledge').textContent = knowledge;
+      document.getElementById('modalWantsToLearn').textContent = wantsToLearn;
+      document.getElementById('modalStatus').textContent = status;
+      document.getElementById('modalSubmitted').textContent = submitted;
+      document.getElementById('leadModalOverlay').style.display = 'block';
+    }
+
+    function hideLeadModal() {
+      document.getElementById('leadModalOverlay').style.display = 'none';
+    }
+
+    function switchTab(tabName) {
+      var tabButtons = document.querySelectorAll('.tab-btn');
+      var panels = document.querySelectorAll('.tab-panel');
+      for (var i = 0; i < panels.length; i++) {
+        panels[i].classList.toggle('active', panels[i].id === 'panel-' + tabName);
+      }
+      for (var i = 0; i < tabButtons.length; i++) {
+        var active = tabButtons[i].dataset.tab === tabName;
+        tabButtons[i].classList.toggle('active', active);
+        tabButtons[i].setAttribute('aria-selected', active ? 'true' : 'false');
+      }
+      document.getElementById('notificationDropdown').classList.remove('show');
+    }
+
     (function () {
       var tabButtons = document.querySelectorAll('.tab-btn');
       var panels = document.querySelectorAll('.tab-panel');
@@ -524,6 +752,43 @@ foreach ($groups as $title => $group):
       for (i = 0; i < tabButtons.length; i++) {
         tabButtons[i].addEventListener('click', function () {
           show(this.dataset.tab);
+        });
+      }
+
+      var leadNames = document.querySelectorAll('.lead-name');
+      for (i = 0; i < leadNames.length; i++) {
+        leadNames[i].addEventListener('click', function () {
+          showLeadModal(this);
+        });
+      }
+
+      var notificationBell = document.getElementById('notificationBell');
+      var notificationDropdown = document.getElementById('notificationDropdown');
+      if (notificationBell && notificationDropdown) {
+        notificationBell.addEventListener('click', function(e) {
+          e.stopPropagation();
+          notificationDropdown.classList.toggle('show');
+        });
+        document.addEventListener('click', function() {
+          notificationDropdown.classList.remove('show');
+        });
+        notificationDropdown.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      }
+
+      var darkModeToggle = document.getElementById('darkModeToggle');
+      var darkMode = localStorage.getItem('hpl_admin_dark_mode') === 'true';
+      if (darkMode) {
+        document.body.classList.add('dark-mode');
+        darkModeToggle.textContent = '☀️';
+      }
+      if (darkModeToggle) {
+        darkModeToggle.addEventListener('click', function() {
+          darkMode = !darkMode;
+          document.body.classList.toggle('dark-mode', darkMode);
+          localStorage.setItem('hpl_admin_dark_mode', darkMode);
+          darkModeToggle.textContent = darkMode ? '☀️' : '🌙';
         });
       }
     })();

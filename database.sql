@@ -20,7 +20,9 @@ CREATE TABLE IF NOT EXISTS leads (
   wants_to_learn VARCHAR(10) NOT NULL DEFAULT '',
   status VARCHAR(20) NOT NULL DEFAULT 'new',
   submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  contacted_at TIMESTAMP NULL DEFAULT NULL
+  contacted_at TIMESTAMP NULL DEFAULT NULL,
+  INDEX idx_status (status),
+  INDEX idx_submitted_at (submitted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO settings (key_name, value) VALUES
@@ -86,3 +88,15 @@ If the free content has not already paid for itself, don''t buy it. If it has, t
 ;
 
 INSERT INTO admins (username, password_hash) VALUES ('admin', '$2y$10$HuQojKubGHkyAcnIi/ssPuwamE9xut//lZ35uPyK57ZFJC3tejV0W');
+
+CREATE TABLE IF NOT EXISTS analytics (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  event_type VARCHAR(50) NOT NULL,
+  event_data TEXT,
+  session_id VARCHAR(100),
+  ip_address VARCHAR(45),
+  user_agent TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_event_type (event_type),
+  INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
