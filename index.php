@@ -236,9 +236,13 @@ function art_block(string $file, string $fallbackClass = ''): string
     .slides-cap.on { opacity:1; }
     .slides-cap span { color:#f4ca5b; display:block; font-size:12px; font-weight:700; letter-spacing:.12em; margin-bottom:4px; text-transform:uppercase; }
     .slides-dots { display:flex; gap:9px; justify-content:center; margin:18px 0 0; }
-    .slides-dots button { background:#cfd4dc; border:0; border-radius:50%; cursor:pointer; height:9px; padding:0; width:9px; }
+    .slides-dots button { background:rgba(255,255,255,.35); border:0; border-radius:50%; cursor:pointer; height:9px; padding:0; width:9px; }
+    .slides-dots button:hover { background:rgba(255,255,255,.6); }
     .slides-dots button.on { background:var(--gold); transform:scale(1.35); }
-    .slides-empty { color:var(--muted); font-size:14px; padding:50px 20px; }
+    .slides-empty { color:rgba(255,255,255,.7); font-size:14px; padding:50px 20px; }
+    .slides { background:var(--navy); }
+    .slides h2 { color:#fff; }
+    .slides .section-label { color:var(--gold); }
     .proof-gallery { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:860px; padding:6px 0 10px; }
     .proof-item { align-self:start; background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); padding:12px 12px 18px; position:relative; transition:transform .25s ease; }
     .proof-item:nth-child(odd) { transform:rotate(-2.6deg); }
@@ -405,7 +409,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 
       <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') { continue; } $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t'; $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="video/mp4"></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint">Scroll or swipe for the next story &rarr;</p><div class="proof-dots" id="proofDots"></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
-      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?><img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
+      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
       <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><?= art_block('benefit-1.jpg') ?></div><h3><?= h($s['b1_title']) ?></h3><p><?= h($s['b1_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-2.jpg') ?></div><h3><?= h($s['b2_title']) ?></h3><p><?= h($s['b2_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-3.jpg') ?></div><h3><?= h($s['b3_title']) ?></h3><p><?= h($s['b3_desc']) ?></p></article></div></div></section>
 
@@ -817,9 +821,9 @@ function art_block(string $file, string $fallbackClass = ''): string
         imgs[i].classList.add('on');
         dots.forEach(function (d, k) { d.classList.toggle('on', k === i); });
         if (cap) {
-          var alt = imgs[i].getAttribute('alt');
-          cap.innerHTML = alt ? '<span>Field result</span>' + alt : '';
-          cap.classList.toggle('on', !!alt);
+          var text = imgs[i].getAttribute('data-caption') || '';
+          cap.innerHTML = text ? '<span>Field result</span>' + text : '';
+          cap.classList.toggle('on', !!text);
         }
       }
 
