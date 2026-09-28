@@ -168,6 +168,12 @@ function cc_flag(string $cc): string
     return isset($all[$cc]) ? $all[$cc]['flag'] : 'zm';
 }
 
+function cc_label(string $cc): string
+{
+    $all = hpl_countries();
+    return isset($all[$cc]) ? $all[$cc]['label'] : '+' . $cc;
+}
+
 const DETECTOR_ART = '<div class="detector"><div class="handle"></div><div class="control"><div class="screen"></div><i></i></div><div class="shaft"></div><div class="coil"></div></div>';
 
 function art_block(string $file, string $fallbackClass = ''): string
@@ -326,9 +332,12 @@ function art_block(string $file, string $fallbackClass = ''): string
     .lead-form textarea { font-size:15px; margin-top:5px; min-height:70px; padding:9px 11px; }
     .phone-row { display:flex; gap:8px; margin-top:5px; }
     .cc-wrap { display:inline-flex; position:relative; }
-    .cc-flag { border-radius:2px; box-shadow:0 0 0 1px rgba(0,0,0,.12); height:auto; left:9px; pointer-events:none; position:absolute; top:50%; transform:translateY(-50%); width:19px; z-index:1; }
-    .cc-wrap select { background:#fff; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); font:15px 'DM Sans',sans-serif; font-weight:600; height:41px; padding:0 6px 0 36px; width:82px; }
-    .cc-wrap select:focus { outline:2px solid var(--gold-light); }
+    .cc-label { align-items:center; background:#fff; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); display:inline-flex; font:600 15px 'DM Sans',sans-serif; gap:7px; height:41px; padding:0 9px; white-space:nowrap; }
+    .cc-label::after { border-left:4px solid transparent; border-right:4px solid transparent; border-top:5px solid var(--muted); content:''; margin-left:1px; }
+    .cc-wrap:focus-within .cc-label { outline:2px solid var(--gold-light); }
+    .cc-flag { border-radius:2px; box-shadow:0 0 0 1px rgba(0,0,0,.14); flex:none; height:auto; width:19px; }
+    .cc-text { line-height:1; }
+    .cc-wrap select { -webkit-appearance:none; appearance:none; background:transparent; border:0; cursor:pointer; height:100%; inset:0; opacity:0; position:absolute; width:100%; }
     .cc-wrap option { background:#fff; color:var(--navy); }
     .phone-row input { margin-top:0; }
     .form-nav { align-items:center; display:flex; gap:10px; margin-top:18px; }
@@ -471,7 +480,7 @@ function art_block(string $file, string $fallbackClass = ''): string
             <label>Phone number *
               <span class="phone-row">
                 <span class="cc-wrap">
-                  <img class="cc-flag" id="ccFlag" src="img/flags/<?= h(cc_flag((string)$leadCc)) ?>.png" alt="">
+                  <span class="cc-label"><img class="cc-flag" id="ccFlag" src="img/flags/<?= h(cc_flag((string)$leadCc)) ?>.png" alt=""><span class="cc-text" id="ccText"><?= h(cc_label((string)$leadCc)) ?></span></span>
                   <select name="lead_cc" id="leadCc" aria-label="Country code">
 <?php foreach (hpl_countries() as $ccode => $cinfo): ?>
                     <option value="<?= h((string)$ccode) ?>" data-flag="<?= h($cinfo['flag']) ?>" title="<?= h($cinfo['name']) ?>"<?= (string)$leadCc === (string)$ccode ? ' selected' : '' ?>><?= h($cinfo['label']) ?></option>
@@ -663,18 +672,26 @@ function art_block(string $file, string $fallbackClass = ''): string
       var p = document.getElementById('leadPhone');
       var cc = document.getElementById('leadCc');
       var flag = document.getElementById('ccFlag');
+      var ccText = document.getElementById('ccText');
 
-      if (cc && flag) {
-        var syncFlag = function () {
-          var o = cc.options[cc.selectedIndex];
-          if (o) {
-            var flagIso = o.getAttribute('data-flag');
-            if (flagIso) flag.src = 'img/flags/' + flagIso + '.png';
-            cc.title = o.textContent.replace(/^\+\d+\s*/, '') || 'Country code';
-          }
-        };
-        cc.addEventListener('change', function () { userPicked = true; syncFlag(); });
-        syncFlag();
+      function paintCc() {
+        var o = cc && cc.options ? cc.options[cc.selectedIndex] : null;
+        if (!o) return;
+        var flagIso = o.getAttribute('data-flag');
+        if (flag && flagIso) {
+          flag.onerror = function () {
+            flag.onerror = null;
+            flag.src = 'https://flagcdn.com/w20/' + flagIso + '.png';
+          };
+          flag.src = 'img/flags/' + flagIso + '.png';
+        }
+        if (ccText) ccText.textContent = '+' + o.value;
+        if (cc) cc.title = o.textContent.replace(/^\+\d+\s*/, '') || 'Country code';
+      }
+
+      if (cc) {
+        cc.addEventListener('change', function () { userPicked = true; paintCc(); });
+        paintCc();
       }
 
       var userPicked = false;
@@ -711,11 +728,7 @@ function art_block(string $file, string $fallbackClass = ''): string
                 cc.insertBefore(match, cc.firstChild);
               }
               cc.value = code;
-              if (cc && flag) {
-                var flagCode = match.getAttribute('data-flag');
-                flag.onerror = function () { flag.src = 'https://flagcdn.com/w20/' + flagCode + '.png'; flag.onerror = null; };
-                flag.src = 'img/flags/' + flagCode + '.png';
-              }
+              paintCc();
               trackEvent('country_detected', { cc: code });
             })
             .catch(function () { clearTimeout(timer); attempt(i + 1); });
