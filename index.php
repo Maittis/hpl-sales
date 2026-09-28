@@ -96,10 +96,14 @@ function art_block(string $file, string $fallbackClass = ''): string
     .wash { background:var(--wash); }
     .proof { text-align:center; }
     .proof h2 { margin-bottom:20px; }
-    .proof-track { display:flex; gap:22px; margin:0 auto; max-width:1080px; overflow-x:auto; padding:6px 0 26px; scroll-behavior:smooth; scroll-snap-type:x mandatory; scrollbar-width:none; }
+    .proof-wrap { margin:0 auto; max-width:1080px; position:relative; }
+    .proof-track { display:flex; gap:22px; overflow-x:auto; padding:6px 0 26px; scroll-behavior:smooth; scroll-snap-type:x mandatory; scrollbar-width:none; }
     .proof-track::-webkit-scrollbar { display:none; }
-    .proof-card { background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); flex:0 0 46%; max-width:420px; scroll-snap-align:center; }
-    .proof-card video { aspect-ratio:4/5; background:#000; display:block; max-height:44vh; object-fit:cover; width:100%; }
+    .proof-card { background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); flex:0 0 62%; max-width:520px; scroll-snap-align:center; }
+    .proof-card video { aspect-ratio:4/5; background:#000; display:block; max-height:52vh; object-fit:cover; width:100%; }
+    .proof-cue { align-items:center; animation:nudge 1.8s ease-in-out infinite; background:rgba(17,26,56,.85); border-radius:50%; color:#fff; display:flex; font-size:26px; height:46px; justify-content:center; pointer-events:none; position:absolute; right:2px; top:44%; transition:opacity .3s ease; width:46px; z-index:3; }
+    .proof-wrap.scrolled .proof-cue { opacity:0; }
+    @keyframes nudge { 0%,100% { transform:translate(0,-50%); } 50% { transform:translate(7px,-50%); } }
     .proof-card figcaption { color:var(--navy); font-size:15px; font-weight:700; padding:14px 12px 16px; }
     .proof-empty { background:var(--navy); color:#fff; font-size:14px; padding:60px 20px; }
     .proof-track::after { content:''; flex:0 0 2px; }
@@ -243,7 +247,7 @@ function art_block(string $file, string $fallbackClass = ''): string
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
 
-      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') { continue; } $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t'; $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-card proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: ?><div class="proof-track" id="proofTrack"><?php foreach ($proofItems as $item): ?><figure class="proof-card"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="video/mp4"><div class="video-fallback">Your browser can't play this video. <a href="#" style="text-decoration:underline">Watch on Google Drive</a>.</div></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><p class="proof-hint">Scroll for the next story &rarr;</p><div class="proof-dots" id="proofDots"></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') { continue; } $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t'; $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-card proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: ?><div class="proof-wrap" id="proofWrap"><div class="proof-track" id="proofTrack"><?php foreach ($proofItems as $item): ?><figure class="proof-card"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="video/mp4"><div class="video-fallback">Your browser can't play this video. <a href="#" style="text-decoration:underline">Watch on Google Drive</a>.</div></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><span class="proof-cue" aria-hidden="true">&rsaquo;</span></div><p class="proof-hint">Scroll or swipe for the next story &rarr;</p><div class="proof-dots" id="proofDots"></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><?= art_block('benefit-1.jpg') ?></div><h3><?= h($s['b1_title']) ?></h3><p><?= h($s['b1_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-2.jpg') ?></div><h3><?= h($s['b2_title']) ?></h3><p><?= h($s['b2_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-3.jpg') ?></div><h3><?= h($s['b3_title']) ?></h3><p><?= h($s['b3_desc']) ?></p></article></div></div></section>
 
@@ -478,6 +482,13 @@ function art_block(string $file, string $fallbackClass = ''): string
 
       var last = centerIndex();
       playActive(last);
+
+      var wrap = document.getElementById('proofWrap');
+      if (wrap) {
+        track.addEventListener('scroll', function () {
+          if (track.scrollLeft > 20 || last > 0) { wrap.classList.add('scrolled'); }
+        }, { passive: true });
+      }
 
       var tick = false;
       track.addEventListener('scroll', function () {
