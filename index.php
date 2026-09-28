@@ -110,8 +110,8 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-dots { display:flex; gap:8px; justify-content:center; margin:12px 0 0; }
     .proof-dots button { background:#cfd4dc; border:0; border-radius:50%; cursor:pointer; height:9px; padding:0; width:9px; }
     .proof-dots button.on { background:var(--gold); transform:scale(1.35); }
-    .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
-    .slides-frame { aspect-ratio:16/9; background:var(--navy); max-height:56vh; overflow:hidden; position:relative; }
+    .slides-stage { display:flex; flex-direction:column; margin:0 auto; max-width:880px; position:relative; }
+    .slides-frame { aspect-ratio:16/9; background:var(--navy); margin:0 auto; max-height:56vh; overflow:hidden; position:relative; }
     .slides-frame img { height:100%; inset:0; object-fit:cover; opacity:0; position:absolute; transform:scale(1.04); transition:opacity .9s ease, transform 1.4s ease; width:100%; }
     .slides-frame img.on { opacity:1; transform:none; z-index:2; }
     .slides-cap { background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:15px; font-weight:700; left:0; opacity:0; padding:44px 20px 18px; position:absolute; right:0; text-align:left; transition:opacity .6s ease; z-index:3; }
