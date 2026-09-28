@@ -74,8 +74,11 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
     .panel { margin-top:44px; }
     .panel-label { color:var(--gold); font-size:12px; font-weight:700; letter-spacing:.13em; margin-bottom:10px; text-transform:uppercase; }
     .panel h2 { font-family:'Space Grotesk',sans-serif; font-size:clamp(22px,3.4vw,30px); letter-spacing:-.02em; margin:0 0 18px; }
-    .ty-video { aspect-ratio:16/9; background:#000; border-radius:14px; overflow:hidden; width:100%; }
+    .ty-video-block { margin:34px auto 0; max-width:760px; text-align:center; }
+    .ty-video-block h2 { font-family:'Space Grotesk',sans-serif; font-size:clamp(20px,3vw,26px); letter-spacing:-.02em; margin:0 0 16px; }
+    .ty-video { aspect-ratio:16/9; background:#000; border:1px solid rgba(255,255,255,.16); border-radius:14px; box-shadow:0 18px 50px rgba(0,0,0,.35); overflow:hidden; width:100%; }
     .ty-video video { display:block; height:100%; object-fit:contain; width:100%; }
+    .ty-video-empty { align-items:center; background:rgba(255,255,255,.05); border-style:dashed; color:rgba(255,255,255,.65); display:flex; font-size:14.5px; justify-content:center; padding:20px; text-align:center; }
     .grid { display:grid; gap:14px; grid-template-columns:repeat(3,1fr); }
     .grid figure { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:12px; margin:0; overflow:hidden; }
     .grid img { aspect-ratio:4/3; display:block; object-fit:cover; width:100%; }
@@ -103,28 +106,32 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
       <h1>Thank you<?= $firstName !== '' ? ', ' . h($firstName) : '' ?>!</h1>
       <p class="ty-sub"><?= h($s['ty_sub']) ?></p>
 
-      <div class="next">
-        <h2>What happens next</h2>
-        <ol>
-          <li><b>Step 1</b>We review your ground and target so we can match you to the right machine.</li>
-          <li><b>Step 2</b>A member of the team calls or messages you within one business day.</li>
-          <li><b>Step 3</b>We confirm the right setup, then you are ready for your first outing.</li>
-        </ol>
+      <div class="ty-video-block">
+        <div class="panel-label">A message for you</div>
+        <h2>Thank you from the HPL team</h2>
+<?php if ($tyVideo !== ''): ?>
+        <div class="ty-video">
+          <video controls playsinline preload="metadata">
+            <source src="<?= h($tyVideo) ?>" type="video/mp4">
+            Your browser can't play this video.
+          </video>
+        </div>
+<?php else: ?>
+        <div class="ty-video ty-video-empty">
+          <span>Our thank-you video is being uploaded. Please check back shortly.</span>
+        </div>
+<?php endif; ?>
       </div>
     </div>
 
-<?php if ($tyVideo !== ''): ?>
-    <div class="panel">
-      <div class="panel-label">A message for you</div>
-      <h2>Thank you from the HPL team</h2>
-      <div class="ty-video">
-        <video controls playsinline preload="metadata" poster="img/benefit-bg.png">
-          <source src="<?= h($tyVideo) ?>" type="video/mp4">
-          Your browser can't play this video.
-        </video>
-      </div>
+    <div class="next">
+      <h2>What happens next</h2>
+      <ol>
+        <li><b>Step 1</b>We review your ground and target so we can match you to the right machine.</li>
+        <li><b>Step 2</b>A member of the team calls or messages you within one business day.</li>
+        <li><b>Step 3</b>We confirm the right setup, then you are ready for your first outing.</li>
+      </ol>
     </div>
-<?php endif; ?>
 
 <?php if (!empty($tyPhotos)): ?>
     <div class="panel">
