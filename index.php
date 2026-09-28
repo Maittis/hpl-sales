@@ -42,7 +42,12 @@ if (isset($_POST['lead_submit'])) {
             $leadError = 'Could not save your details right now. Please try again in a moment.';
         }
         if ($leadError === '') {
-            header('Location: index.php?done=1#book');
+            $firstOut = trim((string)$first);
+            if ($firstOut === '') {
+                $parts = explode(' ', $name);
+                $firstOut = $parts[0] ?? '';
+            }
+            header('Location: thank-you.php?name=' . rawurlencode($firstOut));
             exit;
         }
     }

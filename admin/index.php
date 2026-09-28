@@ -59,10 +59,20 @@ $fields = [
     ['key' => 'form_q_terrain',     'label' => 'Search area question',           'type' => 'text',     'group' => 'Booking form'],
     ['key' => 'form_q_target',      'label' => 'Target question',            'type' => 'text',     'group' => 'Booking form'],
     ['key' => 'form_q_timing',      'label' => 'Timing question',           'type' => 'text',     'group' => 'Booking form'],
+    ['key' => 'ty_h',               'label' => 'Thank-you heading',         'type' => 'text',     'group' => 'Thank you page'],
+    ['key' => 'ty_sub',             'label' => 'Thank-you message',         'type' => 'textarea', 'group' => 'Thank you page'],
+    ['key' => 'ty_video_drive_id',  'label' => 'Thank-you video Drive ID',  'type' => 'text',     'group' => 'Thank you page'],
+    ['key' => 'ty_1_caption',       'label' => 'Thank-you photo 1 caption', 'type' => 'text',     'group' => 'Thank you page'],
+    ['key' => 'ty_2_caption',       'label' => 'Thank-you photo 2 caption', 'type' => 'text',     'group' => 'Thank you page'],
+    ['key' => 'ty_3_caption',       'label' => 'Thank-you photo 3 caption', 'type' => 'text',     'group' => 'Thank you page'],
+    ['key' => 'ty_4_caption',       'label' => 'Thank-you photo 4 caption', 'type' => 'text',     'group' => 'Thank you page'],
+    ['key' => 'ty_5_caption',       'label' => 'Thank-you photo 5 caption', 'type' => 'text',     'group' => 'Thank you page'],
+    ['key' => 'ty_6_caption',       'label' => 'Thank-you photo 6 caption', 'type' => 'text',     'group' => 'Thank you page'],
     ['key' => 'final_h',           'label' => 'Heading',                    'type' => 'text',     'group' => 'Final CTA'],
     ['key' => 'final_sub',         'label' => 'Subtext',                    'type' => 'textarea', 'group' => 'Final CTA'],
     ['key' => 'cta_email',         'label' => 'Contact email (CTA mailto)', 'type' => 'text',     'group' => 'Final CTA'],
     ['key' => 'whatsapp_msg',      'label' => 'WhatsApp message template (use {name} for the lead name)', 'type' => 'textarea', 'group' => 'WhatsApp'],
+    ['key' => 'wa_number',         'label' => 'Company WhatsApp number (with country code)', 'type' => 'text', 'group' => 'WhatsApp'],
     ['key' => 'footer_brand',      'label' => 'Footer brand',               'type' => 'text',     'group' => 'Footer'],
     ['key' => 'footer_1',          'label' => 'Footer link 1 text',         'type' => 'text',     'group' => 'Footer'],
     ['key' => 'footer_1_url',      'label' => 'Footer link 1 URL',          'type' => 'text',     'group' => 'Footer'],
@@ -90,10 +100,17 @@ $imageSlots = [
     ['key' => 'slide_4',    'file' => 'slide-4.jpg',    'label' => 'Auto-slide testimonial 4 (landscape)'],
     ['key' => 'slide_5',    'file' => 'slide-5.jpg',    'label' => 'Auto-slide testimonial 5 (landscape)'],
     ['key' => 'slide_6',    'file' => 'slide-6.jpg',    'label' => 'Auto-slide testimonial 6 (landscape)'],
+    ['key' => 'ty_1',       'file' => 'ty-1.jpg',       'label' => 'Thank-you photo 1 (landscape)'],
+    ['key' => 'ty_2',       'file' => 'ty-2.jpg',       'label' => 'Thank-you photo 2 (landscape)'],
+    ['key' => 'ty_3',       'file' => 'ty-3.jpg',       'label' => 'Thank-you photo 3 (landscape)'],
+    ['key' => 'ty_4',       'file' => 'ty-4.jpg',       'label' => 'Thank-you photo 4 (landscape)'],
+    ['key' => 'ty_5',       'file' => 'ty-5.jpg',       'label' => 'Thank-you photo 5 (landscape)'],
+    ['key' => 'ty_6',       'file' => 'ty-6.jpg',       'label' => 'Thank-you photo 6 (landscape)'],
 ];
 
 $videoSlots = [
     ['key' => 'offer_video', 'file' => 'offer.mp4', 'label' => 'Offer section video (MP4 / WebM)'],
+    ['key' => 'thankyou_video', 'file' => 'thankyou.mp4', 'label' => 'Thank-you page video (MP4 / WebM)'],
 ];
 
 $settings = hpl_settings();
