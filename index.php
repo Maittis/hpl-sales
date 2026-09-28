@@ -256,6 +256,28 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-dots { display:flex; gap:8px; justify-content:center; margin:12px 0 0; }
     .proof-dots button { background:#cfd4dc; border:0; border-radius:50%; cursor:pointer; height:9px; padding:0; width:9px; }
     .proof-dots button.on { background:var(--gold); transform:scale(1.35); }
+    /* circle of videos */
+    .ring-wrap { margin:26px auto 0; max-width:100%; position:relative; touch-action:pan-y; }
+    .ring { height:calc(var(--ring-squash,.42) * var(--ring-r,215px) * 2 + var(--ring-size,148px) + 70px); margin:0 auto; max-width:100%; perspective:1000px; position:relative; width:calc(var(--ring-r,215px) * 2 + var(--ring-size,148px) + 40px); }
+    .ring-item { background:#0b1226; border-radius:16px; box-shadow:0 12px 30px rgba(9,15,36,.28); cursor:pointer; left:50%; margin:0; overflow:hidden; position:absolute; top:50%; transform:translate(-50%,-50%); transition:opacity .5s ease, filter .5s ease, box-shadow .4s ease; width:var(--ring-size,148px); will-change:transform,opacity; }
+    .ring-item video { aspect-ratio:4/5; display:block; height:auto; object-fit:cover; width:100%; }
+    .ring-item figcaption { background:linear-gradient(to top,rgba(0,0,0,.86),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:11.5px; font-weight:700; left:0; line-height:1.25; padding:26px 9px 9px; position:absolute; right:0; text-align:left; }
+    .ring-item::after { border:2px solid transparent; border-radius:16px; content:''; inset:0; pointer-events:none; position:absolute; transition:border-color .35s ease; }
+    .ring-item.front { box-shadow:0 20px 44px rgba(9,15,36,.4); z-index:5; }
+    .ring-item.front::after { border-color:var(--gold); }
+    .ring-item:not(.front) { filter:saturate(.82) brightness(.82); }
+    .ring-item:hover:not(.front) { filter:none; }
+    .ring-play { align-items:center; background:rgba(17,26,56,.55); border:0; border-radius:50%; color:#fff; cursor:pointer; display:flex; font-size:22px; height:52px; justify-content:center; left:50%; padding:0 0 0 3px; position:absolute; top:44%; transform:translate(-50%,-50%); transition:opacity .3s ease, transform .3s ease; width:52px; z-index:6; }
+    .ring-play:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+    .ring-wrap.moved .ring-play { opacity:0; pointer-events:none; transform:translate(-50%,-50%) scale(.8); }
+    .ring-wrap.playing .ring-play { opacity:0; pointer-events:none; }
+    .ring-item video { pointer-events:none; }
+    .ring-nav { align-items:center; display:flex; gap:14px; justify-content:center; margin:18px 0 0; }
+    .ring-nav button { align-items:center; background:rgba(17,26,56,.08); border:1px solid rgba(9,15,36,.16); border-radius:50%; color:var(--navy); cursor:pointer; display:flex; font-size:20px; height:40px; justify-content:center; line-height:1; padding:0; width:40px; }
+    .ring-nav button:hover { background:var(--gold); border-color:var(--gold); color:#fff; }
+    .ring-nav button:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+    @media (max-width:640px) { .ring { --ring-r:104px; --ring-size:100px; } .ring-item { border-radius:12px; } .ring-item figcaption { font-size:10px; padding:20px 7px 7px; } .ring-play { font-size:18px; height:44px; width:44px; } }
+    @media (max-width:400px) { .ring { --ring-r:80px; --ring-size:84px; } .ring-item figcaption { font-size:9px; padding:16px 5px 5px; } }
     .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
     .slides-frame { aspect-ratio:16/9; background:var(--navy); margin:0 auto; max-height:56vh; overflow:hidden; position:relative; }
     .slides-frame img { height:100%; inset:0; object-fit:cover; opacity:0; position:absolute; transform:scale(1.04); transition:opacity .9s ease, transform 1.4s ease; width:100%; }
@@ -441,7 +463,7 @@ function art_block(string $file, string $fallbackClass = ''): string
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
 
-      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') { continue; } $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t'; $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="video/mp4"></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint">Scroll or swipe for the next story &rarr;</p><div class="proof-dots" id="proofDots"></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') { continue; } $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t'; $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring') === 'strip' ? 'strip' : 'ring'; ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="video/mp4"></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 215)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 148)))) ?>px;--ring-squash:<?= h((string)max(0.1, min(1, (float)($s['proof_ring_squash'] ?? 0.42)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?>: <?= h($item['caption']) ?>"><video muted loop playsinline preload="metadata" data-ring-video><source src="<?= h($item['src']) ?>" type="video/mp4"></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
@@ -789,6 +811,157 @@ function art_block(string $file, string $fallbackClass = ''): string
         var open = n.classList.toggle('open');
         t.setAttribute('aria-expanded', open ? 'true' : 'false');
       });
+    })();
+    (function () {
+      var ring = document.getElementById('ring');
+      if (!ring) return;
+      var items = Array.prototype.slice.call(ring.querySelectorAll('[data-ring-item]'));
+      if (!items.length) return;
+      var wrap = document.getElementById('ringWrap');
+      var playBtn = document.getElementById('ringPlay');
+      var toggleBtn = document.getElementById('ringToggle');
+      var prevBtn = document.getElementById('ringPrev');
+      var nextBtn = document.getElementById('ringNext');
+      var n = items.length;
+      var idx = 0;
+      var squash = 0.42;
+      var R = 215, size = 148;
+
+      function readVars() {
+        var cs = getComputedStyle(ring);
+        R = parseFloat(cs.getPropertyValue('--ring-r')) || 215;
+        size = parseFloat(cs.getPropertyValue('--ring-size')) || 148;
+        var sq = parseFloat(cs.getPropertyValue('--ring-squash'));
+        squash = (sq > 0.1 && sq <= 1) ? sq : 0.42;
+      }
+
+      function frontVideo() { return items[idx].querySelector('video'); }
+
+      function layout(animate) {
+        readVars();
+        var ry = R * squash;
+        items.forEach(function (el, i) {
+          var off = i - idx;
+          if (off > n / 2) off -= n;
+          if (off < -n / 2) off += n;
+          var a = (-90 + off * (360 / n)) * Math.PI / 180;
+          var x = R * Math.cos(a);
+          var y = ry * Math.sin(a);
+          var z = -y * 0.55;
+          var isFront = off === 0;
+          if (!animate) el.style.transition = 'none';
+          el.style.transform = 'translate(-50%,-50%) translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,' + z.toFixed(1) + 'px) scale(' + (isFront ? 1.18 : 0.72) + ')';
+          el.style.opacity = isFront ? '1' : '0.92';
+          el.style.zIndex = isFront ? '5' : String(Math.max(1, Math.round(3 + z / 20)));
+          el.classList.toggle('front', isFront);
+          if (!animate) { void el.offsetWidth; el.style.transition = ''; }
+        });
+      }
+
+      function syncBtn() {
+        var v = frontVideo();
+        var playing = v && !v.paused;
+        if (toggleBtn) {
+          toggleBtn.innerHTML = playing ? '<span aria-hidden="true">&#10073;&#10073;</span>' : '<span aria-hidden="true">&#9654;</span>';
+          toggleBtn.setAttribute('aria-label', playing ? 'Pause videos' : 'Play videos');
+        }
+        if (playBtn) playBtn.style.display = playing ? 'none' : '';
+      }
+
+      function playFront() {
+        var v = frontVideo();
+        if (!v) return;
+        v.muted = true;
+        var pr = v.play();
+        if (pr && pr.catch) pr.catch(function () {});
+        syncBtn();
+      }
+
+      function pauseAll() {
+        items.forEach(function (el) {
+          var v = el.querySelector('video');
+          if (v && !v.paused) v.pause();
+        });
+        syncBtn();
+      }
+
+      function show(i, autoplay) {
+        if (i === idx) return;
+        var old = items[idx].querySelector('video');
+        if (old) { old.pause(); old.currentTime = 0; }
+        idx = ((i % n) + n) % n;
+        layout(true);
+        syncBtn();
+        if (autoplay !== false) playFront();
+        if (wrap) wrap.classList.add('moved');
+      }
+
+      function next() { show(idx + 1, true); }
+      function prev() { show(idx - 1, true); }
+
+      items.forEach(function (el, i) {
+        el.addEventListener('click', function () {
+          if (i === idx) { togglePlay(); } else { show(i, true); }
+        });
+        el.addEventListener('keydown', function (e) {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          e.preventDefault();
+          if (i === idx) { togglePlay(); } else { show(i, true); }
+        });
+        var v = el.querySelector('video');
+        if (v) v.addEventListener('play', syncBtn);
+        if (v) v.addEventListener('pause', syncBtn);
+      });
+
+      function togglePlay() {
+        var v = frontVideo();
+        if (!v) return;
+        if (v.paused) { playFront(); } else { v.pause(); syncBtn(); }
+      }
+
+      if (playBtn) playBtn.addEventListener('click', playFront);
+      if (toggleBtn) toggleBtn.addEventListener('click', togglePlay);
+      if (prevBtn) prevBtn.addEventListener('click', prev);
+      if (nextBtn) nextBtn.addEventListener('click', next);
+
+      var tx = 0, ty = 0;
+      ring.addEventListener('touchstart', function (e) {
+        tx = e.changedTouches[0].clientX; ty = e.changedTouches[0].clientY;
+      }, { passive: true });
+      ring.addEventListener('touchend', function (e) {
+        var dx = e.changedTouches[0].clientX - tx;
+        var dy = e.changedTouches[0].clientY - ty;
+        if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+        if (dx < 0) next(); else prev();
+      }, { passive: true });
+
+      var wlock = false;
+      window.addEventListener('wheel', function (e) {
+        if (wlock || Math.abs(e.deltaX) < 10) return;
+        var r = ring.getBoundingClientRect();
+        if (r.bottom < 80 || r.top > window.innerHeight - 80) return;
+        e.preventDefault();
+        wlock = true;
+        window.setTimeout(function () { wlock = false; }, 650);
+        if (e.deltaX > 0) next(); else prev();
+      }, { passive: false });
+
+      document.addEventListener('keydown', function (e) {
+        var r = ring.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > window.innerHeight) return;
+        if (e.key === 'ArrowRight') next();
+        if (e.key === 'ArrowLeft') prev();
+      });
+
+      window.addEventListener('resize', function () { layout(false); });
+
+      layout(false);
+      if (n === 1) {
+        if (wrap) wrap.classList.add('moved');
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+      }
+      syncBtn();
     })();
     (function () {
       var stage = document.getElementById('proofStage');

@@ -27,6 +27,12 @@ $fields = [
     ['key' => 'b2_desc',           'label' => 'Benefit #2 text',            'type' => 'textarea', 'group' => 'Benefits'],
     ['key' => 'b3_title',          'label' => 'Benefit #3 title',           'type' => 'text',     'group' => 'Benefits'],
     ['key' => 'b3_desc',           'label' => 'Benefit #3 text',            'type' => 'textarea', 'group' => 'Benefits'],
+    ['key' => 'proof_layout', 'label' => 'Story layout', 'type' => 'select', 'group' => 'Proof videos', 'options' => ['ring' => 'Circle of videos (new)', 'strip' => 'Single video + scroll (previous)']],
+    ['key' => 'proof_ring_r', 'label' => 'Circle radius (px)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_ring_size', 'label' => 'Each circle video size (px)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_ring_squash', 'label' => 'Circle flatness (0.25 = flat, 0.42 = normal, 0.7 = full circle)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_hint', 'label' => 'Hint text under the videos', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_hint_strip', 'label' => 'Hint text (circle layout off)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_1', 'label' => 'Video 1 Google Drive file ID', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_1_caption', 'label' => 'Video 1 caption', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_2', 'label' => 'Video 2 Google Drive file ID', 'type' => 'text', 'group' => 'Proof videos'],
@@ -642,10 +648,16 @@ foreach ($groups as $title => $group):
         <h2><?= h($title) ?></h2>
         <div class="grid">
 <?php foreach ($group as $field): ?>
-          <div class="<?= $field['type'] === 'textarea' ? 'full' : '' ?>">
+          <div class="<?= in_array($field['type'], ['textarea', 'select'], true) ? 'full' : '' ?>">
             <label for="f_<?= h($field['key']) ?>"><?= h($field['label']) ?></label>
 <?php if ($field['type'] === 'textarea'): ?>
             <textarea id="f_<?= h($field['key']) ?>" name="<?= h($field['key']) ?>"><?= h($settings[$field['key']]) ?></textarea>
+<?php elseif ($field['type'] === 'select'): ?>
+            <select id="f_<?= h($field['key']) ?>" name="<?= h($field['key']) ?>">
+<?php foreach (($field['options'] ?? []) as $ov => $ol): ?>
+              <option value="<?= h($ov) ?>"<?= (string)($settings[$field['key']] ?? '') === (string)$ov ? ' selected' : '' ?>><?= h($ol) ?></option>
+<?php endforeach; ?>
+            </select>
 <?php else: ?>
             <input type="text" id="f_<?= h($field['key']) ?>" name="<?= h($field['key']) ?>" value="<?= h($settings[$field['key']]) ?>">
 <?php endif; ?>
