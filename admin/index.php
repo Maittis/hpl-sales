@@ -30,6 +30,7 @@ $fields = [
     ['key' => 'proof_layout', 'label' => 'Story layout', 'type' => 'select', 'group' => 'Proof videos', 'options' => ['ring' => 'Circle of videos (new)', 'strip' => 'Single video + scroll (previous)']],
     ['key' => 'proof_ring_r', 'label' => 'Circle radius (px)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_ring_size', 'label' => 'Each circle video size (px)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_ring_ratio', 'label' => 'Each circle video length (height / width - 1.25 = 4:5, 1.5 = 2:3, 1.78 = full 9:16 vertical)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_hint', 'label' => 'Hint text under the videos', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_hint_strip', 'label' => 'Hint text (circle layout off)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_1', 'label' => 'Video 1 Google Drive file ID', 'type' => 'text', 'group' => 'Proof videos'],
