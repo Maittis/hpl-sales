@@ -28,20 +28,20 @@ $fields = [
     ['key' => 'b3_title',          'label' => 'Benefit #3 title',           'type' => 'text',     'group' => 'Benefits'],
     ['key' => 'b3_desc',           'label' => 'Benefit #3 text',            'type' => 'textarea', 'group' => 'Benefits'],
     ['key' => 'proof_layout', 'label' => 'Story layout', 'type' => 'select', 'group' => 'Proof videos', 'options' => ['ring' => 'Circle of videos (new)', 'strip' => 'Single video + scroll (previous)']],
-    ['key' => 'proof_ring_r', 'label' => 'Circle radius (px)', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_ring_size', 'label' => 'Each circle video size (px)', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_ring_shape', 'label' => 'Each circle video shape (width / height - 1.78 = 16:9 wide, same as the promo video. Use 0.8 for 4:5 portrait)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_ring_r', 'label' => 'Carousel radius (px) - how far the off-screen players swing back', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_ring_size', 'label' => 'Story player width (px, before perspective). 405 shows as about 450px on screen', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_ring_shape', 'label' => 'Story player shape (width / height). 0.5625 = 9:16 vertical, which matches the phone footage. Use 1.78 for 16:9 wide', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_hint', 'label' => 'Hint text under the videos', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_hint_strip', 'label' => 'Hint text (circle layout off)', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_1', 'label' => 'Video 1 Google Drive file ID', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_1', 'label' => 'Video 1 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_1_caption', 'label' => 'Video 1 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_2', 'label' => 'Video 2 Google Drive file ID', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_2', 'label' => 'Video 2 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_2_caption', 'label' => 'Video 2 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_3', 'label' => 'Video 3 Google Drive file ID', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_3', 'label' => 'Video 3 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_3_caption', 'label' => 'Video 3 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_4', 'label' => 'Video 4 Google Drive file ID', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_4', 'label' => 'Video 4 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_4_caption', 'label' => 'Video 4 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_5', 'label' => 'Video 5 Google Drive file ID', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_5', 'label' => 'Video 5 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_5_caption', 'label' => 'Video 5 caption', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'faq1_q',            'label' => 'Question 1',                 'type' => 'text',     'group' => 'FAQ'],
     ['key' => 'faq1_a',            'label' => 'Answer 1 (one line per paragraph)', 'type' => 'textarea', 'group' => 'FAQ'],
@@ -125,7 +125,12 @@ $imageSlots = [
 ];
 
 $videoSlots = [
-    ['key' => 'thankyou_video', 'file' => 'thankyou.mp4', 'label' => 'Thank-you page video (MP4 / WebM)'],
+    ['key' => 'thankyou_video', 'file' => 'thankyou.mp4', 'dir' => 'img/', 'label' => 'Thank-you page video (MP4 / WebM)', 'setting' => ''],
+    ['key' => 'proof_video_1', 'file' => 'story-1.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 1 (MP4 / WebM)', 'setting' => 'uploads/proof/story-1.mp4'],
+    ['key' => 'proof_video_2', 'file' => 'story-2.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 2 (MP4 / WebM)', 'setting' => 'uploads/proof/story-2.mp4'],
+    ['key' => 'proof_video_3', 'file' => 'story-3.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 3 (MP4 / WebM)', 'setting' => 'uploads/proof/story-3.mp4'],
+    ['key' => 'proof_video_4', 'file' => 'story-4.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 4 (MP4 / WebM)', 'setting' => 'uploads/proof/story-4.mp4'],
+    ['key' => 'proof_video_5', 'file' => 'story-5.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 5 (MP4 / WebM)', 'setting' => 'uploads/proof/story-5.mp4'],
 ];
 
 $settings = hpl_settings();
@@ -289,14 +294,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_video'])) {
             $ext = strtolower(pathinfo((string)($_FILES[$key]['name'] ?? ''), PATHINFO_EXTENSION));
             if (!is_uploaded_file($tmp)) {
                 $error = 'Invalid upload.';
-            } elseif (!in_array($ext, ['mp4', 'webm'], true)) {
-                $error = 'Only MP4 or WebM video files are supported.';
+            } elseif (!in_array($ext, ['mp4', 'm4v', 'webm'], true)) {
+                $error = 'Only MP4, M4V or WebM video files are supported.';
             } else {
-                $target = __DIR__ . '/../img/' . $slot['file'];
-                if (move_uploaded_file($tmp, $target)) {
-                    $message = 'Video uploaded as "' . h($slot['file']) . '". It is now used automatically on the site.';
+                $dir = __DIR__ . '/../' . $slot['dir'];
+                if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
+                    $error = 'Could not create the ' . h($slot['dir']) . ' folder. Create it and make it writable.';
                 } else {
-                    $error = 'Could not save the video. Make sure the img/ folder is writable.';
+                    if (move_uploaded_file($tmp, $dir . '/' . $slot['file'])) {
+                        $message = 'Video uploaded as "' . h($slot['file']) . '". It is now used automatically on the site.';
+                        if ($slot['setting'] !== '') {
+                            $upd = $connection->prepare('INSERT INTO settings (key_name, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)');
+                            $upd->bind_param('ss', $slot['key'], $slot['setting']);
+                            $upd->execute();
+                            $upd->close();
+                        }
+                    } else {
+                        $error = 'Could not save the video. Make sure the ' . h($slot['dir']) . ' folder is writable.';
+                    }
                 }
             }
         }
@@ -716,15 +731,15 @@ foreach ($groups as $title => $group):
         </div>
         <div class="card">
           <h2>Videos</h2>
-          <p class="hint">Upload an <b>MP4</b> (or WebM) video for each player. Stored directly in <b>img/</b>. The promo video keeps playing from Google Drive; this section swaps to the local file automatically.</p>
+          <p class="hint">Upload an <b>MP4</b>, <b>M4V</b> or <b>WebM</b> for each player (up to 190 MB). The story videos are stored in <b>uploads/proof/</b> and the page switches over automatically. Compressing 9:16 phone video to 720x1280 keeps it sharp and small enough for visitors on mobile data.</p>
 <?php foreach ($videoSlots as $slot): ?>
           <label for="upv_<?= h($slot['key']) ?>"><?= h($slot['label']) ?></label>
-<?php $vpath = __DIR__ . '/../img/' . $slot['file']; if (file_exists($vpath)): ?>
+<?php $vpath = __DIR__ . '/../' . $slot['dir'] . $slot['file']; if (file_exists($vpath)): ?>
           <p class="hint" style="margin:6px 0 10px">Video uploaded: <?= h($slot['file']) ?> (<?= number_format(filesize($vpath) / 1048576, 1) ?> MB)</p>
 <?php else: ?>
-          <p class="hint" style="margin:6px 0 10px">No video yet — player falls back to the Google Drive ID.</p>
+          <p class="hint" style="margin:6px 0 10px">No video uploaded yet — this player will be skipped until you add one.</p>
 <?php endif; ?>
-          <input type="file" id="upv_<?= h($slot['key']) ?>" name="<?= h($slot['key']) ?>" accept=".mp4,.webm">
+          <input type="file" id="upv_<?= h($slot['key']) ?>" name="<?= h($slot['key']) ?>" accept=".mp4,.m4v,.webm,video/mp4,video/webm">
           <div class="btn-row">
             <button class="btn" type="submit" name="upload_video" value="<?= h($slot['key']) ?>">Upload video</button>
           </div>

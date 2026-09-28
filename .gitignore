@@ -26,3 +26,9 @@ img/thankyou.mp4
 # Local deploy zips (do not commit)
 *.zip
 img/slide-*.jpg
+
+# locally compressed story videos (not for the repo)
+video-compressed/
+
+# self-hosted story videos (large binaries, managed via the admin panel)
+uploads/proof/

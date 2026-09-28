@@ -29,8 +29,8 @@ function hpl_defaults(): array
         'social_caption' => 'REAL FIELD RESULTS. REAL HPL SUPPORT.',
         'proof_layout' => 'ring',
         'proof_ring_r' => '300',
-        'proof_ring_size' => '720',
-        'proof_ring_shape' => '1.78',
+        'proof_ring_size' => '405',
+        'proof_ring_shape' => '0.5625',
         'proof_hint_strip' => 'Scroll or swipe for the next story',
         'proof_hint' => 'Use the arrows to spin to the next story',
         'proof_video_1' => '',
@@ -147,6 +147,14 @@ function hpl_media_url(?string $value): string
         return $v;
     }
 
+    // same-site upload, e.g. uploads/proof/story-1.mp4 - resolved relative to the current page
+    if (!preg_match('~^[a-z][a-z0-9+.-]*:~i', $v)
+        && strpos($v, '..') === false
+        && preg_match('~^[A-Za-z0-9._/-]+$~', $v)
+        && preg_match('~\.(mp4|webm|m4v|mov|ogv|jpe?g|png|gif|webp)$~i', $v)) {
+        return $v;
+    }
+
     // pull the file ID out of any Drive link shape
     if (preg_match('~/d/([A-Za-z0-9_-]{10,})~', $v, $m)
         || preg_match('~[?&]id=([A-Za-z0-9_-]{10,})~', $v, $m)) {
@@ -158,6 +166,22 @@ function hpl_media_url(?string $value): string
     }
 
     return 'https://drive.usercontent.google.com/download?id=' . rawurlencode($id) . '&export=download&confirm=t';
+}
+
+/**
+ * MIME type for a media URL, so <source type="..."> never lies to the browser.
+ */
+function hpl_media_type(string $url, string $default = 'video/mp4'): string
+{
+    $ext = strtolower((string)pathinfo((string)(parse_url($url, PHP_URL_PATH) ?? ''), PATHINFO_EXTENSION));
+
+    return match ($ext) {
+        'mp4', 'm4v' => 'video/mp4',
+        'webm' => 'video/webm',
+        'ogv' => 'video/ogg',
+        'mov' => 'video/quicktime',
+        default => $default,
+    };
 }
 
 function hpl_settings(): array

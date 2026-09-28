@@ -29,11 +29,10 @@ for ($i = 1; $i <= 6; $i++) {
 
 $tyVideos = [];
 for ($i = 1; $i <= 3; $i++) {
-    $pid = trim((string)($s['proof_video_' . $i] ?? ''));
-    if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') {
+    $src = hpl_media_url((string)($s['proof_video_' . $i] ?? ''));
+    if ($src === '') {
         continue;
     }
-    $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t';
     $tyVideos[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
 }
 
@@ -112,7 +111,7 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
 <?php if ($tyVideo !== ''): ?>
         <div class="ty-video">
           <video controls playsinline preload="metadata">
-            <source src="<?= h($tyVideo) ?>" type="video/mp4">
+            <source src="<?= h($tyVideo) ?>" type="<?= h(hpl_media_type($tyVideo)) ?>">
             Your browser can't play this video.
           </video>
         </div>
@@ -158,7 +157,7 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
 <?php foreach ($tyVideos as $v): ?>
         <figure>
           <video muted loop playsinline preload="none" data-ty-video>
-            <source src="<?= h($v['src']) ?>" type="video/mp4">
+            <source src="<?= h($v['src']) ?>" type="<?= h(hpl_media_type($v['src'])) ?>">
           </video>
 <?php if ($v['caption'] !== ''): ?>
           <figcaption><?= h($v['caption']) ?></figcaption>
