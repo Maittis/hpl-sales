@@ -61,6 +61,7 @@ function hpl_defaults(): array
         'form_event' => 'HPL Gold Detector Consultation',
         'form_desc' => 'Excited to speak with you about your ground, your budget, and the gold you want to find.',
         'form_sub' => 'Book a call below to see if you are a fit.',
+        'form_default_cc' => '260',
         'form_submit' => 'Book my call',
         'final_h' => 'Ready to stop guessing and start finding?',
         'final_sub' => 'Tell us about your ground. We will help you choose the right detector.',

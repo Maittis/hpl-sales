@@ -6,7 +6,7 @@ $leadError = '';
 $leadName = $_POST['lead_name'] ?? '';
 $leadFirst = $_POST['lead_first'] ?? '';
 $leadLast = $_POST['lead_last'] ?? '';
-$leadCc = $_POST['lead_cc'] ?? '234';
+$leadCc = $_POST['lead_cc'] ?? (string)($s['form_default_cc'] ?? '260');
 $leadPhone = $_POST['lead_phone'] ?? '';
 $leadKnowledge = $_POST['lead_knowledge'] ?? '';
 if (isset($_POST['lead_submit'])) {
@@ -51,8 +51,97 @@ function hpl_countries(): array
         '27' => ['label' => '+27', 'name' => 'South Africa', 'flag' => 'za'],
         '255' => ['label' => '+255', 'name' => 'Tanzania', 'flag' => 'tz'],
         '256' => ['label' => '+256', 'name' => 'Uganda', 'flag' => 'ug'],
+        '254' => ['label' => '+254', 'name' => 'Kenya', 'flag' => 'ke'],
+        '233' => ['label' => '+233', 'name' => 'Ghana', 'flag' => 'gh'],
+        '250' => ['label' => '+250', 'name' => 'Rwanda', 'flag' => 'rw'],
+        '267' => ['label' => '+267', 'name' => 'Botswana', 'flag' => 'bw'],
+        '264' => ['label' => '+264', 'name' => 'Namibia', 'flag' => 'na'],
+        '258' => ['label' => '+258', 'name' => 'Mozambique', 'flag' => 'mz'],
+        '265' => ['label' => '+265', 'name' => 'Malawi', 'flag' => 'mw'],
+        '268' => ['label' => '+268', 'name' => 'Eswatini', 'flag' => 'sz'],
+        '266' => ['label' => '+266', 'name' => 'Lesotho', 'flag' => 'ls'],
+        '20' => ['label' => '+20', 'name' => 'Egypt', 'flag' => 'eg'],
+        '212' => ['label' => '+212', 'name' => 'Morocco', 'flag' => 'ma'],
+        '216' => ['label' => '+216', 'name' => 'Tunisia', 'flag' => 'tn'],
+        '213' => ['label' => '+213', 'name' => 'Algeria', 'flag' => 'dz'],
+        '244' => ['label' => '+244', 'name' => 'Angola', 'flag' => 'ao'],
+        '243' => ['label' => '+243', 'name' => 'DR Congo', 'flag' => 'cd'],
+        '225' => ['label' => '+225', 'name' => 'Cote d Ivoire', 'flag' => 'ci'],
+        '221' => ['label' => '+221', 'name' => 'Senegal', 'flag' => 'sn'],
+        '223' => ['label' => '+223', 'name' => 'Mali', 'flag' => 'ml'],
+        '235' => ['label' => '+235', 'name' => 'Chad', 'flag' => 'td'],
+        '237' => ['label' => '+237', 'name' => 'Cameroon', 'flag' => 'cm'],
+        '241' => ['label' => '+241', 'name' => 'Gabon', 'flag' => 'ga'],
+        '242' => ['label' => '+242', 'name' => 'Republic of the Congo', 'flag' => 'cg'],
+        '251' => ['label' => '+251', 'name' => 'Ethiopia', 'flag' => 'et'],
+        '211' => ['label' => '+211', 'name' => 'South Sudan', 'flag' => 'ss'],
+        '252' => ['label' => '+252', 'name' => 'Somalia', 'flag' => 'so'],
+        '220' => ['label' => '+220', 'name' => 'Gambia', 'flag' => 'gm'],
+        '232' => ['label' => '+232', 'name' => 'Sierra Leone', 'flag' => 'sl'],
+        '226' => ['label' => '+226', 'name' => 'Burkina Faso', 'flag' => 'bf'],
+        '227' => ['label' => '+227', 'name' => 'Niger', 'flag' => 'ne'],
+        '222' => ['label' => '+222', 'name' => 'Mauritania', 'flag' => 'mr'],
+        '261' => ['label' => '+261', 'name' => 'Madagascar', 'flag' => 'mg'],
+        '230' => ['label' => '+230', 'name' => 'Mauritius', 'flag' => 'mu'],
+        '248' => ['label' => '+248', 'name' => 'Seychelles', 'flag' => 'sc'],
+        '245' => ['label' => '+245', 'name' => 'Guinea-Bissau', 'flag' => 'gw'],
         '44' => ['label' => '+44', 'name' => 'United Kingdom', 'flag' => 'gb'],
+        '353' => ['label' => '+353', 'name' => 'Ireland', 'flag' => 'ie'],
+        '49' => ['label' => '+49', 'name' => 'Germany', 'flag' => 'de'],
+        '33' => ['label' => '+33', 'name' => 'France', 'flag' => 'fr'],
+        '34' => ['label' => '+34', 'name' => 'Spain', 'flag' => 'es'],
+        '39' => ['label' => '+39', 'name' => 'Italy', 'flag' => 'it'],
+        '351' => ['label' => '+351', 'name' => 'Portugal', 'flag' => 'pt'],
+        '31' => ['label' => '+31', 'name' => 'Netherlands', 'flag' => 'nl'],
+        '32' => ['label' => '+32', 'name' => 'Belgium', 'flag' => 'be'],
+        '41' => ['label' => '+41', 'name' => 'Switzerland', 'flag' => 'ch'],
+        '43' => ['label' => '+43', 'name' => 'Austria', 'flag' => 'at'],
+        '46' => ['label' => '+46', 'name' => 'Sweden', 'flag' => 'se'],
+        '47' => ['label' => '+47', 'name' => 'Norway', 'flag' => 'no'],
+        '45' => ['label' => '+45', 'name' => 'Denmark', 'flag' => 'dk'],
+        '358' => ['label' => '+358', 'name' => 'Finland', 'flag' => 'fi'],
+        '48' => ['label' => '+48', 'name' => 'Poland', 'flag' => 'pl'],
+        '7' => ['label' => '+7', 'name' => 'Russia', 'flag' => 'ru'],
+        '380' => ['label' => '+380', 'name' => 'Ukraine', 'flag' => 'ua'],
+        '90' => ['label' => '+90', 'name' => 'Turkey', 'flag' => 'tr'],
+        '971' => ['label' => '+971', 'name' => 'UAE', 'flag' => 'ae'],
+        '966' => ['label' => '+966', 'name' => 'Saudi Arabia', 'flag' => 'sa'],
+        '974' => ['label' => '+974', 'name' => 'Qatar', 'flag' => 'qa'],
+        '965' => ['label' => '+965', 'name' => 'Kuwait', 'flag' => 'kw'],
+        '968' => ['label' => '+968', 'name' => 'Oman', 'flag' => 'om'],
+        '973' => ['label' => '+973', 'name' => 'Bahrain', 'flag' => 'bh'],
+        '962' => ['label' => '+962', 'name' => 'Jordan', 'flag' => 'jo'],
+        '972' => ['label' => '+972', 'name' => 'Israel', 'flag' => 'il'],
+        '961' => ['label' => '+961', 'name' => 'Lebanon', 'flag' => 'lb'],
+        '91' => ['label' => '+91', 'name' => 'India', 'flag' => 'in'],
+        '92' => ['label' => '+92', 'name' => 'Pakistan', 'flag' => 'pk'],
+        '880' => ['label' => '+880', 'name' => 'Bangladesh', 'flag' => 'bd'],
+        '977' => ['label' => '+977', 'name' => 'Nepal', 'flag' => 'np'],
+        '94' => ['label' => '+94', 'name' => 'Sri Lanka', 'flag' => 'lk'],
+        '86' => ['label' => '+86', 'name' => 'China', 'flag' => 'cn'],
+        '852' => ['label' => '+852', 'name' => 'Hong Kong', 'flag' => 'hk'],
+        '81' => ['label' => '+81', 'name' => 'Japan', 'flag' => 'jp'],
+        '82' => ['label' => '+82', 'name' => 'South Korea', 'flag' => 'kr'],
+        '60' => ['label' => '+60', 'name' => 'Malaysia', 'flag' => 'my'],
+        '65' => ['label' => '+65', 'name' => 'Singapore', 'flag' => 'sg'],
+        '66' => ['label' => '+66', 'name' => 'Thailand', 'flag' => 'th'],
+        '84' => ['label' => '+84', 'name' => 'Vietnam', 'flag' => 'vn'],
+        '62' => ['label' => '+62', 'name' => 'Indonesia', 'flag' => 'id'],
+        '63' => ['label' => '+63', 'name' => 'Philippines', 'flag' => 'ph'],
+        '61' => ['label' => '+61', 'name' => 'Australia', 'flag' => 'au'],
+        '64' => ['label' => '+64', 'name' => 'New Zealand', 'flag' => 'nz'],
         '1' => ['label' => '+1', 'name' => 'United States / Canada', 'flag' => 'us'],
+        '52' => ['label' => '+52', 'name' => 'Mexico', 'flag' => 'mx'],
+        '55' => ['label' => '+55', 'name' => 'Brazil', 'flag' => 'br'],
+        '54' => ['label' => '+54', 'name' => 'Argentina', 'flag' => 'ar'],
+        '57' => ['label' => '+57', 'name' => 'Colombia', 'flag' => 'co'],
+        '56' => ['label' => '+56', 'name' => 'Chile', 'flag' => 'cl'],
+        '51' => ['label' => '+51', 'name' => 'Peru', 'flag' => 'pe'],
+        '58' => ['label' => '+58', 'name' => 'Venezuela', 'flag' => 've'],
+        '593' => ['label' => '+593', 'name' => 'Ecuador', 'flag' => 'ec'],
+        '591' => ['label' => '+591', 'name' => 'Bolivia', 'flag' => 'bo'],
+        '598' => ['label' => '+598', 'name' => 'Uruguay', 'flag' => 'uy'],
+        '595' => ['label' => '+595', 'name' => 'Paraguay', 'flag' => 'py'],
     ];
 }
 
@@ -529,9 +618,55 @@ function art_block(string $file, string $fallbackClass = ''): string
           var o = cc.options[cc.selectedIndex];
           if (o && o.getAttribute('data-flag')) flag.src = 'img/flags/' + o.getAttribute('data-flag') + '.png';
         };
-        cc.addEventListener('change', syncFlag);
+        cc.addEventListener('change', function () { userPicked = true; syncFlag(); });
         syncFlag();
       }
+
+      var userPicked = false;
+      cc.addEventListener('pointerdown', function () { userPicked = true; });
+
+      (function detectCountry() {
+        if (userPicked) return;
+        var providers = ['https://ipwho.is/', 'https://ipapi.co/json/'];
+        var attempt = function (i) {
+          if (i >= providers.length || userPicked) return;
+          var ctrl = new AbortController();
+          var timer = setTimeout(function () { ctrl.abort(); }, 2600);
+          fetch(providers[i], { mode: 'cors', signal: ctrl.signal })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+              clearTimeout(timer);
+              if (userPicked) return;
+              var code = d && (d.country_calling_code || d.calling_code) ? String(d.country_calling_code || d.calling_code).replace(/\D/g, '') : '';
+              if (!code) return attempt(i + 1);
+              var rawCountry = d && d.country ? String(d.country) : '';
+              var iso = (d && d.country_code ? String(d.country_code) : (rawCountry.length === 2 ? rawCountry : '')).toLowerCase();
+              var cname = d && d.country_name ? String(d.country_name) : (rawCountry.length > 2 ? rawCountry : '');
+              var match = null;
+              for (var k = 0; k < cc.options.length; k++) {
+                if (cc.options[k].value === code) { match = cc.options[k]; break; }
+              }
+              if (!match) {
+                match = document.createElement('option');
+                match.value = code;
+                match.textContent = '+' + code + (cname ? ' ' + cname : '');
+                match.setAttribute('data-flag', iso || 'un');
+                cc.insertBefore(match, cc.firstChild);
+              } else if (cc.firstChild !== match) {
+                cc.insertBefore(match, cc.firstChild);
+              }
+              cc.value = code;
+              if (cc && flag) {
+                var f = match.getAttribute('data-flag');
+                flag.onerror = function () { flag.src = 'https://flagcdn.com/w20/' + f + '.png'; flag.onerror = null; };
+                flag.src = 'img/flags/' + f + '.png';
+              }
+              trackEvent('country_detected', { cc: code });
+            })
+            .catch(function () { clearTimeout(timer); attempt(i + 1); });
+        };
+        if (window.fetch) attempt(0);
+      })();
 
       function show(n) {
         for (var i = 0; i < steps.length; i++) {

@@ -55,6 +55,7 @@ $fields = [
     ['key' => 'form_desc',         'label' => 'Intro line',                 'type' => 'textarea', 'group' => 'Booking form'],
     ['key' => 'form_sub',          'label' => 'Sub-line',                   'type' => 'text',     'group' => 'Booking form'],
     ['key' => 'form_submit',       'label' => 'Final button text',          'type' => 'text',     'group' => 'Booking form'],
+    ['key' => 'form_default_cc',    'label' => 'Fallback country code',      'type' => 'text',     'group' => 'Booking form'],
     ['key' => 'final_h',           'label' => 'Heading',                    'type' => 'text',     'group' => 'Final CTA'],
     ['key' => 'final_sub',         'label' => 'Subtext',                    'type' => 'textarea', 'group' => 'Final CTA'],
     ['key' => 'cta_email',         'label' => 'Contact email (CTA mailto)', 'type' => 'text',     'group' => 'Final CTA'],
