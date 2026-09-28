@@ -475,9 +475,14 @@ function art_block(string $file, string $fallbackClass = ''): string
         dots.forEach(function (d, n) { d.classList.toggle('on', n === i); });
       }
 
-      function goTo(i) {
+      function goTo(i, instant) {
+        var raw = i;
         var n = ((i % cards.length) + cards.length) % cards.length;
-        track.scrollTo({ left: cards[n].offsetLeft - (track.clientWidth - cards[n].offsetWidth) / 2, behavior: 'smooth' });
+        var wrapped = (n !== raw);
+        track.scrollTo({
+          left: cards[n].offsetLeft - (track.clientWidth - cards[n].offsetWidth) / 2,
+          behavior: (instant || wrapped) ? 'auto' : 'smooth'
+        });
       }
 
       var last = centerIndex();
@@ -498,14 +503,20 @@ function art_block(string $file, string $fallbackClass = ''): string
           tick = false;
           var i = centerIndex();
           if (i === last) return;
-          var atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
-          var atStart = track.scrollLeft <= 4;
-          if (atEnd && i === cards.length - 1) { goTo(0); last = 0; return; }
-          if (atStart && i === 0 && last === cards.length - 1) { goTo(cards.length - 1); last = cards.length - 1; return; }
           last = i;
           playActive(i);
         });
       }, { passive: true });
+
+      var wheelLock = false;
+      track.addEventListener('wheel', function (e) {
+        if (Math.abs(e.deltaY) < 10) return;
+        e.preventDefault();
+        if (wheelLock) return;
+        wheelLock = true;
+        window.setTimeout(function () { wheelLock = false; }, 480);
+        goTo(last + (e.deltaY > 0 ? 1 : -1));
+      }, { passive: false });
 
       track.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowRight') { e.preventDefault(); goTo(last + 1); }
