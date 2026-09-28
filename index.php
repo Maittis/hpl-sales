@@ -96,14 +96,14 @@ function art_block(string $file, string $fallbackClass = ''): string
     .wash { background:var(--wash); }
     .proof { text-align:center; }
     .proof h2 { margin-bottom:20px; }
-    .proof-stage { aspect-ratio:4/5; background:#000; box-shadow:0 14px 28px rgba(9,15,36,.16); margin:0 auto; max-height:52vh; max-width:420px; overflow:hidden; position:relative; width:min(420px,88vw); }
+    .proof-stage { aspect-ratio:4/5; background:#000; box-shadow:0 14px 28px rgba(9,15,36,.16); margin:0 auto; max-height:52vh; max-width:520px; overflow:hidden; position:relative; width:min(520px,92vw); }
     .proof-slide { inset:0; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .45s ease, transform .55s ease; }
     .proof-slide.on { opacity:1; transform:none; z-index:2; }
     .proof-slide video { display:block; height:100%; object-fit:cover; width:100%; }
     .proof-slide figcaption { background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:14px; font-weight:700; left:0; padding:38px 14px 14px; position:absolute; right:0; text-align:left; }
     .proof-cue { align-items:center; animation:nudge 1.8s ease-in-out infinite; background:rgba(17,26,56,.85); border:0; border-radius:50%; bottom:16px; color:#fff; cursor:pointer; display:flex; font-size:24px; height:44px; justify-content:center; position:absolute; right:16px; transition:opacity .3s ease; width:44px; z-index:4; }
     .proof-stage-wrap.moved .proof-cue { opacity:0; pointer-events:none; }
-    .proof-stage-wrap { margin:0 auto; max-width:460px; position:relative; }
+    .proof-stage-wrap { margin:0 auto; max-width:560px; position:relative; }
     @keyframes nudge { 0%,100% { transform:translateX(0); } 50% { transform:translateX(6px); } }
     .proof-empty { background:var(--navy); color:#fff; font-size:14px; margin:0 auto; max-width:420px; padding:60px 20px; }
     .proof-hint { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:16px 0 0; text-transform:uppercase; }
