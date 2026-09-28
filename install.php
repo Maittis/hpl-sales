@@ -33,9 +33,9 @@ try {
 
     $newCols = [
         'email' => "VARCHAR(160) NULL DEFAULT NULL",
-        'revenue' => "VARCHAR(80) NOT NULL DEFAULT ''",
-        'travel' => "VARCHAR(80) NOT NULL DEFAULT ''",
-        'tickets' => "VARCHAR(80) NOT NULL DEFAULT ''",
+        'terrain' => "VARCHAR(80) NOT NULL DEFAULT ''",
+        'target' => "VARCHAR(80) NOT NULL DEFAULT ''",
+        'timing' => "VARCHAR(80) NOT NULL DEFAULT ''",
     ];
     foreach ($newCols as $col => $definition) {
         $exists = $connection->query("SELECT COUNT(*) AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" . $connection->real_escape_string(DB_NAME) . "' AND TABLE_NAME = 'leads' AND COLUMN_NAME = '" . $connection->real_escape_string($col) . "'");

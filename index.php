@@ -10,9 +10,9 @@ $leadCc = $_POST['lead_cc'] ?? (string)($s['form_default_cc'] ?? '260');
 $leadPhone = $_POST['lead_phone'] ?? '';
 $leadKnowledge = $_POST['lead_knowledge'] ?? '';
 $leadEmail = trim((string)($_POST['lead_email'] ?? ''));
-$leadRevenue = trim((string)($_POST['lead_revenue'] ?? ''));
-$leadTravel = trim((string)($_POST['lead_travel'] ?? ''));
-$leadTickets = trim((string)($_POST['lead_tickets'] ?? ''));
+$leadTerrain = trim((string)($_POST['lead_terrain'] ?? ''));
+$leadTarget = trim((string)($_POST['lead_target'] ?? ''));
+$leadTiming = trim((string)($_POST['lead_timing'] ?? ''));
 if (isset($_POST['lead_submit'])) {
     $connection = db();
     $first = trim((string)$leadFirst);
@@ -30,13 +30,13 @@ if (isset($_POST['lead_submit'])) {
         $leadError = 'Could not reach the server database. Please try again later.';
     } elseif ($name === '' || $digits === '') {
         $leadError = 'Please fill in your name and phone number.';
-    } elseif ($leadRevenue === '' || $leadTravel === '') {
+    } elseif ($leadTerrain === '' || $leadTarget === '') {
         $leadError = 'Please answer the two questions before continuing.';
     } else {
         try {
-            $stmt = $connection->prepare('INSERT INTO leads (name, phone, email, revenue, travel, tickets, knowledge, wants_to_learn) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt = $connection->prepare('INSERT INTO leads (name, phone, email, terrain, target, timing, knowledge, wants_to_learn) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
             $emailVal = $leadEmail !== '' ? $leadEmail : null;
-            $stmt->bind_param('ssssssss', $name, $phone, $emailVal, $leadRevenue, $leadTravel, $leadTickets, $knowledge, $learn);
+            $stmt->bind_param('ssssssss', $name, $phone, $emailVal, $leadTerrain, $leadTarget, $leadTiming, $knowledge, $learn);
             $stmt->execute();
         } catch (mysqli_sql_exception $e) {
             $leadError = 'Could not save your details right now. Please try again in a moment.';
@@ -155,9 +155,9 @@ function hpl_countries(): array
 function hpl_options(string $group): array
 {
     $map = [
-        'revenue' => ['Under $10k', '$10k - $50k', '$50k - $100k', '$100k - $500k', '$500k+', 'Prefer not to say'],
-        'travel' => ['Yes, I can travel', 'Maybe, depending on the dates', 'No, I cannot travel'],
-        'tickets' => ['Yes, that works for me', 'I would need to think about it', 'No'],
+        'terrain' => ['Old mine dumps and historic workings', 'Rivers, streams and riverbanks', 'Beach and shallow surf', 'Rocky desert and dry lake beds', 'Forest, farmland and rocky slopes', 'I am still deciding'],
+        'target' => ['Fine gold and small nuggets', 'Placer gold in streams and creeks', 'Coins and relics', 'Lost jewellery', 'Whatever the machine finds best', 'Not sure yet'],
+        'timing' => ['As soon as I can', 'Within the next few months', 'Later this year', 'Just researching for now'],
     ];
     return isset($map[$group]) ? $map[$group] : [];
 }
@@ -493,27 +493,27 @@ function art_block(string $file, string $fallbackClass = ''): string
             <label>Email address <span class="opt">optional</span>
               <input type="email" name="lead_email" id="leadEmail" value="<?= h($leadEmail) ?>" placeholder="you@example.com" autocomplete="email">
             </label>
-            <label><?= h($s['form_q_revenue']) ?> *
-              <select name="lead_revenue" id="leadRevenue">
+            <label><?= h($s['form_q_terrain']) ?> *
+              <select name="lead_terrain" id="leadTerrain">
                 <option value="">Select</option>
-<?php foreach (hpl_options('revenue') as $opt): ?>
-                <option value="<?= h($opt) ?>"<?= $leadRevenue === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
+<?php foreach (hpl_options('terrain') as $opt): ?>
+                <option value="<?= h($opt) ?>"<?= $leadTerrain === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
 <?php endforeach; ?>
               </select>
             </label>
-            <label><?= h($s['form_q_travel']) ?> *
-              <select name="lead_travel" id="leadTravel">
+            <label><?= h($s['form_q_target']) ?> *
+              <select name="lead_target" id="leadTarget">
                 <option value="">Select</option>
-<?php foreach (hpl_options('travel') as $opt): ?>
-                <option value="<?= h($opt) ?>"<?= $leadTravel === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
+<?php foreach (hpl_options('target') as $opt): ?>
+                <option value="<?= h($opt) ?>"<?= $leadTarget === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
 <?php endforeach; ?>
               </select>
             </label>
-            <label><?= h($s['form_q_tickets']) ?>
-              <select name="lead_tickets" id="leadTickets">
+            <label><?= h($s['form_q_timing']) ?>
+              <select name="lead_timing" id="leadTiming">
                 <option value="">Select</option>
-<?php foreach (hpl_options('tickets') as $opt): ?>
-                <option value="<?= h($opt) ?>"<?= $leadTickets === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
+<?php foreach (hpl_options('timing') as $opt): ?>
+                <option value="<?= h($opt) ?>"<?= $leadTiming === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
 <?php endforeach; ?>
               </select>
             </label>
@@ -758,8 +758,8 @@ function art_block(string $file, string $fallbackClass = ''): string
         if (!f.value.trim()) return fail('Please enter your first name.');
         if (!l.value.trim()) return fail('Please enter your last name.');
         if (p.value.replace(/\D/g, '').length < 6) return fail('Please enter a valid phone number.');
-        if (!document.getElementById('leadRevenue').value) return fail('Please select your annual revenue.');
-        if (!document.getElementById('leadTravel').value) return fail('Please answer the travel question.');
+        if (!document.getElementById('leadTerrain').value) return fail('Please choose where you will be searching.');
+        if (!document.getElementById('leadTarget').value) return fail('Please tell us what you are hoping to find.');
         show(1);
       });
 
