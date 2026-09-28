@@ -29,7 +29,7 @@ function hpl_defaults(): array
         'social_caption' => 'REAL FIELD RESULTS. REAL HPL SUPPORT.',
         'proof_layout' => 'ring',
         'proof_ring_r' => '300',
-        'proof_ring_size' => '260',
+        'proof_ring_size' => '300',
         'proof_hint_strip' => 'Scroll or swipe for the next story',
         'proof_hint' => 'Use the arrows to spin to the next story',
         'proof_video_1' => '',

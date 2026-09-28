@@ -1,202 +1,9 @@
-<?php
-require_once __DIR__ . '/config.php';
-$s = hpl_settings();
-
-$leadError = '';
-$leadName = $_POST['lead_name'] ?? '';
-$leadFirst = $_POST['lead_first'] ?? '';
-$leadLast = $_POST['lead_last'] ?? '';
-$leadCc = $_POST['lead_cc'] ?? (string)($s['form_default_cc'] ?? '260');
-$leadPhone = $_POST['lead_phone'] ?? '';
-$leadKnowledge = $_POST['lead_knowledge'] ?? '';
-$leadEmail = trim((string)($_POST['lead_email'] ?? ''));
-$leadTerrain = trim((string)($_POST['lead_terrain'] ?? ''));
-$leadTarget = trim((string)($_POST['lead_target'] ?? ''));
-$leadTiming = trim((string)($_POST['lead_timing'] ?? ''));
-if (isset($_POST['lead_submit'])) {
-    $connection = db();
-    $first = trim((string)$leadFirst);
-    $last = trim((string)$leadLast);
-    $name = trim($first . ' ' . $last);
-    if ($name === '') {
-        $name = trim((string)$leadName);
-    }
-    $cc = preg_replace('/\D/', '', (string)$leadCc);
-    $digits = preg_replace('/\D/', '', (string)$leadPhone);
-    $phone = $cc . $digits;
-    $knowledge = trim((string)$leadKnowledge);
-    $learn = ($_POST['lead_learn'] ?? '') === 'Yes' ? 'Yes' : 'No';
-    if (!$connection) {
-        $leadError = 'Could not reach the server database. Please try again later.';
-    } elseif ($name === '' || $digits === '') {
-        $leadError = 'Please fill in your name and phone number.';
-    } elseif ($leadTerrain === '' || $leadTarget === '') {
-        $leadError = 'Please answer the two questions before continuing.';
-    } else {
-        try {
-            $stmt = $connection->prepare('INSERT INTO leads (name, phone, email, terrain, target, timing, knowledge, wants_to_learn) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-            $emailVal = $leadEmail !== '' ? $leadEmail : null;
-            $stmt->bind_param('ssssssss', $name, $phone, $emailVal, $leadTerrain, $leadTarget, $leadTiming, $knowledge, $learn);
-            $stmt->execute();
-        } catch (mysqli_sql_exception $e) {
-            $leadError = 'Could not save your details right now. Please try again in a moment.';
-        }
-        if ($leadError === '') {
-            $firstOut = trim((string)$first);
-            if ($firstOut === '') {
-                $parts = explode(' ', $name);
-                $firstOut = $parts[0] ?? '';
-            }
-            header('Location: thank-you.php?name=' . rawurlencode($firstOut));
-            exit;
-        }
-    }
-}
-$done = isset($_GET['done']) ? (string)$_GET['done'] : '';
-
-function hpl_countries(): array
-{
-    return [
-        '234' => ['label' => '+234', 'name' => 'Nigeria', 'flag' => 'ng'],
-        '260' => ['label' => '+260', 'name' => 'Zambia', 'flag' => 'zm'],
-        '263' => ['label' => '+263', 'name' => 'Zimbabwe', 'flag' => 'zw'],
-        '27' => ['label' => '+27', 'name' => 'South Africa', 'flag' => 'za'],
-        '255' => ['label' => '+255', 'name' => 'Tanzania', 'flag' => 'tz'],
-        '256' => ['label' => '+256', 'name' => 'Uganda', 'flag' => 'ug'],
-        '254' => ['label' => '+254', 'name' => 'Kenya', 'flag' => 'ke'],
-        '233' => ['label' => '+233', 'name' => 'Ghana', 'flag' => 'gh'],
-        '250' => ['label' => '+250', 'name' => 'Rwanda', 'flag' => 'rw'],
-        '267' => ['label' => '+267', 'name' => 'Botswana', 'flag' => 'bw'],
-        '264' => ['label' => '+264', 'name' => 'Namibia', 'flag' => 'na'],
-        '258' => ['label' => '+258', 'name' => 'Mozambique', 'flag' => 'mz'],
-        '265' => ['label' => '+265', 'name' => 'Malawi', 'flag' => 'mw'],
-        '268' => ['label' => '+268', 'name' => 'Eswatini', 'flag' => 'sz'],
-        '266' => ['label' => '+266', 'name' => 'Lesotho', 'flag' => 'ls'],
-        '20' => ['label' => '+20', 'name' => 'Egypt', 'flag' => 'eg'],
-        '212' => ['label' => '+212', 'name' => 'Morocco', 'flag' => 'ma'],
-        '216' => ['label' => '+216', 'name' => 'Tunisia', 'flag' => 'tn'],
-        '213' => ['label' => '+213', 'name' => 'Algeria', 'flag' => 'dz'],
-        '244' => ['label' => '+244', 'name' => 'Angola', 'flag' => 'ao'],
-        '243' => ['label' => '+243', 'name' => 'DR Congo', 'flag' => 'cd'],
-        '225' => ['label' => '+225', 'name' => 'Cote d Ivoire', 'flag' => 'ci'],
-        '221' => ['label' => '+221', 'name' => 'Senegal', 'flag' => 'sn'],
-        '223' => ['label' => '+223', 'name' => 'Mali', 'flag' => 'ml'],
-        '235' => ['label' => '+235', 'name' => 'Chad', 'flag' => 'td'],
-        '237' => ['label' => '+237', 'name' => 'Cameroon', 'flag' => 'cm'],
-        '241' => ['label' => '+241', 'name' => 'Gabon', 'flag' => 'ga'],
-        '242' => ['label' => '+242', 'name' => 'Republic of the Congo', 'flag' => 'cg'],
-        '251' => ['label' => '+251', 'name' => 'Ethiopia', 'flag' => 'et'],
-        '211' => ['label' => '+211', 'name' => 'South Sudan', 'flag' => 'ss'],
-        '252' => ['label' => '+252', 'name' => 'Somalia', 'flag' => 'so'],
-        '220' => ['label' => '+220', 'name' => 'Gambia', 'flag' => 'gm'],
-        '232' => ['label' => '+232', 'name' => 'Sierra Leone', 'flag' => 'sl'],
-        '226' => ['label' => '+226', 'name' => 'Burkina Faso', 'flag' => 'bf'],
-        '227' => ['label' => '+227', 'name' => 'Niger', 'flag' => 'ne'],
-        '222' => ['label' => '+222', 'name' => 'Mauritania', 'flag' => 'mr'],
-        '261' => ['label' => '+261', 'name' => 'Madagascar', 'flag' => 'mg'],
-        '230' => ['label' => '+230', 'name' => 'Mauritius', 'flag' => 'mu'],
-        '248' => ['label' => '+248', 'name' => 'Seychelles', 'flag' => 'sc'],
-        '245' => ['label' => '+245', 'name' => 'Guinea-Bissau', 'flag' => 'gw'],
-        '44' => ['label' => '+44', 'name' => 'United Kingdom', 'flag' => 'gb'],
-        '353' => ['label' => '+353', 'name' => 'Ireland', 'flag' => 'ie'],
-        '49' => ['label' => '+49', 'name' => 'Germany', 'flag' => 'de'],
-        '33' => ['label' => '+33', 'name' => 'France', 'flag' => 'fr'],
-        '34' => ['label' => '+34', 'name' => 'Spain', 'flag' => 'es'],
-        '39' => ['label' => '+39', 'name' => 'Italy', 'flag' => 'it'],
-        '351' => ['label' => '+351', 'name' => 'Portugal', 'flag' => 'pt'],
-        '31' => ['label' => '+31', 'name' => 'Netherlands', 'flag' => 'nl'],
-        '32' => ['label' => '+32', 'name' => 'Belgium', 'flag' => 'be'],
-        '41' => ['label' => '+41', 'name' => 'Switzerland', 'flag' => 'ch'],
-        '43' => ['label' => '+43', 'name' => 'Austria', 'flag' => 'at'],
-        '46' => ['label' => '+46', 'name' => 'Sweden', 'flag' => 'se'],
-        '47' => ['label' => '+47', 'name' => 'Norway', 'flag' => 'no'],
-        '45' => ['label' => '+45', 'name' => 'Denmark', 'flag' => 'dk'],
-        '358' => ['label' => '+358', 'name' => 'Finland', 'flag' => 'fi'],
-        '48' => ['label' => '+48', 'name' => 'Poland', 'flag' => 'pl'],
-        '7' => ['label' => '+7', 'name' => 'Russia', 'flag' => 'ru'],
-        '380' => ['label' => '+380', 'name' => 'Ukraine', 'flag' => 'ua'],
-        '90' => ['label' => '+90', 'name' => 'Turkey', 'flag' => 'tr'],
-        '971' => ['label' => '+971', 'name' => 'UAE', 'flag' => 'ae'],
-        '966' => ['label' => '+966', 'name' => 'Saudi Arabia', 'flag' => 'sa'],
-        '974' => ['label' => '+974', 'name' => 'Qatar', 'flag' => 'qa'],
-        '965' => ['label' => '+965', 'name' => 'Kuwait', 'flag' => 'kw'],
-        '968' => ['label' => '+968', 'name' => 'Oman', 'flag' => 'om'],
-        '973' => ['label' => '+973', 'name' => 'Bahrain', 'flag' => 'bh'],
-        '962' => ['label' => '+962', 'name' => 'Jordan', 'flag' => 'jo'],
-        '972' => ['label' => '+972', 'name' => 'Israel', 'flag' => 'il'],
-        '961' => ['label' => '+961', 'name' => 'Lebanon', 'flag' => 'lb'],
-        '91' => ['label' => '+91', 'name' => 'India', 'flag' => 'in'],
-        '92' => ['label' => '+92', 'name' => 'Pakistan', 'flag' => 'pk'],
-        '880' => ['label' => '+880', 'name' => 'Bangladesh', 'flag' => 'bd'],
-        '977' => ['label' => '+977', 'name' => 'Nepal', 'flag' => 'np'],
-        '94' => ['label' => '+94', 'name' => 'Sri Lanka', 'flag' => 'lk'],
-        '86' => ['label' => '+86', 'name' => 'China', 'flag' => 'cn'],
-        '852' => ['label' => '+852', 'name' => 'Hong Kong', 'flag' => 'hk'],
-        '81' => ['label' => '+81', 'name' => 'Japan', 'flag' => 'jp'],
-        '82' => ['label' => '+82', 'name' => 'South Korea', 'flag' => 'kr'],
-        '60' => ['label' => '+60', 'name' => 'Malaysia', 'flag' => 'my'],
-        '65' => ['label' => '+65', 'name' => 'Singapore', 'flag' => 'sg'],
-        '66' => ['label' => '+66', 'name' => 'Thailand', 'flag' => 'th'],
-        '84' => ['label' => '+84', 'name' => 'Vietnam', 'flag' => 'vn'],
-        '62' => ['label' => '+62', 'name' => 'Indonesia', 'flag' => 'id'],
-        '63' => ['label' => '+63', 'name' => 'Philippines', 'flag' => 'ph'],
-        '61' => ['label' => '+61', 'name' => 'Australia', 'flag' => 'au'],
-        '64' => ['label' => '+64', 'name' => 'New Zealand', 'flag' => 'nz'],
-        '1' => ['label' => '+1', 'name' => 'United States / Canada', 'flag' => 'us'],
-        '52' => ['label' => '+52', 'name' => 'Mexico', 'flag' => 'mx'],
-        '55' => ['label' => '+55', 'name' => 'Brazil', 'flag' => 'br'],
-        '54' => ['label' => '+54', 'name' => 'Argentina', 'flag' => 'ar'],
-        '57' => ['label' => '+57', 'name' => 'Colombia', 'flag' => 'co'],
-        '56' => ['label' => '+56', 'name' => 'Chile', 'flag' => 'cl'],
-        '51' => ['label' => '+51', 'name' => 'Peru', 'flag' => 'pe'],
-        '58' => ['label' => '+58', 'name' => 'Venezuela', 'flag' => 've'],
-        '593' => ['label' => '+593', 'name' => 'Ecuador', 'flag' => 'ec'],
-        '591' => ['label' => '+591', 'name' => 'Bolivia', 'flag' => 'bo'],
-        '598' => ['label' => '+598', 'name' => 'Uruguay', 'flag' => 'uy'],
-        '595' => ['label' => '+595', 'name' => 'Paraguay', 'flag' => 'py'],
-    ];
-}
-
-function hpl_options(string $group): array
-{
-    $map = [
-        'terrain' => ['Old mine dumps and historic workings', 'Rivers, streams and riverbanks', 'Beach and shallow surf', 'Rocky desert and dry lake beds', 'Forest, farmland and rocky slopes', 'I am still deciding'],
-        'target' => ['Fine gold and small nuggets', 'Placer gold in streams and creeks', 'Coins and relics', 'Lost jewellery', 'Whatever the machine finds best', 'Not sure yet'],
-        'timing' => ['As soon as I can', 'Within the next few months', 'Later this year', 'Just researching for now'],
-    ];
-    return isset($map[$group]) ? $map[$group] : [];
-}
-
-function cc_flag(string $cc): string
-{
-    $all = hpl_countries();
-    return isset($all[$cc]) ? $all[$cc]['flag'] : 'zm';
-}
-
-function cc_label(string $cc): string
-{
-    $all = hpl_countries();
-    return isset($all[$cc]) ? $all[$cc]['label'] : '+' . $cc;
-}
-
-const DETECTOR_ART = '<div class="detector"><div class="handle"></div><div class="control"><div class="screen"></div><i></i></div><div class="shaft"></div><div class="coil"></div></div>';
-
-function art_block(string $file, string $fallbackClass = ''): string
-{
-    if (file_exists(__DIR__ . '/img/' . $file)) {
-        return '<img class="art-img" src="' . h('img/' . $file) . '" alt="HPL Gold Detectors" loading="lazy">';
-    }
-    if ($fallbackClass !== '') {
-        return '<span class="' . h($fallbackClass) . '">' . DETECTOR_ART . '</span>';
-    }
-    return DETECTOR_ART;
-}
-?><!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= h($s['topline']) ?></title>
+  <title>HPL Gold Detectors | Built for the serious prospector</title>
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
   <link rel="icon" type="image/png" sizes="48x48" href="img/favicon-48.png">
@@ -450,105 +257,202 @@ function art_block(string $file, string $fallbackClass = ''): string
 </head>
 <body>
   <div class="page">
-    <div class="topline"><?= h($s['topline']) ?></div>
-    <header><div class="nav"><a class="brand logo-chip" href="#top"><img class="header-logo" src="img/hpllogo.jpeg" alt="HPL Gold Detectors"></a><nav class="nav-links"><a href="#what-you-get"><?= h($s['nav_1']) ?></a><a href="#faq"><?= h($s['nav_2']) ?></a></nav><a class="nav-cta" href="#book"><?= h($s['nav_cta']) ?></a></div></header>
+    <div class="topline">HPL Gold Detectors | Built for the serious prospector</div>
+    <header><div class="nav"><a class="brand logo-chip" href="#top"><img class="header-logo" src="img/hpllogo.jpeg" alt="HPL Gold Detectors"></a><nav class="nav-links"><a href="#what-you-get">The Detectors</a><a href="#faq">FAQ</a></nav><a class="nav-cta" href="#book">Get yours now</a></div></header>
     <main id="top">
       <section class="hero">
-        <span class="live-pill"><i></i><?= h($s['live_pill']) ?></span>
-        <h1><?= h($s['hero_h1']) ?><span><?= h($s['hero_h1_span']) ?></span></h1>
-        <p class="hero-sub"><?= h($s['hero_sub']) ?></p>
-        <p class="hero-intro"><?= h($s['hero_intro']) ?></p>
-        <div class="detector-panel"><span class="panel-kicker"><?= h($s['panel_kicker']) ?></span><button class="mute-toggle" id="soundBtn" type="button">Unmute</button><video id="promoVideo" autoplay muted loop playsinline preload="metadata" poster=""><source src="https://drive.usercontent.google.com/download?id=<?= h($s['video_drive_id']) ?>&amp;export=download&amp;confirm=t" type="video/mp4"><div class="video-fallback">Your browser can't play this video. <a href="#" style="text-decoration:underline">Open the promo on Google Drive</a>.</div></video></div>
-        <p class="hero-copy"><?= h($s['hero_caption']) ?></p>
-        <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        <span class="live-pill"><i></i>New Gold Detectors — Now Shipping</span>
+        <h1>Are you leaving gold in the <span>ground?</span></h1>
+        <p class="hero-sub">Introducing our Gold Detectors — field-tested for the ground you actually search.</p>
+        <p class="hero-intro">Watch the video to see how to use it, where to search, and why this machine finds targets others miss.</p>
+        <div class="detector-panel"><span class="panel-kicker">Watch: How, where &amp; why</span><button class="mute-toggle" id="soundBtn" type="button">Unmute</button><video id="promoVideo" autoplay muted loop playsinline preload="metadata" poster=""><source src="https://drive.usercontent.google.com/download?id=YOUR_DRIVE_FILE_ID&amp;export=download&amp;confirm=t" type="video/mp4"><div class="video-fallback">Your browser can't play this video. <a href="#" style="text-decoration:underline">Open the promo on Google Drive</a>.</div></video></div>
+        <p class="hero-copy">A practical guide to choosing, setting up, and using the right detector for your ground, goals, and experience.</p>
+        <a class="button" href="#book">I&#039;M READY TO FIND GOLD</a>
       </section>
 
-      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') { continue; } $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t'; $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring') === 'strip' ? 'strip' : 'ring'; ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="video/mp4"></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?>: <?= h($item['caption']) ?>"><video muted loop playsinline preload="metadata" data-ring-video><source src="<?= h($item['src']) ?>" type="video/mp4"></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <section class="section center wash proof"><div class="section-label">What detectorists are saying:</div><h2>Real Results</h2><div class="ring-wrap" id="ringWrap" style="--ring-r:300px;--ring-size:300px"><div class="ring" id="ring"><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story 1: Sam K. — found 3 nuggets on Sunday"><video muted loop playsinline preload="metadata" data-ring-video><source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4"></video><figcaption>Sam K. — found 3 nuggets on Sunday</figcaption></figure><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story 2: John T. — first gold in 2 weeks"><video muted loop playsinline preload="metadata" data-ring-video><source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" type="video/mp4"></video><figcaption>John T. — first gold in 2 weeks</figcaption></figure><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story 3: Peter M. — beach hunting win"><video muted loop playsinline preload="metadata" data-ring-video><source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" type="video/mp4"></video><figcaption>Peter M. — beach hunting win</figcaption></figure><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story 4: Luka B. — relics near old camp"><video muted loop playsinline preload="metadata" data-ring-video><source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" type="video/mp4"></video><figcaption>Luka B. — relics near old camp</figcaption></figure><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story 5: Ana R. — river washout success"><video muted loop playsinline preload="metadata" data-ring-video><source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" type="video/mp4"></video><figcaption>Ana R. — river washout success</figcaption></figure></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint">Use the arrows to spin to the next story</p><div class="ring-nav"><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><p class="proof-caption">REAL FIELD RESULTS. REAL HPL SUPPORT.</p></section>
 
-      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
+      <section class="section center slides"><div class="section-label">More field stories:</div><h2>From the Field</h2><div class="slides-stage"><div class="slides-frame" id="slidesFrame">                  <img class="on" src="img/slide-1.jpg" alt="Sunday nugget find on an old mine dump" data-caption="Sunday nugget find on an old mine dump" loading="eager">                  <img class="" src="img/slide-2.jpg" alt="First gold in under two weeks" data-caption="First gold in under two weeks" loading="lazy">                  <img class="" src="img/slide-3.jpg" alt="Beach hunt win after three days" data-caption="Beach hunt win after three days" loading="lazy">                  <img class="" src="img/slide-4.jpg" alt="Relics beside an abandoned camp" data-caption="Relics beside an abandoned camp" loading="lazy">                  <img class="" src="img/slide-5.jpg" alt="River washout success" data-caption="River washout success" loading="lazy">                  <img class="" src="img/slide-6.jpg" alt="Vintage coins found in 20 minutes" data-caption="Vintage coins found in 20 minutes" loading="lazy"><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div></section>
 
-      <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><?= art_block('benefit-1.jpg') ?></div><h3><?= h($s['b1_title']) ?></h3><p><?= h($s['b1_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-2.jpg') ?></div><h3><?= h($s['b2_title']) ?></h3><p><?= h($s['b2_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-3.jpg') ?></div><h3><?= h($s['b3_title']) ?></h3><p><?= h($s['b3_desc']) ?></p></article></div></div></section>
+      <section id="what-you-get"><div class="benefits-band"><h2>What you get with every Gold Detector:</h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><img class="art-img" src="img/benefit-1.jpg" alt="HPL Gold Detectors" loading="lazy"></div><h3>#1: The Gold Detector</h3><p>A precision-tuned gold detector with the depth and discrimination to lock onto gold and ignore hot ground.</p></article><article class="benefit"><div class="benefit-art"><img class="art-img" src="img/benefit-2.jpg" alt="HPL Gold Detectors" loading="lazy"></div><h3>#2: Complete Field Kit</h3><p>Ships ready to swing — coil, headphones, batteries, carry bag, and a quick-start setup guide.</p></article><article class="benefit"><div class="benefit-art"><img class="art-img" src="img/benefit-3.jpg" alt="HPL Gold Detectors" loading="lazy"></div><h3>#3: How-Where-Why Playbook</h3><p>Learn how to set up, where to search for gold, and why the settings matter — with lifetime support.</p></article></div></div></section>
 
-      <div class="spaced-cta"><a class="button" href="#book"><?= h($s['cta_text']) ?></a></div>
+      <div class="spaced-cta"><a class="button" href="#book">I&#039;M READY TO FIND GOLD</a></div>
 
       <section class="section" id="faq"><div class="accordions">
-<?php for ($i = 1; $i <= 4; $i++) { ?>
-<details<?php if ($i === 1) { ?> open<?php } ?>><summary><?= h($s['faq' . $i . '_q']) ?></summary><?php foreach (preg_split('/\r\n|\r|\n/', $s['faq' . $i . '_a']) as $paragraph) { if (trim($paragraph) !== '') { ?><p><?= h($paragraph) ?></p><?php } } ?></details>
-<?php } ?>
+<details open><summary>How does a gold detector find gold?</summary><p>It sends a signal into the ground and reads what comes back.</p><p>Most machines chase every bump and tone — our gold detectors only flag targets worth digging, so they stay silent on junk and sing on gold, even in highly mineralized soil.</p><p>The video above walks you through exactly how it works, how to set it up, and what the signals mean.</p></details>
+<details><summary>Where can I use it?</summary><p>Gold fields, rivers and washouts, beaches, old campsites, relic ground, and park sites.</p><p>Our gold detectors ship tuned for the ground you hunt most, with presets you can switch in seconds.</p><p>If your ground type is unusual, message us and we&#039;ll confirm whether it&#039;s a fit before you order.</p></details>
+<details><summary>Why is it better than a cheap detector?</summary><p>Depth and discrimination.</p><p>Cheap machines find surface metal and dig trash. Our gold detectors push deeper, separate gold from hot rock, and pair with our how-where-why playbook so you stop wasting days on empty ground.</p><p>If your current detector hasn&#039;t found a real target yet, that&#039;s exactly who we built this for.</p></details>
+<details><summary>How much does it cost and how fast does it ship?</summary><p>Choose your package at checkout — every package includes the complete field kit.</p><p>We ship with tracking, and delivery typically lands within 5-10 business days depending on your location.</p><p>If the free content has not already paid for itself, don&#039;t buy it. If it has, this machine will pay for itself fast.</p></details>
       </div></section>
 
-      <div class="spaced-cta"><a class="button" href="#book"><?= h($s['cta_text']) ?></a></div>
+      <div class="spaced-cta"><a class="button" href="#book">I&#039;M READY TO FIND GOLD</a></div>
       <section class="final" id="book">
-        <h2><?= h($s['final_h']) ?></h2>
-        <p><?= h($s['final_sub']) ?></p>
-<?php if ($done === '1'): ?>
-        <div class="thankyou"><h3>You're on the list!</h3><p>Thanks, <?= h($leadName) ?>. We'll reach out within one business day to schedule your gold-detection assessment.</p></div>
-<?php else: ?>
-<?php if ($leadError !== ''): ?><div class="form-error"><?= h($leadError) ?></div><?php endif; ?>
+        <h2>Ready to stop guessing and start finding?</h2>
+        <p>Tell us about your ground. We will help you choose the right detector.</p>
         <form class="lead-form" action="#book" method="post" novalidate id="leadForm">
           <input type="hidden" name="lead_submit" value="1">
           <div class="form-intro">
-            <p class="form-eyebrow"><?= h($s['form_eyebrow']) ?></p>
-            <p class="form-title"><?= h($s['form_title']) ?></p>
-            <p class="form-event"><?= h($s['form_event']) ?></p>
-            <p class="form-desc"><?= h($s['form_desc']) ?></p>
-            <p class="form-sub"><?= h($s['form_sub']) ?></p>
+            <p class="form-eyebrow">Fill out the form</p>
+            <p class="form-title">Book your event</p>
+            <p class="form-event">HPL Gold Detector Consultation</p>
+            <p class="form-desc">Excited to speak with you about your ground, your budget, and the gold you want to find.</p>
+            <p class="form-sub">Book a call below to see if you are a fit.</p>
           </div>
           <p class="form-msg err" id="formMsg"></p>
           <div class="form-step" data-step="1">
             <div class="field-row">
               <label>First name *
-                <input type="text" name="lead_first" id="leadFirst" value="<?= h($leadFirst) ?>" autocomplete="given-name">
+                <input type="text" name="lead_first" id="leadFirst" value="" autocomplete="given-name">
               </label>
               <label>Last name *
-                <input type="text" name="lead_last" id="leadLast" value="<?= h($leadLast) ?>" autocomplete="family-name">
+                <input type="text" name="lead_last" id="leadLast" value="" autocomplete="family-name">
               </label>
             </div>
             <label>Phone number *
               <span class="phone-row">
                 <span class="cc-wrap">
-                  <span class="cc-label"><img class="cc-flag" id="ccFlag" src="img/flags/<?= h(cc_flag((string)$leadCc)) ?>.png" alt=""><span class="cc-text" id="ccText"><?= h(cc_label((string)$leadCc)) ?></span></span>
+                  <span class="cc-label"><img class="cc-flag" id="ccFlag" src="img/flags/zm.png" alt=""><span class="cc-text" id="ccText">+260</span></span>
                   <select name="lead_cc" id="leadCc" aria-label="Country code">
-<?php foreach (hpl_countries() as $ccode => $cinfo): ?>
-                    <option value="<?= h((string)$ccode) ?>" data-flag="<?= h($cinfo['flag']) ?>" title="<?= h($cinfo['name']) ?>"<?= (string)$leadCc === (string)$ccode ? ' selected' : '' ?>><?= h($cinfo['label']) ?></option>
-<?php endforeach; ?>
+                    <option value="234" data-flag="ng" title="Nigeria">+234</option>
+                    <option value="260" data-flag="zm" title="Zambia" selected>+260</option>
+                    <option value="263" data-flag="zw" title="Zimbabwe">+263</option>
+                    <option value="27" data-flag="za" title="South Africa">+27</option>
+                    <option value="255" data-flag="tz" title="Tanzania">+255</option>
+                    <option value="256" data-flag="ug" title="Uganda">+256</option>
+                    <option value="254" data-flag="ke" title="Kenya">+254</option>
+                    <option value="233" data-flag="gh" title="Ghana">+233</option>
+                    <option value="250" data-flag="rw" title="Rwanda">+250</option>
+                    <option value="267" data-flag="bw" title="Botswana">+267</option>
+                    <option value="264" data-flag="na" title="Namibia">+264</option>
+                    <option value="258" data-flag="mz" title="Mozambique">+258</option>
+                    <option value="265" data-flag="mw" title="Malawi">+265</option>
+                    <option value="268" data-flag="sz" title="Eswatini">+268</option>
+                    <option value="266" data-flag="ls" title="Lesotho">+266</option>
+                    <option value="20" data-flag="eg" title="Egypt">+20</option>
+                    <option value="212" data-flag="ma" title="Morocco">+212</option>
+                    <option value="216" data-flag="tn" title="Tunisia">+216</option>
+                    <option value="213" data-flag="dz" title="Algeria">+213</option>
+                    <option value="244" data-flag="ao" title="Angola">+244</option>
+                    <option value="243" data-flag="cd" title="DR Congo">+243</option>
+                    <option value="225" data-flag="ci" title="Cote d Ivoire">+225</option>
+                    <option value="221" data-flag="sn" title="Senegal">+221</option>
+                    <option value="223" data-flag="ml" title="Mali">+223</option>
+                    <option value="235" data-flag="td" title="Chad">+235</option>
+                    <option value="237" data-flag="cm" title="Cameroon">+237</option>
+                    <option value="241" data-flag="ga" title="Gabon">+241</option>
+                    <option value="242" data-flag="cg" title="Republic of the Congo">+242</option>
+                    <option value="251" data-flag="et" title="Ethiopia">+251</option>
+                    <option value="211" data-flag="ss" title="South Sudan">+211</option>
+                    <option value="252" data-flag="so" title="Somalia">+252</option>
+                    <option value="220" data-flag="gm" title="Gambia">+220</option>
+                    <option value="232" data-flag="sl" title="Sierra Leone">+232</option>
+                    <option value="226" data-flag="bf" title="Burkina Faso">+226</option>
+                    <option value="227" data-flag="ne" title="Niger">+227</option>
+                    <option value="222" data-flag="mr" title="Mauritania">+222</option>
+                    <option value="261" data-flag="mg" title="Madagascar">+261</option>
+                    <option value="230" data-flag="mu" title="Mauritius">+230</option>
+                    <option value="248" data-flag="sc" title="Seychelles">+248</option>
+                    <option value="245" data-flag="gw" title="Guinea-Bissau">+245</option>
+                    <option value="44" data-flag="gb" title="United Kingdom">+44</option>
+                    <option value="353" data-flag="ie" title="Ireland">+353</option>
+                    <option value="49" data-flag="de" title="Germany">+49</option>
+                    <option value="33" data-flag="fr" title="France">+33</option>
+                    <option value="34" data-flag="es" title="Spain">+34</option>
+                    <option value="39" data-flag="it" title="Italy">+39</option>
+                    <option value="351" data-flag="pt" title="Portugal">+351</option>
+                    <option value="31" data-flag="nl" title="Netherlands">+31</option>
+                    <option value="32" data-flag="be" title="Belgium">+32</option>
+                    <option value="41" data-flag="ch" title="Switzerland">+41</option>
+                    <option value="43" data-flag="at" title="Austria">+43</option>
+                    <option value="46" data-flag="se" title="Sweden">+46</option>
+                    <option value="47" data-flag="no" title="Norway">+47</option>
+                    <option value="45" data-flag="dk" title="Denmark">+45</option>
+                    <option value="358" data-flag="fi" title="Finland">+358</option>
+                    <option value="48" data-flag="pl" title="Poland">+48</option>
+                    <option value="7" data-flag="ru" title="Russia">+7</option>
+                    <option value="380" data-flag="ua" title="Ukraine">+380</option>
+                    <option value="90" data-flag="tr" title="Turkey">+90</option>
+                    <option value="971" data-flag="ae" title="UAE">+971</option>
+                    <option value="966" data-flag="sa" title="Saudi Arabia">+966</option>
+                    <option value="974" data-flag="qa" title="Qatar">+974</option>
+                    <option value="965" data-flag="kw" title="Kuwait">+965</option>
+                    <option value="968" data-flag="om" title="Oman">+968</option>
+                    <option value="973" data-flag="bh" title="Bahrain">+973</option>
+                    <option value="962" data-flag="jo" title="Jordan">+962</option>
+                    <option value="972" data-flag="il" title="Israel">+972</option>
+                    <option value="961" data-flag="lb" title="Lebanon">+961</option>
+                    <option value="91" data-flag="in" title="India">+91</option>
+                    <option value="92" data-flag="pk" title="Pakistan">+92</option>
+                    <option value="880" data-flag="bd" title="Bangladesh">+880</option>
+                    <option value="977" data-flag="np" title="Nepal">+977</option>
+                    <option value="94" data-flag="lk" title="Sri Lanka">+94</option>
+                    <option value="86" data-flag="cn" title="China">+86</option>
+                    <option value="852" data-flag="hk" title="Hong Kong">+852</option>
+                    <option value="81" data-flag="jp" title="Japan">+81</option>
+                    <option value="82" data-flag="kr" title="South Korea">+82</option>
+                    <option value="60" data-flag="my" title="Malaysia">+60</option>
+                    <option value="65" data-flag="sg" title="Singapore">+65</option>
+                    <option value="66" data-flag="th" title="Thailand">+66</option>
+                    <option value="84" data-flag="vn" title="Vietnam">+84</option>
+                    <option value="62" data-flag="id" title="Indonesia">+62</option>
+                    <option value="63" data-flag="ph" title="Philippines">+63</option>
+                    <option value="61" data-flag="au" title="Australia">+61</option>
+                    <option value="64" data-flag="nz" title="New Zealand">+64</option>
+                    <option value="1" data-flag="us" title="United States / Canada">+1</option>
+                    <option value="52" data-flag="mx" title="Mexico">+52</option>
+                    <option value="55" data-flag="br" title="Brazil">+55</option>
+                    <option value="54" data-flag="ar" title="Argentina">+54</option>
+                    <option value="57" data-flag="co" title="Colombia">+57</option>
+                    <option value="56" data-flag="cl" title="Chile">+56</option>
+                    <option value="51" data-flag="pe" title="Peru">+51</option>
+                    <option value="58" data-flag="ve" title="Venezuela">+58</option>
+                    <option value="593" data-flag="ec" title="Ecuador">+593</option>
+                    <option value="591" data-flag="bo" title="Bolivia">+591</option>
+                    <option value="598" data-flag="uy" title="Uruguay">+598</option>
+                    <option value="595" data-flag="py" title="Paraguay">+595</option>
                   </select>
                 </span>
-                <input type="tel" name="lead_phone" id="leadPhone" value="<?= h($leadPhone) ?>" placeholder="976 652 858" autocomplete="tel">
+                <input type="tel" name="lead_phone" id="leadPhone" value="" placeholder="976 652 858" autocomplete="tel">
               </span>
             </label>
             <label>Email address <span class="opt">optional</span>
-              <input type="email" name="lead_email" id="leadEmail" value="<?= h($leadEmail) ?>" placeholder="you@example.com" autocomplete="email">
+              <input type="email" name="lead_email" id="leadEmail" value="" placeholder="you@example.com" autocomplete="email">
             </label>
-            <label><?= h($s['form_q_terrain']) ?> *
+            <label>Where will you be searching for gold? *
               <select name="lead_terrain" id="leadTerrain">
                 <option value="">Select</option>
-<?php foreach (hpl_options('terrain') as $opt): ?>
-                <option value="<?= h($opt) ?>"<?= $leadTerrain === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
-<?php endforeach; ?>
+                <option value="Old mine dumps and historic workings">Old mine dumps and historic workings</option>
+                <option value="Rivers, streams and riverbanks">Rivers, streams and riverbanks</option>
+                <option value="Beach and shallow surf">Beach and shallow surf</option>
+                <option value="Rocky desert and dry lake beds">Rocky desert and dry lake beds</option>
+                <option value="Forest, farmland and rocky slopes">Forest, farmland and rocky slopes</option>
+                <option value="I am still deciding">I am still deciding</option>
               </select>
             </label>
-            <label><?= h($s['form_q_target']) ?> *
+            <label>What are you hoping to find? *
               <select name="lead_target" id="leadTarget">
                 <option value="">Select</option>
-<?php foreach (hpl_options('target') as $opt): ?>
-                <option value="<?= h($opt) ?>"<?= $leadTarget === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
-<?php endforeach; ?>
+                <option value="Fine gold and small nuggets">Fine gold and small nuggets</option>
+                <option value="Placer gold in streams and creeks">Placer gold in streams and creeks</option>
+                <option value="Coins and relics">Coins and relics</option>
+                <option value="Lost jewellery">Lost jewellery</option>
+                <option value="Whatever the machine finds best">Whatever the machine finds best</option>
+                <option value="Not sure yet">Not sure yet</option>
               </select>
             </label>
-            <label><?= h($s['form_q_timing']) ?>
-              <select name="lead_timing" id="leadTiming">
+            <label>When are you looking to start detecting?              <select name="lead_timing" id="leadTiming">
                 <option value="">Select</option>
-<?php foreach (hpl_options('timing') as $opt): ?>
-                <option value="<?= h($opt) ?>"<?= $leadTiming === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
-<?php endforeach; ?>
+                <option value="As soon as I can">As soon as I can</option>
+                <option value="Within the next few months">Within the next few months</option>
+                <option value="Later this year">Later this year</option>
+                <option value="Just researching for now">Just researching for now</option>
               </select>
             </label>
             <div class="form-nav"><button class="button" type="button" id="leadNext">Continue</button></div>
           </div>
           <div class="form-step" data-step="2" hidden>
             <label>What do you know about gold detectors?<span class="hint">Tell us where you are right now</span>
-              <textarea name="lead_knowledge" rows="3" placeholder="e.g. I've watched YouTube videos but never used one"><?= h($leadKnowledge) ?></textarea>
+              <textarea name="lead_knowledge" rows="3" placeholder="e.g. I've watched YouTube videos but never used one"></textarea>
             </label>
             <fieldset>
               <legend>Would you want to learn?</legend>
@@ -559,11 +463,10 @@ function art_block(string $file, string $fallbackClass = ''): string
             </fieldset>
             <div class="form-nav">
               <button class="btn-ghost" type="button" id="leadBack">Back</button>
-              <button class="button" type="submit"><?= h($s['form_submit']) ?></button>
+              <button class="button" type="submit">Book my call</button>
             </div>
           </div>
         </form>
-<?php endif; ?>
       </section>
     </main>
     <footer role="contentinfo" aria-label="Site Footer"><div class="footer-inner">
@@ -572,16 +475,17 @@ function art_block(string $file, string $fallbackClass = ''): string
         <button class="footer-menu-btn" type="button" id="footerMenuBtn" aria-label="Open Footer Menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
       </div>
       <nav class="footer-nav" id="footerNav" aria-label="Footer Navigation"><ul>
-        <li><a href="#what-you-get"><?= h($s['nav_1']) ?></a></li>
-        <li><a href="#faq"><?= h($s['nav_2']) ?></a></li>
-        <li><a href="#book"><?= h($s['nav_cta']) ?></a></li>
+        <li><a href="#what-you-get">The Detectors</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#book">Get yours now</a></li>
       </ul></nav>
       <ul class="footer-legal" role="navigation" aria-label="Legal Links">
-<?php for ($i = 1; $i <= 4; $i++) { ?>
-        <li><a href="<?= h($s['footer_' . $i . '_url']) ?>"><?= h($s['footer_' . $i]) ?></a></li>
-<?php } ?>
+        <li><a href="#faq">Privacy Statement</a></li>
+        <li><a href="#faq">Terms and Conditions</a></li>
+        <li><a href="mailto:hello@hplgold.com">DMCA Policy</a></li>
+        <li><a href="mailto:hello@hplgold.com">Do Not Sell My Info</a></li>
       </ul>
-      <p class="disclaimer"><?= h($s['disclaimer']) ?></p>
+      <p class="disclaimer">Results vary depending on ground conditions, equipment, experience, effort, and application. HPL Gold does not guarantee that any detector will find gold or produce a specific result. Detector recommendations are for general information only and are not professional, financial, or investment advice. Copyright © 2026 HPL Gold Detectors. All rights reserved.</p>
     </div></footer>
 
     <div class="cookie-banner hidden" id="cookieBanner">
