@@ -303,13 +303,12 @@ function art_block(string $file, string $fallbackClass = ''): string
     .lead-form fieldset { border:0; margin:12px 0 0; padding:0; }
     .lead-form legend { color:var(--navy); font-size:13px; font-weight:700; margin-bottom:4px; }
     .lead-form .hint { color:var(--muted); display:block; font-size:12px; font-weight:400; margin-top:3px; }
-    .lead-form input[type=text], .lead-form input[type=tel], .lead-form textarea { border:1px solid #cfd4dc; border-radius:8px; font:16px 'DM Sans',sans-serif; margin-top:7px; padding:13px 14px; width:100%; }
+    .lead-form input[type=text], .lead-form input[type=tel], .lead-form input[type=email], .lead-form textarea { border:1px solid #cfd4dc; border-radius:8px; font:16px 'DM Sans',sans-serif; margin-top:7px; padding:13px 14px; width:100%; }
     .lead-form input:focus, .lead-form textarea:focus { outline:2px solid var(--gold-light); }
     .lead-form textarea { min-height:96px; resize:vertical; }
     .lead-form .opts { display:flex; gap:22px; margin-top:4px; }
     .lead-form .opts label { display:flex; align-items:center; gap:7px; font-size:14px; font-weight:600; margin:0; }
     .lead-form input[type=radio] { height:16px; width:16px; accent-color:var(--gold); }
-    .lead-form .submit-row { margin:26px 0 0; text-align:center; }
     .form-intro { border-bottom:1px solid #e6e9ee; margin-bottom:16px; padding-bottom:14px; text-align:left; }
     .form-eyebrow { color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.08em; margin:0 0 4px; text-transform:uppercase; }
     .form-title { color:var(--navy); font-size:20px; margin:0 0 3px; }
@@ -321,9 +320,9 @@ function art_block(string $file, string $fallbackClass = ''): string
     @keyframes stepIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
     .field-row { display:grid; gap:10px; grid-template-columns:1fr 1fr; }
     .field-row label { margin-top:0; }
-    .lead-form .field-row label, .lead-form .cc-row label { font-size:13px; }
+    .lead-form .field-row label { font-size:13px; }
     .lead-form label { margin-top:11px; }
-    .lead-form input[type=text], .lead-form input[type=tel] { font-size:15px; margin-top:5px; padding:9px 11px; }
+    .lead-form input[type=text], .lead-form input[type=tel], .lead-form input[type=email] { font-size:15px; margin-top:5px; padding:9px 11px; }
     .lead-form textarea { font-size:15px; margin-top:5px; min-height:70px; padding:9px 11px; }
     .phone-row { display:flex; gap:8px; margin-top:5px; }
     .cc-wrap { display:inline-flex; position:relative; }
@@ -338,15 +337,9 @@ function art_block(string $file, string $fallbackClass = ''): string
     .form-msg { border-radius:8px; display:none; font-size:13.5px; font-weight:600; margin:12px 0 0; padding:10px 12px; }
     .form-msg.on { display:block; }
     .form-msg.err { background:#fdeceb; color:#a4262c; }
-    .rf[hidden] { display:none; }
-    .rf { animation:stepIn .34s ease both; margin-top:14px; }
-    .rf-label { color:var(--navy); display:block; font-size:13px; font-weight:700; margin-bottom:5px; }
-    .rf-label em { color:var(--muted); font-size:11px; font-style:normal; font-weight:600; letter-spacing:.04em; margin-left:4px; text-transform:uppercase; }
-    .field-row .rf { margin-top:0; }
-    .rf input[type=text], .rf input[type=tel], .rf input[type=email] { font-size:15px; margin-top:0; padding:9px 11px; }
-    .rf-select select { background:#fff url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23687083' d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E") no-repeat right 12px center; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); font:15px 'DM Sans',sans-serif; height:41px; padding:0 32px 0 11px; width:100%; -webkit-appearance:none; appearance:none; }
-    .rf-select select:focus { outline:2px solid var(--gold-light); }
-    .rf-select select:invalid { color:var(--muted); }
+    .lead-form .opt { color:var(--muted); font-size:11px; font-weight:600; letter-spacing:.04em; margin-left:4px; text-transform:uppercase; }
+    .lead-form select { background:#fff url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23687083' d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E") no-repeat right 12px center; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); font:15px 'DM Sans',sans-serif; height:41px; margin-top:5px; padding:0 32px 0 11px; width:100%; -webkit-appearance:none; appearance:none; }
+    .lead-form select:focus { outline:2px solid var(--gold-light); }
     .form-error { background:#fbeeec; border-radius:8px; color:#7a2c25; font-size:14px; margin:0 auto 6px; max-width:520px; padding:11px 14px; }
     .thankyou { background:#fff; border-radius:12px; margin:28px auto 0; max-width:560px; padding:34px; }
     .thankyou h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:22px; margin:0 0 8px; }
@@ -466,8 +459,15 @@ function art_block(string $file, string $fallbackClass = ''): string
           </div>
           <p class="form-msg err" id="formMsg"></p>
           <div class="form-step" data-step="1">
-            <label class="rf" data-reveal>
-              <span class="rf-label">Phone number</span>
+            <div class="field-row">
+              <label>First name *
+                <input type="text" name="lead_first" id="leadFirst" value="<?= h($leadFirst) ?>" autocomplete="given-name">
+              </label>
+              <label>Last name *
+                <input type="text" name="lead_last" id="leadLast" value="<?= h($leadLast) ?>" autocomplete="family-name">
+              </label>
+            </div>
+            <label>Phone number *
               <span class="phone-row">
                 <span class="cc-wrap">
                   <img class="cc-flag" id="ccFlag" src="img/flags/<?= h(cc_flag((string)$leadCc)) ?>.png" alt="">
@@ -477,43 +477,29 @@ function art_block(string $file, string $fallbackClass = ''): string
 <?php endforeach; ?>
                   </select>
                 </span>
-                <input type="tel" name="lead_phone" id="leadPhone" value="<?= h($leadPhone) ?>" placeholder="976 652 858" autocomplete="tel" data-required>
+                <input type="tel" name="lead_phone" id="leadPhone" value="<?= h($leadPhone) ?>" placeholder="976 652 858" autocomplete="tel">
               </span>
             </label>
-            <div class="field-row">
-              <label class="rf" data-reveal hidden>
-                <span class="rf-label">First name</span>
-                <input type="text" name="lead_first" id="leadFirst" value="<?= h($leadFirst) ?>" autocomplete="given-name" data-required>
-              </label>
-              <label class="rf" data-reveal hidden>
-                <span class="rf-label">Last name</span>
-                <input type="text" name="lead_last" id="leadLast" value="<?= h($leadLast) ?>" autocomplete="family-name" data-required>
-              </label>
-            </div>
-            <label class="rf" data-reveal hidden>
-              <span class="rf-label">Email address <em>optional</em></span>
+            <label>Email address <span class="opt">optional</span>
               <input type="email" name="lead_email" id="leadEmail" value="<?= h($leadEmail) ?>" placeholder="you@example.com" autocomplete="email">
             </label>
-            <label class="rf rf-select" data-reveal hidden>
-              <span class="rf-label"><?= h($s['form_q_revenue']) ?></span>
-              <select name="lead_revenue" id="leadRevenue" data-required>
+            <label><?= h($s['form_q_revenue']) ?> *
+              <select name="lead_revenue" id="leadRevenue">
                 <option value="">Select</option>
 <?php foreach (hpl_options('revenue') as $opt): ?>
                 <option value="<?= h($opt) ?>"<?= $leadRevenue === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
 <?php endforeach; ?>
               </select>
             </label>
-            <label class="rf rf-select" data-reveal hidden>
-              <span class="rf-label"><?= h($s['form_q_travel']) ?></span>
-              <select name="lead_travel" id="leadTravel" data-required>
+            <label><?= h($s['form_q_travel']) ?> *
+              <select name="lead_travel" id="leadTravel">
                 <option value="">Select</option>
 <?php foreach (hpl_options('travel') as $opt): ?>
                 <option value="<?= h($opt) ?>"<?= $leadTravel === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
 <?php endforeach; ?>
               </select>
             </label>
-            <label class="rf rf-select" data-reveal hidden>
-              <span class="rf-label"><?= h($s['form_q_tickets']) ?></span>
+            <label><?= h($s['form_q_tickets']) ?>
               <select name="lead_tickets" id="leadTickets">
                 <option value="">Select</option>
 <?php foreach (hpl_options('tickets') as $opt): ?>
@@ -521,9 +507,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 <?php endforeach; ?>
               </select>
             </label>
-            <div class="form-nav rf" data-reveal hidden>
-              <button class="button" type="button" id="leadNext">Continue</button>
-            </div>
+            <div class="form-nav"><button class="button" type="button" id="leadNext">Continue</button></div>
           </div>
           <div class="form-step" data-step="2" hidden>
             <label>What do you know about gold detectors?<span class="hint">Tell us where you are right now</span>
@@ -751,53 +735,6 @@ function art_block(string $file, string $fallbackClass = ''): string
         msg.classList.add('on');
         trackEvent('form_error', { field: text });
       }
-
-      var revealed = form.querySelectorAll('[data-reveal]');
-      function filled(field) {
-        if (!field) return false;
-        var tag = field.tagName;
-        if (tag === 'SELECT') return field.value !== '';
-        if (tag === 'INPUT' || tag === 'TEXTAREA') return String(field.value).replace(/\D/g, '') !== '' || String(field.value).trim() !== '';
-        return true;
-      }
-      function fieldOf(node) {
-        return node.querySelector('input, select, textarea');
-      }
-      function groupOk(node) {
-        var inputs = node.querySelectorAll('input[data-required], select[data-required]');
-        for (var i = 0; i < inputs.length; i++) {
-          if (inputs[i].type === 'radio' || inputs[i].type === 'checkbox') {
-            if (!inputs[i].checked) return false;
-          } else if (!filled(inputs[i])) {
-            return false;
-          }
-        }
-        return true;
-      }
-      function syncReveal() {
-        for (var i = 0; i < revealed.length; i++) {
-          var node = revealed[i];
-          if (i === 0) { node.removeAttribute('hidden'); continue; }
-          var prev = revealed[i - 1];
-          if (!groupOk(prev)) break;
-          if (node.hasAttribute('hidden')) {
-            node.removeAttribute('hidden');
-            if (node.id === 'leadNext') trackEvent('form_step', { step: 2 });
-          }
-        }
-      }
-      for (var r = 0; r < revealed.length; r++) {
-        (function (node) {
-          var fld = fieldOf(node);
-          if (!fld) return;
-          fld.addEventListener('input', syncReveal);
-          fld.addEventListener('change', syncReveal);
-          if (fld.tagName === 'INPUT' && fld.type !== 'radio' && fld.type !== 'checkbox') {
-            fld.addEventListener('blur', function () { setTimeout(syncReveal, 0); });
-          }
-        })(revealed[r]);
-      }
-      syncReveal();
 
       next.addEventListener('click', function () {
         if (!f.value.trim()) return fail('Please enter your first name.');
