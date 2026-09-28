@@ -43,10 +43,6 @@ $fields = [
     ['key' => 'proof_video_4_caption', 'label' => 'Video 4 caption', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_5', 'label' => 'Video 5 Google Drive file ID', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_5_caption', 'label' => 'Video 5 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'offer_art_title',   'label' => 'Video badge text',           'type' => 'text',     'group' => 'Offer'],
-    ['key' => 'offer_video_drive_id', 'label' => 'Offer Google Drive video file ID', 'type' => 'text', 'group' => 'Offer'],
-    ['key' => 'offer_label',       'label' => 'Section label',              'type' => 'text',     'group' => 'Offer'],
-    ['key' => 'offer_desc',        'label' => 'Description',                'type' => 'textarea', 'group' => 'Offer'],
     ['key' => 'faq1_q',            'label' => 'Question 1',                 'type' => 'text',     'group' => 'FAQ'],
     ['key' => 'faq1_a',            'label' => 'Answer 1 (one line per paragraph)', 'type' => 'textarea', 'group' => 'FAQ'],
     ['key' => 'faq2_q',            'label' => 'Question 2',                 'type' => 'text',     'group' => 'FAQ'],
@@ -129,7 +125,6 @@ $imageSlots = [
 ];
 
 $videoSlots = [
-    ['key' => 'offer_video', 'file' => 'offer.mp4', 'label' => 'Offer section video (MP4 / WebM)'],
     ['key' => 'thankyou_video', 'file' => 'thankyou.mp4', 'label' => 'Thank-you page video (MP4 / WebM)'],
 ];
 
@@ -299,7 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_video'])) {
             } else {
                 $target = __DIR__ . '/../img/' . $slot['file'];
                 if (move_uploaded_file($tmp, $target)) {
-                    $message = 'Video uploaded as "' . h($slot['file']) . '". The offer player now uses it automatically.';
+                    $message = 'Video uploaded as "' . h($slot['file']) . '". It is now used automatically on the site.';
                 } else {
                     $error = 'Could not save the video. Make sure the img/ folder is writable.';
                 }

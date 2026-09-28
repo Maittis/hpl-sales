@@ -24,6 +24,12 @@ try {
     $connection->query('CREATE TABLE IF NOT EXISTS settings (key_name VARCHAR(80) PRIMARY KEY, value MEDIUMTEXT) ENGINE=InnoDB DEFAULT CHARSET=' . DB_CHARSET);
     $connection->query('CREATE TABLE IF NOT EXISTS admins (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(60) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=' . DB_CHARSET);
     $connection->query('CREATE TABLE IF NOT EXISTS leads (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(120) NOT NULL, phone VARCHAR(40) NOT NULL, knowledge TEXT NOT NULL, wants_to_learn VARCHAR(10) NOT NULL, submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=' . DB_CHARSET);
+    $connection->query('CREATE TABLE IF NOT EXISTS analytics (id INT AUTO_INCREMENT PRIMARY KEY, event_type VARCHAR(50) NOT NULL, event_data TEXT, session_id VARCHAR(100), ip_address VARCHAR(45), user_agent TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_event_type (event_type), INDEX idx_created_at (created_at)) ENGINE=InnoDB DEFAULT CHARSET=' . DB_CHARSET);
+
+    $hasColumn = function (string $column) use ($connection): bool {
+        $q = $connection->query("SELECT COUNT(*) AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" . $connection->real_escape_string(DB_NAME) . "' AND TABLE_NAME = 'leads' AND COLUMN_NAME = '" . $connection->real_escape_string($column) . "'");
+        return (int)$q->fetch_assoc()['c'] > 0;
+    };
 
     $colCheck = $connection->query("SELECT COUNT(*) AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" . $connection->real_escape_string(DB_NAME) . "' AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'status'");
     if ((int)$colCheck->fetch_assoc()['c'] === 0) {
@@ -37,14 +43,30 @@ try {
         'target' => "VARCHAR(80) NOT NULL DEFAULT ''",
         'timing' => "VARCHAR(80) NOT NULL DEFAULT ''",
     ];
+
+    $renamed = [];
+    foreach (['revenue' => 'terrain', 'travel' => 'target', 'tickets' => 'timing'] as $oldCol => $newCol) {
+        if (!$hasColumn($oldCol) || $hasColumn($newCol)) {
+            continue;
+        }
+        try {
+            $connection->query('ALTER TABLE leads CHANGE `' . $oldCol . '` `' . $newCol . '` ' . $newCols[$newCol]);
+            $renamed[] = $oldCol . ' -> ' . $newCol;
+        } catch (mysqli_sql_exception $e) {
+            $steps[] = 'Could not rename lead column "' . $oldCol . '": ' . $e->getMessage();
+        }
+    }
+    if ($renamed) {
+        $steps[] = 'Renamed older lead columns: ' . implode(', ', $renamed) . '.';
+    }
+
     foreach ($newCols as $col => $definition) {
-        $exists = $connection->query("SELECT COUNT(*) AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" . $connection->real_escape_string(DB_NAME) . "' AND TABLE_NAME = 'leads' AND COLUMN_NAME = '" . $connection->real_escape_string($col) . "'");
-        if ((int)$exists->fetch_assoc()['c'] === 0) {
-            $connection->query("ALTER TABLE leads ADD COLUMN " . $col . ' ' . $definition);
+        if (!$hasColumn($col)) {
+            $connection->query('ALTER TABLE leads ADD COLUMN ' . $col . ' ' . $definition);
         }
     }
 
-    $steps[] = 'Tables "settings", "admins" and "leads" created / verified.';
+    $steps[] = 'Tables "settings", "admins", "leads" and "analytics" created / verified.';
 
     $seed = $connection->prepare('INSERT IGNORE INTO settings (key_name, value) VALUES (?, ?)');
     foreach (hpl_defaults() as $key => $value) {
