@@ -74,6 +74,12 @@ $imageSlots = [
     ['key' => 'benefit_3',  'file' => 'benefit-3.jpg',  'label' => 'Benefit card 3 image'],
     ['key' => 'logo',       'file' => 'hpllogo.jpeg',   'label' => 'Header / footer logo'],
     ['key' => 'benefit_bg', 'file' => 'benefit-bg.png', 'label' => 'Benefits section background band'],
+    ['key' => 'slide_1',    'file' => 'slide-1.jpg',    'label' => 'Auto-slide testimonial 1 (landscape)'],
+    ['key' => 'slide_2',    'file' => 'slide-2.jpg',    'label' => 'Auto-slide testimonial 2 (landscape)'],
+    ['key' => 'slide_3',    'file' => 'slide-3.jpg',    'label' => 'Auto-slide testimonial 3 (landscape)'],
+    ['key' => 'slide_4',    'file' => 'slide-4.jpg',    'label' => 'Auto-slide testimonial 4 (landscape)'],
+    ['key' => 'slide_5',    'file' => 'slide-5.jpg',    'label' => 'Auto-slide testimonial 5 (landscape)'],
+    ['key' => 'slide_6',    'file' => 'slide-6.jpg',    'label' => 'Auto-slide testimonial 6 (landscape)'],
 ];
 
 $videoSlots = [

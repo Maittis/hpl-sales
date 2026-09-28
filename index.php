@@ -110,6 +110,17 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-dots { display:flex; gap:8px; justify-content:center; margin:12px 0 0; }
     .proof-dots button { background:#cfd4dc; border:0; border-radius:50%; cursor:pointer; height:9px; padding:0; width:9px; }
     .proof-dots button.on { background:var(--gold); transform:scale(1.35); }
+    .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
+    .slides-frame { aspect-ratio:16/9; background:var(--navy); max-height:56vh; overflow:hidden; position:relative; }
+    .slides-frame img { height:100%; inset:0; object-fit:cover; opacity:0; position:absolute; transform:scale(1.04); transition:opacity .9s ease, transform 1.4s ease; width:100%; }
+    .slides-frame img.on { opacity:1; transform:none; z-index:2; }
+    .slides-cap { background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:15px; font-weight:700; left:0; opacity:0; padding:44px 20px 18px; position:absolute; right:0; text-align:left; transition:opacity .6s ease; z-index:3; }
+    .slides-cap.on { opacity:1; }
+    .slides-cap span { color:#f4ca5b; display:block; font-size:12px; font-weight:700; letter-spacing:.12em; margin-bottom:4px; text-transform:uppercase; }
+    .slides-dots { display:flex; gap:9px; justify-content:center; margin:18px 0 0; }
+    .slides-dots button { background:#cfd4dc; border:0; border-radius:50%; cursor:pointer; height:9px; padding:0; width:9px; }
+    .slides-dots button.on { background:var(--gold); transform:scale(1.35); }
+    .slides-empty { color:var(--muted); font-size:14px; padding:50px 20px; }
     .proof-gallery { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:860px; padding:6px 0 10px; }
     .proof-item { align-self:start; background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); padding:12px 12px 18px; position:relative; transition:transform .25s ease; }
     .proof-item:nth-child(odd) { transform:rotate(-2.6deg); }
@@ -214,7 +225,8 @@ function art_block(string $file, string $fallbackClass = ''): string
   .section h2 { font-size:26px; }
   .benefits-band { min-height:150px; padding:38px 18px; }
   .benefits-band h2 { font-size:24px; }
-  .proof-gallery { gap:22px; grid-template-columns:1fr; max-width:420px; }
+  .slides-frame { aspect-ratio:4/3; max-height:none; }
+  .slides-cap { font-size:13px; padding:36px 14px 14px; }
   .benefits { gap:24px; grid-template-columns:1fr; }
   .benefit-art { height:210px; }
   .benefit-art .detector { transform:translateX(-45%) rotate(-12deg) scale(.59); top:-7px; }
@@ -246,6 +258,8 @@ function art_block(string $file, string $fallbackClass = ''): string
       </section>
 
       <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') { continue; } $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t'; $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="video/mp4"></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint">Scroll or swipe for the next story &rarr;</p><div class="proof-dots" id="proofDots"></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+
+      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $item): ?><img src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" loading="lazy"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
       <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><?= art_block('benefit-1.jpg') ?></div><h3><?= h($s['b1_title']) ?></h3><p><?= h($s['b1_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-2.jpg') ?></div><h3><?= h($s['b2_title']) ?></h3><p><?= h($s['b2_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-3.jpg') ?></div><h3><?= h($s['b3_title']) ?></h3><p><?= h($s['b3_desc']) ?></p></article></div></div></section>
 
@@ -512,6 +526,57 @@ function art_block(string $file, string $fallbackClass = ''): string
         if (r.bottom < 0 || r.top > window.innerHeight) return;
         if (e.key === 'ArrowRight') next();
         if (e.key === 'ArrowLeft') prev();
+      });
+    })();
+    (function () {
+      var frame = document.getElementById('slidesFrame');
+      if (!frame) return;
+      var imgs = Array.prototype.slice.call(frame.querySelectorAll('img'));
+      if (imgs.length < 2) { if (imgs.length === 1) imgs[0].classList.add('on'); return; }
+      var cap = document.getElementById('slidesCap');
+      var dotsWrap = document.getElementById('slidesDots');
+      var i = 0;
+      var timer = null;
+
+      var dots = imgs.map(function (img, n) {
+        var d = document.createElement('button');
+        d.type = 'button';
+        d.setAttribute('aria-label', 'Show photo ' + (n + 1));
+        d.addEventListener('click', function () { show(n); restart(); });
+        if (dotsWrap) dotsWrap.appendChild(d);
+        return d;
+      });
+
+      function show(n) {
+        imgs[i].classList.remove('on');
+        i = n;
+        imgs[i].classList.add('on');
+        dots.forEach(function (d, k) { d.classList.toggle('on', k === i); });
+        if (cap) {
+          var alt = imgs[i].getAttribute('alt');
+          cap.innerHTML = alt ? '<span>Field result</span>' + alt : '';
+          cap.classList.toggle('on', !!alt);
+        }
+      }
+
+      function next() { show((i + 1) % imgs.length); }
+      function prev() { show((i - 1 + imgs.length) % imgs.length); }
+
+      function start() { timer = window.setInterval(next, 4200); }
+      function stop() { if (timer) { window.clearInterval(timer); timer = null; } }
+      function restart() { stop(); start(); }
+
+      show(0);
+      start();
+
+      var stage = frame.parentNode;
+      stage.addEventListener('mouseenter', stop);
+      stage.addEventListener('mouseleave', start);
+      stage.addEventListener('click', function (e) { next(); restart(); });
+      stage.addEventListener('touchstart', function () { stop(); }, { passive: true });
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) stop(); else start();
       });
     })();
   </script>
