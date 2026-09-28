@@ -96,6 +96,17 @@ function art_block(string $file, string $fallbackClass = ''): string
     .wash { background:var(--wash); }
     .proof { text-align:center; }
     .proof h2 { margin-bottom:20px; }
+    .proof-track { display:flex; gap:22px; margin:0 auto; max-width:1080px; overflow-x:auto; padding:6px 0 26px; scroll-behavior:smooth; scroll-snap-type:x mandatory; scrollbar-width:none; }
+    .proof-track::-webkit-scrollbar { display:none; }
+    .proof-card { background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); flex:0 0 78%; scroll-snap-align:center; }
+    .proof-card video { aspect-ratio:9/16; background:#000; display:block; max-height:70vh; object-fit:contain; width:100%; }
+    .proof-card figcaption { color:var(--navy); font-size:15px; font-weight:700; padding:14px 12px 16px; }
+    .proof-empty { background:var(--navy); color:#fff; font-size:14px; padding:60px 20px; }
+    .proof-track::after { content:''; flex:0 0 2px; }
+    .proof-hint { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:14px 0 0; text-transform:uppercase; }
+    .proof-dots { display:flex; gap:8px; justify-content:center; margin:4px 0 0; }
+    .proof-dots button { background:#cfd4dc; border:0; border-radius:50%; cursor:pointer; height:8px; padding:0; width:8px; }
+    .proof-dots button.on { background:var(--gold); transform:scale(1.35); }
     .proof-gallery { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:860px; padding:6px 0 10px; }
     .proof-item { align-self:start; background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); padding:12px 12px 18px; position:relative; transition:transform .25s ease; }
     .proof-item:nth-child(odd) { transform:rotate(-2.6deg); }
@@ -231,7 +242,7 @@ function art_block(string $file, string $fallbackClass = ''): string
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
 
-      <section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><div class="proof-gallery"><div class="proof-item"><?= art_block('proof-1.jpg', 'proof-fallback') ?></div><div class="proof-item"><?= art_block('proof-2.jpg', 'proof-fallback') ?></div><div class="proof-item"><?= art_block('proof-3.jpg', 'proof-fallback') ?></div></div><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid !== '' && $pid !== 'YOUR_DRIVE_FILE_ID') { $proofItems[] = ['id' => $pid, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } } ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-card proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: ?><div class="proof-track" id="proofTrack"><?php foreach ($proofItems as $item): ?><figure class="proof-card"><video muted loop playsinline preload="metadata" data-proof-video><source src="https://drive.usercontent.google.com/download?id=<?= h($item['id']) ?>&amp;export=download&amp;confirm=t" type="video/mp4"><div class="video-fallback">Your browser can't play this video. <a href="#" style="text-decoration:underline">Watch on Google Drive</a>.</div></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><p class="proof-hint">Scroll for the next story &rarr;</p><div class="proof-dots" id="proofDots"></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><?= art_block('benefit-1.jpg') ?></div><h3><?= h($s['b1_title']) ?></h3><p><?= h($s['b1_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-2.jpg') ?></div><h3><?= h($s['b2_title']) ?></h3><p><?= h($s['b2_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-3.jpg') ?></div><h3><?= h($s['b3_title']) ?></h3><p><?= h($s['b3_desc']) ?></p></article></div></div></section>
 
@@ -421,6 +432,72 @@ function art_block(string $file, string $fallbackClass = ''): string
       t.addEventListener('click', function () {
         var open = n.classList.toggle('open');
         t.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    })();
+    (function () {
+      var track = document.getElementById('proofTrack');
+      if (!track) return;
+      var cards = Array.prototype.slice.call(track.children);
+      var videos = Array.prototype.slice.call(track.querySelectorAll('video'));
+      var dotsWrap = document.getElementById('proofDots');
+      if (!cards.length) return;
+
+      var dots = cards.map(function (card, i) {
+        var d = document.createElement('button');
+        d.type = 'button';
+        d.setAttribute('aria-label', 'Go to video ' + (i + 1));
+        d.addEventListener('click', function () { goTo(i); });
+        if (dotsWrap) dotsWrap.appendChild(d);
+        return d;
+      });
+
+      function centerIndex() {
+        var mid = track.scrollLeft + track.clientWidth / 2;
+        var best = 0, bestDist = Infinity;
+        cards.forEach(function (card, i) {
+          var c = card.offsetLeft + card.offsetWidth / 2;
+          var dist = Math.abs(c - mid);
+          if (dist < bestDist) { bestDist = dist; best = i; }
+        });
+        return best;
+      }
+
+      function playActive(i) {
+        videos.forEach(function (v, n) {
+          if (n === i) { v.play().catch(function () {}); }
+          else { v.pause(); v.currentTime = 0; }
+        });
+        dots.forEach(function (d, n) { d.classList.toggle('on', n === i); });
+      }
+
+      function goTo(i) {
+        var n = ((i % cards.length) + cards.length) % cards.length;
+        track.scrollTo({ left: cards[n].offsetLeft - (track.clientWidth - cards[n].offsetWidth) / 2, behavior: 'smooth' });
+      }
+
+      var last = centerIndex();
+      playActive(last);
+
+      var tick = false;
+      track.addEventListener('scroll', function () {
+        if (tick) return;
+        tick = true;
+        window.requestAnimationFrame(function () {
+          tick = false;
+          var i = centerIndex();
+          if (i === last) return;
+          var atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+          var atStart = track.scrollLeft <= 4;
+          if (atEnd && i === cards.length - 1) { goTo(0); last = 0; return; }
+          if (atStart && i === 0 && last === cards.length - 1) { goTo(cards.length - 1); last = cards.length - 1; return; }
+          last = i;
+          playActive(i);
+        });
+      }, { passive: true });
+
+      track.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); goTo(last + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(last - 1); }
       });
     })();
   </script>
