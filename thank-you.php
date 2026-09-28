@@ -102,13 +102,13 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
 <body>
   <div class="wrap">
     <div class="ty-hero">
-      <span class="badge">Request received</span>
-      <h1>Thank you<?= $firstName !== '' ? ', ' . h($firstName) : '' ?>!</h1>
+      <span class="badge"><?= h($s['ty_badge']) ?></span>
+      <h1><?= h($s['ty_h']) ?><?= $firstName !== '' ? ', ' . h($firstName) : '' ?>!</h1>
       <p class="ty-sub"><?= h($s['ty_sub']) ?></p>
 
       <div class="ty-video-block">
-        <div class="panel-label">A message for you</div>
-        <h2>Thank you from the HPL team</h2>
+        <div class="panel-label"><?= h($s['ty_vlabel']) ?></div>
+        <h2><?= h($s['ty_vh']) ?></h2>
 <?php if ($tyVideo !== ''): ?>
         <div class="ty-video">
           <video controls playsinline preload="metadata">
@@ -118,25 +118,25 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
         </div>
 <?php else: ?>
         <div class="ty-video ty-video-empty">
-          <span>Our thank-you video is being uploaded. Please check back shortly.</span>
+          <span><?= h($s['ty_vplaceholder']) ?></span>
         </div>
 <?php endif; ?>
       </div>
     </div>
 
     <div class="next">
-      <h2>What happens next</h2>
+      <h2><?= h($s['ty_next_h']) ?></h2>
       <ol>
-        <li><b>Step 1</b>We review your ground and target so we can match you to the right machine.</li>
-        <li><b>Step 2</b>A member of the team calls or messages you within one business day.</li>
-        <li><b>Step 3</b>We confirm the right setup, then you are ready for your first outing.</li>
+        <li><b>Step 1</b><?= h($s['ty_step1']) ?></li>
+        <li><b>Step 2</b><?= h($s['ty_step2']) ?></li>
+        <li><b>Step 3</b><?= h($s['ty_step3']) ?></li>
       </ol>
     </div>
 
 <?php if (!empty($tyPhotos)): ?>
     <div class="panel">
-      <div class="panel-label">Real finds</div>
-      <h2>What people are finding with it</h2>
+      <div class="panel-label"><?= h($s['ty_finds_label']) ?></div>
+      <h2><?= h($s['ty_finds_h']) ?></h2>
       <div class="grid">
 <?php foreach ($tyPhotos as $p): ?>
         <figure>
@@ -152,8 +152,8 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
 
 <?php if (!empty($tyVideos)): ?>
     <div class="panel">
-      <div class="panel-label">Customer stories</div>
-      <h2>Hear it from the field</h2>
+      <div class="panel-label"><?= h($s['ty_stories_label']) ?></div>
+      <h2><?= h($s['ty_stories_h']) ?></h2>
       <div class="grid vid-grid">
 <?php foreach ($tyVideos as $v): ?>
         <figure>
@@ -170,14 +170,14 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
 <?php endif; ?>
 
 <?php if (empty($tyPhotos) && empty($tyVideos) && $tyVideo === ''): ?>
-    <p class="empty">Your confirmation is in. We will be in touch shortly.</p>
+    <p class="empty"><?= h($s['ty_fallback']) ?></p>
 <?php endif; ?>
 
     <div class="cta">
 <?php if ($waUrl !== ''): ?>
       <a class="btn" href="<?= h($waUrl) ?>" target="_blank" rel="noopener">Message us on WhatsApp</a>
 <?php endif; ?>
-      <a class="btn ghost" href="index.php">Back to the site</a>
+      <a class="btn ghost" href="index.php"><?= h($s['ty_back']) ?></a>
     </div>
 
     <div class="foot">
