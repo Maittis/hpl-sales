@@ -96,20 +96,19 @@ function art_block(string $file, string $fallbackClass = ''): string
     .wash { background:var(--wash); }
     .proof { text-align:center; }
     .proof h2 { margin-bottom:20px; }
-    .proof-wrap { margin:0 auto; max-width:1080px; position:relative; }
-    .proof-track { display:flex; gap:22px; overflow-x:auto; padding:6px 0 26px; scroll-behavior:smooth; scroll-snap-type:x mandatory; scrollbar-width:none; }
-    .proof-track::-webkit-scrollbar { display:none; }
-    .proof-card { background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); flex:0 0 62%; max-width:520px; scroll-snap-align:center; }
-    .proof-card video { aspect-ratio:4/5; background:#000; display:block; max-height:52vh; object-fit:cover; width:100%; }
-    .proof-cue { align-items:center; animation:nudge 1.8s ease-in-out infinite; background:rgba(17,26,56,.85); border-radius:50%; color:#fff; display:flex; font-size:26px; height:46px; justify-content:center; pointer-events:none; position:absolute; right:2px; top:44%; transition:opacity .3s ease; width:46px; z-index:3; }
-    .proof-wrap.scrolled .proof-cue { opacity:0; }
-    @keyframes nudge { 0%,100% { transform:translate(0,-50%); } 50% { transform:translate(7px,-50%); } }
-    .proof-card figcaption { color:var(--navy); font-size:15px; font-weight:700; padding:14px 12px 16px; }
-    .proof-empty { background:var(--navy); color:#fff; font-size:14px; padding:60px 20px; }
-    .proof-track::after { content:''; flex:0 0 2px; }
-    .proof-hint { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:14px 0 0; text-transform:uppercase; }
-    .proof-dots { display:flex; gap:8px; justify-content:center; margin:4px 0 0; }
-    .proof-dots button { background:#cfd4dc; border:0; border-radius:50%; cursor:pointer; height:8px; padding:0; width:8px; }
+    .proof-stage { aspect-ratio:4/5; background:#000; box-shadow:0 14px 28px rgba(9,15,36,.16); margin:0 auto; max-height:52vh; max-width:420px; overflow:hidden; position:relative; width:min(420px,88vw); }
+    .proof-slide { inset:0; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .45s ease, transform .55s ease; }
+    .proof-slide.on { opacity:1; transform:none; z-index:2; }
+    .proof-slide video { display:block; height:100%; object-fit:cover; width:100%; }
+    .proof-slide figcaption { background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:14px; font-weight:700; left:0; padding:38px 14px 14px; position:absolute; right:0; text-align:left; }
+    .proof-cue { align-items:center; animation:nudge 1.8s ease-in-out infinite; background:rgba(17,26,56,.85); border:0; border-radius:50%; bottom:16px; color:#fff; cursor:pointer; display:flex; font-size:24px; height:44px; justify-content:center; position:absolute; right:16px; transition:opacity .3s ease; width:44px; z-index:4; }
+    .proof-stage-wrap.moved .proof-cue { opacity:0; pointer-events:none; }
+    .proof-stage-wrap { margin:0 auto; max-width:460px; position:relative; }
+    @keyframes nudge { 0%,100% { transform:translateX(0); } 50% { transform:translateX(6px); } }
+    .proof-empty { background:var(--navy); color:#fff; font-size:14px; margin:0 auto; max-width:420px; padding:60px 20px; }
+    .proof-hint { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:16px 0 0; text-transform:uppercase; }
+    .proof-dots { display:flex; gap:8px; justify-content:center; margin:12px 0 0; }
+    .proof-dots button { background:#cfd4dc; border:0; border-radius:50%; cursor:pointer; height:9px; padding:0; width:9px; }
     .proof-dots button.on { background:var(--gold); transform:scale(1.35); }
     .proof-gallery { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:860px; padding:6px 0 10px; }
     .proof-item { align-self:start; background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); padding:12px 12px 18px; position:relative; transition:transform .25s ease; }
@@ -216,7 +215,6 @@ function art_block(string $file, string $fallbackClass = ''): string
   .benefits-band { min-height:150px; padding:38px 18px; }
   .benefits-band h2 { font-size:24px; }
   .proof-gallery { gap:22px; grid-template-columns:1fr; max-width:420px; }
-  .proof-card { flex:0 0 78%; }
   .benefits { gap:24px; grid-template-columns:1fr; }
   .benefit-art { height:210px; }
   .benefit-art .detector { transform:translateX(-45%) rotate(-12deg) scale(.59); top:-7px; }
@@ -247,7 +245,7 @@ function art_block(string $file, string $fallbackClass = ''): string
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
 
-      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') { continue; } $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t'; $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-card proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: ?><div class="proof-wrap" id="proofWrap"><div class="proof-track" id="proofTrack"><?php foreach ($proofItems as $item): ?><figure class="proof-card"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="video/mp4"><div class="video-fallback">Your browser can't play this video. <a href="#" style="text-decoration:underline">Watch on Google Drive</a>.</div></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><span class="proof-cue" aria-hidden="true">&rsaquo;</span></div><p class="proof-hint">Scroll or swipe for the next story &rarr;</p><div class="proof-dots" id="proofDots"></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $pid = trim((string)($s['proof_video_' . $i] ?? '')); if ($pid === '' || $pid === 'YOUR_DRIVE_FILE_ID') { continue; } $src = (stripos($pid, 'http') === 0) ? $pid : 'https://drive.usercontent.google.com/download?id=' . $pid . '&export=download&confirm=t'; $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="video/mp4"></video><figcaption><?= h($item['caption']) ?></figcaption></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint">Scroll or swipe for the next story &rarr;</p><div class="proof-dots" id="proofDots"></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><?= art_block('benefit-1.jpg') ?></div><h3><?= h($s['b1_title']) ?></h3><p><?= h($s['b1_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-2.jpg') ?></div><h3><?= h($s['b2_title']) ?></h3><p><?= h($s['b2_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-3.jpg') ?></div><h3><?= h($s['b3_title']) ?></h3><p><?= h($s['b3_desc']) ?></p></article></div></div></section>
 
@@ -440,87 +438,80 @@ function art_block(string $file, string $fallbackClass = ''): string
       });
     })();
     (function () {
-      var track = document.getElementById('proofTrack');
-      if (!track) return;
-      var cards = Array.prototype.slice.call(track.children);
-      var videos = Array.prototype.slice.call(track.querySelectorAll('video'));
+      var stage = document.getElementById('proofStage');
+      if (!stage) return;
+      var slides = Array.prototype.slice.call(stage.querySelectorAll('.proof-slide'));
+      if (!slides.length) return;
       var dotsWrap = document.getElementById('proofDots');
-      if (!cards.length) return;
+      var wrap = document.getElementById('proofWrap');
+      var cue = document.getElementById('proofCue');
+      var idx = 0;
 
-      var dots = cards.map(function (card, i) {
+      var dots = slides.map(function (s, i) {
         var d = document.createElement('button');
         d.type = 'button';
         d.setAttribute('aria-label', 'Go to video ' + (i + 1));
-        d.addEventListener('click', function () { goTo(i); });
+        d.addEventListener('click', function () { show(i); });
         if (dotsWrap) dotsWrap.appendChild(d);
         return d;
       });
 
-      function centerIndex() {
-        var mid = track.scrollLeft + track.clientWidth / 2;
-        var best = 0, bestDist = Infinity;
-        cards.forEach(function (card, i) {
-          var c = card.offsetLeft + card.offsetWidth / 2;
-          var dist = Math.abs(c - mid);
-          if (dist < bestDist) { bestDist = dist; best = i; }
-        });
-        return best;
+      function show(i) {
+        if (i === idx) return;
+        var prev = slides[idx];
+        prev.classList.remove('on');
+        var pv = prev.querySelector('video');
+        if (pv) { pv.pause(); pv.currentTime = 0; }
+        idx = i;
+        var cur = slides[idx];
+        cur.classList.add('on');
+        var cv = cur.querySelector('video');
+        if (cv) { cv.play().catch(function () {}); }
+        dots.forEach(function (d, n) { d.classList.toggle('on', n === idx); });
+        if (wrap) wrap.classList.add('moved');
       }
 
-      function playActive(i) {
-        videos.forEach(function (v, n) {
-          if (n === i) { v.play().catch(function () {}); }
-          else { v.pause(); v.currentTime = 0; }
-        });
-        dots.forEach(function (d, n) { d.classList.toggle('on', n === i); });
-      }
+      function next() { show((idx + 1) % slides.length); }
+      function prev() { show((idx - 1 + slides.length) % slides.length); }
 
-      function goTo(i, instant) {
-        var raw = i;
-        var n = ((i % cards.length) + cards.length) % cards.length;
-        var wrapped = (n !== raw);
-        track.scrollTo({
-          left: cards[n].offsetLeft - (track.clientWidth - cards[n].offsetWidth) / 2,
-          behavior: (instant || wrapped) ? 'auto' : 'smooth'
-        });
-      }
+      slides[0].classList.add('on');
+      dots[0].classList.add('on');
+      var first = slides[0].querySelector('video');
+      if (first) first.play().catch(function () {});
 
-      var last = centerIndex();
-      playActive(last);
+      if (cue) cue.addEventListener('click', next);
 
-      var wrap = document.getElementById('proofWrap');
-      if (wrap) {
-        track.addEventListener('scroll', function () {
-          if (track.scrollLeft > 20 || last > 0) { wrap.classList.add('scrolled'); }
-        }, { passive: true });
-      }
-
-      var tick = false;
-      track.addEventListener('scroll', function () {
-        if (tick) return;
-        tick = true;
-        window.requestAnimationFrame(function () {
-          tick = false;
-          var i = centerIndex();
-          if (i === last) return;
-          last = i;
-          playActive(i);
-        });
-      }, { passive: true });
-
-      var wheelLock = false;
-      track.addEventListener('wheel', function (e) {
-        if (Math.abs(e.deltaY) < 10) return;
+      var lock = false;
+      window.addEventListener('wheel', function (e) {
+        if (lock || Math.abs(e.deltaY) < 8) return;
+        var r = stage.getBoundingClientRect();
+        var visible = r.bottom > 80 && r.top < window.innerHeight - 80;
+        if (!visible) return;
+        var down = e.deltaY > 0;
+        if (down && idx === slides.length - 1) return;
+        if (!down && idx === 0) return;
         e.preventDefault();
-        if (wheelLock) return;
-        wheelLock = true;
-        window.setTimeout(function () { wheelLock = false; }, 480);
-        goTo(last + (e.deltaY > 0 ? 1 : -1));
+        lock = true;
+        window.setTimeout(function () { lock = false; }, 600);
+        if (down) next(); else prev();
       }, { passive: false });
 
-      track.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowRight') { e.preventDefault(); goTo(last + 1); }
-        if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(last - 1); }
+      var tx = 0, ty = 0;
+      stage.addEventListener('touchstart', function (e) {
+        tx = e.changedTouches[0].clientX; ty = e.changedTouches[0].clientY;
+      }, { passive: true });
+      stage.addEventListener('touchend', function (e) {
+        var dx = e.changedTouches[0].clientX - tx;
+        var dy = e.changedTouches[0].clientY - ty;
+        if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+        if (dx < 0) next(); else prev();
+      }, { passive: true });
+
+      document.addEventListener('keydown', function (e) {
+        var r = stage.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > window.innerHeight) return;
+        if (e.key === 'ArrowRight') next();
+        if (e.key === 'ArrowLeft') prev();
       });
     })();
   </script>
