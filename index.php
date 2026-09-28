@@ -149,7 +149,6 @@ function art_block(string $file, string $fallbackClass = ''): string
     .benefit h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:18px; margin:0 0 8px; }
     .benefit p { color:var(--muted); font-size:14px; line-height:1.5; }
     .spaced-cta { padding:10px 0 46px; text-align:center; }
-    .offer-panel { margin-bottom:34px; }
     .accordions { margin:0 auto; max-width:700px; text-align:left; }
     details { border-bottom:1px solid #d9dce2; }
     summary { align-items:center; background:#7e8292; color:#fff; cursor:pointer; display:flex; font-size:15px; font-weight:700; justify-content:space-between; list-style:none; margin-top:12px; padding:14px 16px; }
@@ -231,7 +230,6 @@ function art_block(string $file, string $fallbackClass = ''): string
   .benefit-art { height:210px; }
   .benefit-art .detector { transform:translateX(-45%) rotate(-12deg) scale(.59); top:-7px; }
   .spaced-cta { padding:6px 0 34px; }
-  .offer-panel { margin-bottom:24px; }
   .final { padding:38px 18px; }
   .lead-form { padding:20px 18px 24px; }
   .torn { margin:0; padding:20px 16px; }
@@ -264,7 +262,6 @@ function art_block(string $file, string $fallbackClass = ''): string
       <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><?= art_block('benefit-1.jpg') ?></div><h3><?= h($s['b1_title']) ?></h3><p><?= h($s['b1_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-2.jpg') ?></div><h3><?= h($s['b2_title']) ?></h3><p><?= h($s['b2_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-3.jpg') ?></div><h3><?= h($s['b3_title']) ?></h3><p><?= h($s['b3_desc']) ?></p></article></div></div></section>
 
       <div class="spaced-cta"><a class="button" href="#book"><?= h($s['cta_text']) ?></a></div>
-      <section class="section center wash"><div class="detector-panel offer-panel"><span class="panel-kicker"><?= h($s['offer_art_title']) ?></span><button class="mute-toggle" id="offerSoundBtn" type="button">Unmute</button><?php $offerVideo = file_exists(__DIR__ . '/img/offer.mp4') ? 'img/offer.mp4' : 'https://drive.usercontent.google.com/download?id=' . h($s['offer_video_drive_id']) . '&export=download&confirm=t'; ?><video id="offerVideo" autoplay muted loop playsinline preload="metadata"><source src="<?= h($offerVideo) ?>" type="video/mp4"><div class="video-fallback">Your browser can't play this video. <a href="#" style="text-decoration:underline">Open on Google Drive</a>.</div></video></div><div class="section-label"><?= h($s['offer_label']) ?></div><p><?= h($s['offer_desc']) ?></p></section>
 
       <section class="section" id="faq"><div class="accordions">
 <?php for ($i = 1; $i <= 4; $i++) { ?>
@@ -392,13 +389,6 @@ function art_block(string $file, string $fallbackClass = ''): string
         });
       }
 
-      var offerVideo = document.getElementById('offerVideo');
-      if (offerVideo) {
-        offerVideo.addEventListener('play', function() {
-          trackEvent('video_play', { video: 'offer' });
-        });
-      }
-
       var scrollTracked = { 25: false, 50: false, 75: false, 100: false };
       window.addEventListener('scroll', function() {
         var scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
@@ -423,17 +413,6 @@ function art_block(string $file, string $fallbackClass = ''): string
     (function () {
       var v = document.getElementById('promoVideo');
       var b = document.getElementById('soundBtn');
-      if (!v || !b) return;
-      v.volume = 0.7;
-      v.play().catch(function () {});
-      b.addEventListener('click', function () {
-        if (v.muted) { v.muted = false; b.textContent = 'Mute'; }
-        else { v.muted = true; b.textContent = 'Unmute'; }
-      });
-    })();
-    (function () {
-      var v = document.getElementById('offerVideo');
-      var b = document.getElementById('offerSoundBtn');
       if (!v || !b) return;
       v.volume = 0.7;
       v.play().catch(function () {});
