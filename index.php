@@ -9,6 +9,10 @@ $leadLast = $_POST['lead_last'] ?? '';
 $leadCc = $_POST['lead_cc'] ?? (string)($s['form_default_cc'] ?? '260');
 $leadPhone = $_POST['lead_phone'] ?? '';
 $leadKnowledge = $_POST['lead_knowledge'] ?? '';
+$leadEmail = trim((string)($_POST['lead_email'] ?? ''));
+$leadRevenue = trim((string)($_POST['lead_revenue'] ?? ''));
+$leadTravel = trim((string)($_POST['lead_travel'] ?? ''));
+$leadTickets = trim((string)($_POST['lead_tickets'] ?? ''));
 if (isset($_POST['lead_submit'])) {
     $connection = db();
     $first = trim((string)$leadFirst);
@@ -26,10 +30,13 @@ if (isset($_POST['lead_submit'])) {
         $leadError = 'Could not reach the server database. Please try again later.';
     } elseif ($name === '' || $digits === '') {
         $leadError = 'Please fill in your name and phone number.';
+    } elseif ($leadRevenue === '' || $leadTravel === '') {
+        $leadError = 'Please answer the two questions before continuing.';
     } else {
         try {
-            $stmt = $connection->prepare('INSERT INTO leads (name, phone, knowledge, wants_to_learn) VALUES (?, ?, ?, ?)');
-            $stmt->bind_param('ssss', $name, $phone, $knowledge, $learn);
+            $stmt = $connection->prepare('INSERT INTO leads (name, phone, email, revenue, travel, tickets, knowledge, wants_to_learn) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+            $emailVal = $leadEmail !== '' ? $leadEmail : null;
+            $stmt->bind_param('ssssssss', $name, $phone, $emailVal, $leadRevenue, $leadTravel, $leadTickets, $knowledge, $learn);
             $stmt->execute();
         } catch (mysqli_sql_exception $e) {
             $leadError = 'Could not save your details right now. Please try again in a moment.';
@@ -143,6 +150,16 @@ function hpl_countries(): array
         '598' => ['label' => '+598', 'name' => 'Uruguay', 'flag' => 'uy'],
         '595' => ['label' => '+595', 'name' => 'Paraguay', 'flag' => 'py'],
     ];
+}
+
+function hpl_options(string $group): array
+{
+    $map = [
+        'revenue' => ['Under $10k', '$10k - $50k', '$50k - $100k', '$100k - $500k', '$500k+', 'Prefer not to say'],
+        'travel' => ['Yes, I can travel', 'Maybe, depending on the dates', 'No, I cannot travel'],
+        'tickets' => ['Yes, that works for me', 'I would need to think about it', 'No'],
+    ];
+    return isset($map[$group]) ? $map[$group] : [];
 }
 
 function cc_flag(string $cc): string
@@ -321,6 +338,15 @@ function art_block(string $file, string $fallbackClass = ''): string
     .form-msg { border-radius:8px; display:none; font-size:13.5px; font-weight:600; margin:12px 0 0; padding:10px 12px; }
     .form-msg.on { display:block; }
     .form-msg.err { background:#fdeceb; color:#a4262c; }
+    .rf[hidden] { display:none; }
+    .rf { animation:stepIn .34s ease both; margin-top:14px; }
+    .rf-label { color:var(--navy); display:block; font-size:13px; font-weight:700; margin-bottom:5px; }
+    .rf-label em { color:var(--muted); font-size:11px; font-style:normal; font-weight:600; letter-spacing:.04em; margin-left:4px; text-transform:uppercase; }
+    .field-row .rf { margin-top:0; }
+    .rf input[type=text], .rf input[type=tel], .rf input[type=email] { font-size:15px; margin-top:0; padding:9px 11px; }
+    .rf-select select { background:#fff url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23687083' d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E") no-repeat right 12px center; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); font:15px 'DM Sans',sans-serif; height:41px; padding:0 32px 0 11px; width:100%; -webkit-appearance:none; appearance:none; }
+    .rf-select select:focus { outline:2px solid var(--gold-light); }
+    .rf-select select:invalid { color:var(--muted); }
     .form-error { background:#fbeeec; border-radius:8px; color:#7a2c25; font-size:14px; margin:0 auto 6px; max-width:520px; padding:11px 14px; }
     .thankyou { background:#fff; border-radius:12px; margin:28px auto 0; max-width:560px; padding:34px; }
     .thankyou h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:22px; margin:0 0 8px; }
@@ -440,15 +466,8 @@ function art_block(string $file, string $fallbackClass = ''): string
           </div>
           <p class="form-msg err" id="formMsg"></p>
           <div class="form-step" data-step="1">
-            <div class="field-row">
-              <label>First name *
-                <input type="text" name="lead_first" id="leadFirst" value="<?= h($leadFirst) ?>" autocomplete="given-name">
-              </label>
-              <label>Last name *
-                <input type="text" name="lead_last" id="leadLast" value="<?= h($leadLast) ?>" autocomplete="family-name">
-              </label>
-            </div>
-            <label>Phone number *
+            <label class="rf" data-reveal>
+              <span class="rf-label">Phone number</span>
               <span class="phone-row">
                 <span class="cc-wrap">
                   <img class="cc-flag" id="ccFlag" src="img/flags/<?= h(cc_flag((string)$leadCc)) ?>.png" alt="">
@@ -458,10 +477,53 @@ function art_block(string $file, string $fallbackClass = ''): string
 <?php endforeach; ?>
                   </select>
                 </span>
-                <input type="tel" name="lead_phone" id="leadPhone" value="<?= h($leadPhone) ?>" placeholder="800 000 0000" autocomplete="tel">
+                <input type="tel" name="lead_phone" id="leadPhone" value="<?= h($leadPhone) ?>" placeholder="976 652 858" autocomplete="tel" data-required>
               </span>
             </label>
-            <div class="form-nav"><button class="button" type="button" id="leadNext">Continue</button></div>
+            <div class="field-row">
+              <label class="rf" data-reveal hidden>
+                <span class="rf-label">First name</span>
+                <input type="text" name="lead_first" id="leadFirst" value="<?= h($leadFirst) ?>" autocomplete="given-name" data-required>
+              </label>
+              <label class="rf" data-reveal hidden>
+                <span class="rf-label">Last name</span>
+                <input type="text" name="lead_last" id="leadLast" value="<?= h($leadLast) ?>" autocomplete="family-name" data-required>
+              </label>
+            </div>
+            <label class="rf" data-reveal hidden>
+              <span class="rf-label">Email address <em>optional</em></span>
+              <input type="email" name="lead_email" id="leadEmail" value="<?= h($leadEmail) ?>" placeholder="you@example.com" autocomplete="email">
+            </label>
+            <label class="rf rf-select" data-reveal hidden>
+              <span class="rf-label"><?= h($s['form_q_revenue']) ?></span>
+              <select name="lead_revenue" id="leadRevenue" data-required>
+                <option value="">Select</option>
+<?php foreach (hpl_options('revenue') as $opt): ?>
+                <option value="<?= h($opt) ?>"<?= $leadRevenue === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
+<?php endforeach; ?>
+              </select>
+            </label>
+            <label class="rf rf-select" data-reveal hidden>
+              <span class="rf-label"><?= h($s['form_q_travel']) ?></span>
+              <select name="lead_travel" id="leadTravel" data-required>
+                <option value="">Select</option>
+<?php foreach (hpl_options('travel') as $opt): ?>
+                <option value="<?= h($opt) ?>"<?= $leadTravel === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
+<?php endforeach; ?>
+              </select>
+            </label>
+            <label class="rf rf-select" data-reveal hidden>
+              <span class="rf-label"><?= h($s['form_q_tickets']) ?></span>
+              <select name="lead_tickets" id="leadTickets">
+                <option value="">Select</option>
+<?php foreach (hpl_options('tickets') as $opt): ?>
+                <option value="<?= h($opt) ?>"<?= $leadTickets === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
+<?php endforeach; ?>
+              </select>
+            </label>
+            <div class="form-nav rf" data-reveal hidden>
+              <button class="button" type="button" id="leadNext">Continue</button>
+            </div>
           </div>
           <div class="form-step" data-step="2" hidden>
             <label>What do you know about gold detectors?<span class="hint">Tell us where you are right now</span>
@@ -677,23 +739,72 @@ function art_block(string $file, string $fallbackClass = ''): string
           if (i === n) { steps[i].removeAttribute('hidden'); }
           else { steps[i].setAttribute('hidden', ''); }
         }
-        msg.classList.remove('on');
+        if (msg) msg.classList.remove('on');
         var first = steps[n].querySelector('input, textarea, select');
         if (first) first.focus();
         if (n === 0 && window.scrollY > 0) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
 
       function fail(text) {
+        if (!msg) return;
         msg.textContent = text;
         msg.classList.add('on');
         trackEvent('form_error', { field: text });
       }
 
+      var revealed = form.querySelectorAll('[data-reveal]');
+      function filled(field) {
+        if (!field) return false;
+        var tag = field.tagName;
+        if (tag === 'SELECT') return field.value !== '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return String(field.value).replace(/\D/g, '') !== '' || String(field.value).trim() !== '';
+        return true;
+      }
+      function fieldOf(node) {
+        return node.querySelector('input, select, textarea');
+      }
+      function groupOk(node) {
+        var inputs = node.querySelectorAll('input[data-required], select[data-required]');
+        for (var i = 0; i < inputs.length; i++) {
+          if (inputs[i].type === 'radio' || inputs[i].type === 'checkbox') {
+            if (!inputs[i].checked) return false;
+          } else if (!filled(inputs[i])) {
+            return false;
+          }
+        }
+        return true;
+      }
+      function syncReveal() {
+        for (var i = 0; i < revealed.length; i++) {
+          var node = revealed[i];
+          if (i === 0) { node.removeAttribute('hidden'); continue; }
+          var prev = revealed[i - 1];
+          if (!groupOk(prev)) break;
+          if (node.hasAttribute('hidden')) {
+            node.removeAttribute('hidden');
+            if (node.id === 'leadNext') trackEvent('form_step', { step: 2 });
+          }
+        }
+      }
+      for (var r = 0; r < revealed.length; r++) {
+        (function (node) {
+          var fld = fieldOf(node);
+          if (!fld) return;
+          fld.addEventListener('input', syncReveal);
+          fld.addEventListener('change', syncReveal);
+          if (fld.tagName === 'INPUT' && fld.type !== 'radio' && fld.type !== 'checkbox') {
+            fld.addEventListener('blur', function () { setTimeout(syncReveal, 0); });
+          }
+        })(revealed[r]);
+      }
+      syncReveal();
+
       next.addEventListener('click', function () {
         if (!f.value.trim()) return fail('Please enter your first name.');
         if (!l.value.trim()) return fail('Please enter your last name.');
         if (p.value.replace(/\D/g, '').length < 6) return fail('Please enter a valid phone number.');
-        trackEvent('form_step', { step: 2 });
+        if (!document.getElementById('leadRevenue').value) return fail('Please select your annual revenue.');
+        if (!document.getElementById('leadTravel').value) return fail('Please answer the travel question.');
         show(1);
       });
 

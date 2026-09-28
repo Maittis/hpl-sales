@@ -56,6 +56,9 @@ $fields = [
     ['key' => 'form_sub',          'label' => 'Sub-line',                   'type' => 'text',     'group' => 'Booking form'],
     ['key' => 'form_submit',       'label' => 'Final button text',          'type' => 'text',     'group' => 'Booking form'],
     ['key' => 'form_default_cc',    'label' => 'Fallback country code',      'type' => 'text',     'group' => 'Booking form'],
+    ['key' => 'form_q_revenue',     'label' => 'Revenue question',           'type' => 'text',     'group' => 'Booking form'],
+    ['key' => 'form_q_travel',      'label' => 'Travel question',            'type' => 'text',     'group' => 'Booking form'],
+    ['key' => 'form_q_tickets',     'label' => 'Tickets question',           'type' => 'text',     'group' => 'Booking form'],
     ['key' => 'final_h',           'label' => 'Heading',                    'type' => 'text',     'group' => 'Final CTA'],
     ['key' => 'final_sub',         'label' => 'Subtext',                    'type' => 'textarea', 'group' => 'Final CTA'],
     ['key' => 'cta_email',         'label' => 'Contact email (CTA mailto)', 'type' => 'text',     'group' => 'Final CTA'],
@@ -111,8 +114,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=hpl-leads-' . date('Y-m-d') . '.csv');
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['Name', 'Phone', 'Knowledge', 'Wants to learn', 'Status', 'Submitted']);
-    $result = $connection->query('SELECT name, phone, knowledge, wants_to_learn, status, submitted_at FROM leads ORDER BY id DESC');
+    fputcsv($out, ['Name', 'Phone', 'Email', 'Revenue', 'Travel', 'Tickets', 'Knowledge', 'Wants to learn', 'Status', 'Submitted']);
+    $result = $connection->query('SELECT name, phone, email, revenue, travel, tickets, knowledge, wants_to_learn, status, submitted_at FROM leads ORDER BY id DESC');
     while ($row = $result->fetch_assoc()) {
         $row['phone'] = "\t" . $row['phone'];
         $row['submitted_at'] = date('Y-m-d H:i:s', strtotime($row['submitted_at']));
@@ -285,7 +288,7 @@ if ($connection) {
             }
         }
     }
-    $leadResult = $connection->query('SELECT id, name, phone, knowledge, wants_to_learn, status, submitted_at FROM leads ORDER BY id DESC LIMIT 100');
+    $leadResult = $connection->query('SELECT id, name, phone, email, revenue, travel, tickets, knowledge, wants_to_learn, status, submitted_at FROM leads ORDER BY id DESC LIMIT 100');
     if ($leadResult) {
         while ($row = $leadResult->fetch_assoc()) {
             $leads[] = $row;
@@ -497,13 +500,17 @@ if ($connection) {
       <?php else: ?>
         <div class="table-scroll">
         <table class="leads">
-          <thead><tr><th>Submitted</th><th>Name</th><th>Phone</th><th>Knows about detectors</th><th>Wants to learn</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Submitted</th><th>Name</th><th>Phone</th><th>Email</th><th>Revenue</th><th>Travel</th><th>Tickets</th><th>Knows about detectors</th><th>Wants to learn</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
           <?php foreach ($leads as $lead): ?>
             <tr>
               <td class="muted"><?= h(date('M j, Y H:i', strtotime($lead['submitted_at']))) ?></td>
               <td><span class="lead-name" data-id="<?= (int)$lead['id'] ?>" data-name="<?= htmlspecialchars(json_encode($lead['name']), ENT_QUOTES) ?>" data-phone="<?= htmlspecialchars(json_encode($lead['phone']), ENT_QUOTES) ?>" data-knowledge="<?= htmlspecialchars(json_encode($lead['knowledge']), ENT_QUOTES) ?>" data-wants="<?= htmlspecialchars(json_encode($lead['wants_to_learn']), ENT_QUOTES) ?>" data-status="<?= htmlspecialchars(json_encode($lead['status']), ENT_QUOTES) ?>" data-submitted="<?= htmlspecialchars(json_encode(date('M j, Y H:i', strtotime($lead['submitted_at']))), ENT_QUOTES) ?>"><?= h($lead['name']) ?></span></td>
               <td><?= h($lead['phone']) ?></td>
+              <td class="muted"><?= h($lead['email'] ?? '') ?></td>
+              <td class="muted"><?= h($lead['revenue'] ?? '') ?></td>
+              <td class="muted"><?= h($lead['travel'] ?? '') ?></td>
+              <td class="muted"><?= h($lead['tickets'] ?? '') ?></td>
               <td class="muted"><?= h($lead['knowledge']) ?></td>
               <td><?= h($lead['wants_to_learn']) ?></td>
               <td><span class="badge <?= $lead['status'] === 'contacted' ? 'contacted' : 'new' ?>"><?= h($lead['status']) ?></span></td>
