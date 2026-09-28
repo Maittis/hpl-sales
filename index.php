@@ -661,9 +661,9 @@ function art_block(string $file, string $fallbackClass = ''): string
               }
               cc.value = code;
               if (cc && flag) {
-                var f = match.getAttribute('data-flag');
-                flag.onerror = function () { flag.src = 'https://flagcdn.com/w20/' + f + '.png'; flag.onerror = null; };
-                flag.src = 'img/flags/' + f + '.png';
+                var flagCode = match.getAttribute('data-flag');
+                flag.onerror = function () { flag.src = 'https://flagcdn.com/w20/' + flagCode + '.png'; flag.onerror = null; };
+                flag.src = 'img/flags/' + flagCode + '.png';
               }
               trackEvent('country_detected', { cc: code });
             })
