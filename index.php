@@ -96,7 +96,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .wash { background:var(--wash); }
     .proof { text-align:center; }
     .proof h2 { margin-bottom:20px; }
-    .proof-stage { aspect-ratio:4/5; background:#000; box-shadow:0 14px 28px rgba(9,15,36,.16); margin:0 auto; max-height:52vh; max-width:420px; overflow:hidden; position:relative; width:min(420px,88vw); }
+    .proof-stage { aspect-ratio:3/4; background:#000; box-shadow:0 14px 28px rgba(9,15,36,.16); margin:0 auto; max-height:58vh; max-width:420px; overflow:hidden; position:relative; width:min(420px,88vw); }
     .proof-slide { inset:0; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .45s ease, transform .55s ease; }
     .proof-slide.on { opacity:1; transform:none; z-index:2; }
     .proof-slide video { display:block; height:100%; object-fit:cover; width:100%; }
