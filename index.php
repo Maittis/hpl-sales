@@ -42,6 +42,26 @@ if (isset($_POST['lead_submit'])) {
 }
 $done = isset($_GET['done']) ? (string)$_GET['done'] : '';
 
+function hpl_countries(): array
+{
+    return [
+        '234' => ['label' => '+234', 'name' => 'Nigeria', 'flag' => 'ng'],
+        '260' => ['label' => '+260', 'name' => 'Zambia', 'flag' => 'zm'],
+        '263' => ['label' => '+263', 'name' => 'Zimbabwe', 'flag' => 'zw'],
+        '27' => ['label' => '+27', 'name' => 'South Africa', 'flag' => 'za'],
+        '255' => ['label' => '+255', 'name' => 'Tanzania', 'flag' => 'tz'],
+        '256' => ['label' => '+256', 'name' => 'Uganda', 'flag' => 'ug'],
+        '44' => ['label' => '+44', 'name' => 'United Kingdom', 'flag' => 'gb'],
+        '1' => ['label' => '+1', 'name' => 'United States / Canada', 'flag' => 'us'],
+    ];
+}
+
+function cc_flag(string $cc): string
+{
+    $all = hpl_countries();
+    return isset($all[$cc]) ? $all[$cc]['flag'] : 'zm';
+}
+
 const DETECTOR_ART = '<div class="detector"><div class="handle"></div><div class="control"><div class="screen"></div><i></i></div><div class="shaft"></div><div class="coil"></div></div>';
 
 function art_block(string $file, string $fallbackClass = ''): string
@@ -168,37 +188,44 @@ function art_block(string $file, string $fallbackClass = ''): string
     .final { background:var(--navy); color:#fff; padding:46px 34px; text-align:center; }
     .final h2 { color:#fff; font-size:32px; }
     .final p { color:#d7dce6; font-size:16px; margin:10px auto 24px; max-width:560px; }
-    .lead-form { background:#fff; border-radius:12px; margin:28px auto 0; max-width:560px; padding:26px 26px 30px; text-align:left; }
+    .lead-form { background:#fff; border-radius:12px; margin:24px auto 0; max-width:460px; padding:20px 20px 22px; text-align:left; }
     .lead-form label { color:var(--navy); display:block; font-size:14px; font-weight:700; margin:16px 0 0; }
-    .lead-form fieldset { border:0; margin:16px 0 0; padding:0; }
-    .lead-form legend { color:var(--navy); font-size:14px; font-weight:700; margin-bottom:8px; }
+    .lead-form fieldset { border:0; margin:12px 0 0; padding:0; }
+    .lead-form legend { color:var(--navy); font-size:13px; font-weight:700; margin-bottom:4px; }
     .lead-form .hint { color:var(--muted); display:block; font-size:12px; font-weight:400; margin-top:3px; }
     .lead-form input[type=text], .lead-form input[type=tel], .lead-form textarea { border:1px solid #cfd4dc; border-radius:8px; font:16px 'DM Sans',sans-serif; margin-top:7px; padding:13px 14px; width:100%; }
     .lead-form input:focus, .lead-form textarea:focus { outline:2px solid var(--gold-light); }
     .lead-form textarea { min-height:96px; resize:vertical; }
-    .lead-form .opts { display:flex; gap:26px; margin-top:6px; }
-    .lead-form .opts label { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; margin:0; }
-    .lead-form input[type=radio] { height:18px; width:18px; accent-color:var(--gold); }
+    .lead-form .opts { display:flex; gap:22px; margin-top:4px; }
+    .lead-form .opts label { display:flex; align-items:center; gap:7px; font-size:14px; font-weight:600; margin:0; }
+    .lead-form input[type=radio] { height:16px; width:16px; accent-color:var(--gold); }
     .lead-form .submit-row { margin:26px 0 0; text-align:center; }
-    .form-intro { border-bottom:1px solid #e6e9ee; margin-bottom:22px; padding-bottom:20px; text-align:left; }
-    .form-eyebrow { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:0 0 6px; text-transform:uppercase; }
-    .form-title { color:var(--navy); font-size:26px; margin:0 0 4px; }
-    .form-event { color:var(--navy); font-size:17px; font-weight:700; margin:0 0 8px; }
-    .form-desc { color:#3d4652; font-size:15px; margin:0 0 6px; }
-    .form-sub { color:var(--muted); font-size:14px; margin:0; }
+    .form-intro { border-bottom:1px solid #e6e9ee; margin-bottom:16px; padding-bottom:14px; text-align:left; }
+    .form-eyebrow { color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.08em; margin:0 0 4px; text-transform:uppercase; }
+    .form-title { color:var(--navy); font-size:20px; margin:0 0 3px; }
+    .form-event { color:var(--navy); font-size:14px; font-weight:700; margin:0 0 5px; }
+    .form-desc { color:#3d4652; font-size:13px; line-height:1.45; margin:0 0 3px; }
+    .form-sub { color:var(--muted); font-size:12.5px; margin:0; }
     .form-step[hidden] { display:none; }
     .form-step { animation:stepIn .32s ease both; }
     @keyframes stepIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
-    .field-row { display:grid; gap:14px; grid-template-columns:1fr 1fr; }
+    .field-row { display:grid; gap:10px; grid-template-columns:1fr 1fr; }
     .field-row label { margin-top:0; }
-    .phone-row { display:flex; gap:10px; margin-top:7px; }
-    .phone-row select { background:#fff; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); font:16px 'DM Sans',sans-serif; font-weight:600; height:50px; padding:0 10px; }
+    .lead-form .field-row label, .lead-form .cc-row label { font-size:13px; }
+    .lead-form label { margin-top:11px; }
+    .lead-form input[type=text], .lead-form input[type=tel] { font-size:15px; margin-top:5px; padding:9px 11px; }
+    .lead-form textarea { font-size:15px; margin-top:5px; min-height:70px; padding:9px 11px; }
+    .phone-row { display:flex; gap:8px; margin-top:5px; }
+    .cc-wrap { display:inline-flex; position:relative; }
+    .cc-flag { border-radius:2px; box-shadow:0 0 0 1px rgba(0,0,0,.12); height:auto; left:9px; pointer-events:none; position:absolute; top:50%; transform:translateY(-50%); width:19px; z-index:1; }
+    .cc-wrap select { background:#fff; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); font:15px 'DM Sans',sans-serif; font-weight:600; height:41px; padding:0 8px 0 34px; }
+    .cc-wrap select:focus { outline:2px solid var(--gold-light); }
     .phone-row input { margin-top:0; }
-    .form-nav { align-items:center; display:flex; gap:12px; margin-top:26px; }
-    .form-nav .button { flex:1; }
-    .btn-ghost { background:none; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); cursor:pointer; font:15px 'DM Sans',sans-serif; font-weight:700; padding:13px 20px; }
+    .form-nav { align-items:center; display:flex; gap:10px; margin-top:18px; }
+    .form-nav .button { flex:1; font-size:15px; padding:12px 18px; }
+    .btn-ghost { background:none; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); cursor:pointer; font:14px 'DM Sans',sans-serif; font-weight:700; padding:11px 16px; }
     .btn-ghost:hover { border-color:var(--navy); }
-    .form-msg { border-radius:8px; display:none; font-size:14px; font-weight:600; margin:16px 0 0; padding:12px 14px; }
+    .form-msg { border-radius:8px; display:none; font-size:13.5px; font-weight:600; margin:12px 0 0; padding:10px 12px; }
     .form-msg.on { display:block; }
     .form-msg.err { background:#fdeceb; color:#a4262c; }
     .form-error { background:#fbeeec; border-radius:8px; color:#7a2c25; font-size:14px; margin:0 auto 6px; max-width:520px; padding:11px 14px; }
@@ -330,16 +357,14 @@ function art_block(string $file, string $fallbackClass = ''): string
             </div>
             <label>Phone number *
               <span class="phone-row">
-                <select name="lead_cc" id="leadCc" aria-label="Country code">
-                  <option value="234"<?= $leadCc === '234' ? ' selected' : '' ?>>+234</option>
-                  <option value="260"<?= $leadCc === '260' ? ' selected' : '' ?>>+260</option>
-                  <option value="263"<?= $leadCc === '263' ? ' selected' : '' ?>>+263</option>
-                  <option value="27"<?= $leadCc === '27' ? ' selected' : '' ?>>+27</option>
-                  <option value="255"<?= $leadCc === '255' ? ' selected' : '' ?>>+255</option>
-                  <option value="256"<?= $leadCc === '256' ? ' selected' : '' ?>>+256</option>
-                  <option value="44"<?= $leadCc === '44' ? ' selected' : '' ?>>+44</option>
-                  <option value="1"<?= $leadCc === '1' ? ' selected' : '' ?>>+1</option>
-                </select>
+                <span class="cc-wrap">
+                  <img class="cc-flag" id="ccFlag" src="img/flags/<?= h(cc_flag((string)$leadCc)) ?>.png" alt="">
+                  <select name="lead_cc" id="leadCc" aria-label="Country code">
+<?php foreach (hpl_countries() as $ccode => $cinfo): ?>
+                    <option value="<?= h((string)$ccode) ?>" data-flag="<?= h($cinfo['flag']) ?>" title="<?= h($cinfo['name']) ?>"<?= (string)$leadCc === (string)$ccode ? ' selected' : '' ?>><?= h($cinfo['label']) ?></option>
+<?php endforeach; ?>
+                  </select>
+                </span>
                 <input type="tel" name="lead_phone" id="leadPhone" value="<?= h($leadPhone) ?>" placeholder="800 000 0000" autocomplete="tel">
               </span>
             </label>
@@ -496,6 +521,17 @@ function art_block(string $file, string $fallbackClass = ''): string
       var f = document.getElementById('leadFirst');
       var l = document.getElementById('leadLast');
       var p = document.getElementById('leadPhone');
+      var cc = document.getElementById('leadCc');
+      var flag = document.getElementById('ccFlag');
+
+      if (cc && flag) {
+        var syncFlag = function () {
+          var o = cc.options[cc.selectedIndex];
+          if (o && o.getAttribute('data-flag')) flag.src = 'img/flags/' + o.getAttribute('data-flag') + '.png';
+        };
+        cc.addEventListener('change', syncFlag);
+        syncFlag();
+      }
 
       function show(n) {
         for (var i = 0; i < steps.length; i++) {
