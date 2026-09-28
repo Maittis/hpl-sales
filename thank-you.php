@@ -16,7 +16,7 @@ $tyVideo = '';
 if (file_exists(__DIR__ . '/img/thankyou.mp4')) {
     $tyVideo = 'img/thankyou.mp4';
 } elseif (trim((string)($s['ty_video_drive_id'] ?? '')) !== '' && trim((string)($s['ty_video_drive_id'] ?? '')) !== 'YOUR_DRIVE_FILE_ID') {
-    $tyVideo = 'https://drive.usercontent.google.com/download?id=' . h($s['ty_video_drive_id']) . '&export=download&confirm=t';
+    $tyVideo = hpl_media_url($s['ty_video_drive_id'] ?? '');
 }
 
 $tyPhotos = [];

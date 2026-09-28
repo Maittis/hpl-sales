@@ -131,6 +131,35 @@ function db(): ?mysqli
     return $db;
 }
 
+/**
+ * Turn whatever is stored in a media setting into a URL a browser can play.
+ * Accepts a bare Google Drive file ID, any Drive share/view/download link, or a plain URL.
+ */
+function hpl_media_url(?string $value): string
+{
+    $v = trim((string)$value);
+    if ($v === '' || $v === 'YOUR_DRIVE_FILE_ID') {
+        return '';
+    }
+
+    // already a usable direct URL for some other host (CDN, S3, local upload, ...)
+    if (preg_match('~^https?://(?!drive\.google|driveusercontent|drive\.googleusercontent)~i', $v)) {
+        return $v;
+    }
+
+    // pull the file ID out of any Drive link shape
+    if (preg_match('~/d/([A-Za-z0-9_-]{10,})~', $v, $m)
+        || preg_match('~[?&]id=([A-Za-z0-9_-]{10,})~', $v, $m)) {
+        $id = $m[1];
+    } elseif (preg_match('~^[A-Za-z0-9_-]{25,}$~', $v)) {
+        $id = $v; // bare file ID
+    } else {
+        return ''; // unusable value - fail quietly rather than emit a broken player
+    }
+
+    return 'https://drive.usercontent.google.com/download?id=' . rawurlencode($id) . '&export=download&confirm=t';
+}
+
 function hpl_settings(): array
 {
     $settings = hpl_defaults();
