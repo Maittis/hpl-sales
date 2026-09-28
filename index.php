@@ -98,8 +98,8 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof h2 { margin-bottom:20px; }
     .proof-track { display:flex; gap:22px; margin:0 auto; max-width:1080px; overflow-x:auto; padding:6px 0 26px; scroll-behavior:smooth; scroll-snap-type:x mandatory; scrollbar-width:none; }
     .proof-track::-webkit-scrollbar { display:none; }
-    .proof-card { background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); flex:0 0 78%; scroll-snap-align:center; }
-    .proof-card video { aspect-ratio:4/5; background:#000; display:block; max-height:70vh; object-fit:cover; width:100%; }
+    .proof-card { background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); flex:0 0 46%; max-width:420px; scroll-snap-align:center; }
+    .proof-card video { aspect-ratio:4/5; background:#000; display:block; max-height:44vh; object-fit:cover; width:100%; }
     .proof-card figcaption { color:var(--navy); font-size:15px; font-weight:700; padding:14px 12px 16px; }
     .proof-empty { background:var(--navy); color:#fff; font-size:14px; padding:60px 20px; }
     .proof-track::after { content:''; flex:0 0 2px; }
@@ -212,6 +212,7 @@ function art_block(string $file, string $fallbackClass = ''): string
   .benefits-band { min-height:150px; padding:38px 18px; }
   .benefits-band h2 { font-size:24px; }
   .proof-gallery { gap:22px; grid-template-columns:1fr; max-width:420px; }
+  .proof-card { flex:0 0 78%; }
   .benefits { gap:24px; grid-template-columns:1fr; }
   .benefit-art { height:210px; }
   .benefit-art .detector { transform:translateX(-45%) rotate(-12deg) scale(.59); top:-7px; }
