@@ -327,7 +327,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .phone-row { display:flex; gap:8px; margin-top:5px; }
     .cc-wrap { display:inline-flex; position:relative; }
     .cc-flag { border-radius:2px; box-shadow:0 0 0 1px rgba(0,0,0,.12); height:auto; left:9px; pointer-events:none; position:absolute; top:50%; transform:translateY(-50%); width:19px; z-index:1; }
-    .cc-wrap select { background:#fff; border:1px solid #cfd4dc; border-radius:8px; color:transparent; font:15px 'DM Sans',sans-serif; font-weight:600; height:41px; padding:0 20px 0 33px; width:62px; }
+    .cc-wrap select { background:#fff; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); font:15px 'DM Sans',sans-serif; font-weight:600; height:41px; padding:0 6px 0 36px; width:82px; }
     .cc-wrap select:focus { outline:2px solid var(--gold-light); }
     .cc-wrap option { background:#fff; color:var(--navy); }
     .phone-row input { margin-top:0; }
