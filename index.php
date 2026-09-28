@@ -4,18 +4,27 @@ $s = hpl_settings();
 
 $leadError = '';
 $leadName = $_POST['lead_name'] ?? '';
+$leadFirst = $_POST['lead_first'] ?? '';
+$leadLast = $_POST['lead_last'] ?? '';
+$leadCc = $_POST['lead_cc'] ?? '234';
 $leadPhone = $_POST['lead_phone'] ?? '';
 $leadKnowledge = $_POST['lead_knowledge'] ?? '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lead_submit'])) {
+if (isset($_POST['lead_submit'])) {
     $connection = db();
-    $name = trim($_POST['lead_name'] ?? '');
-    $phone = trim($_POST['lead_phone'] ?? '');
-    $knowledge = trim($_POST['lead_knowledge'] ?? '');
+    $first = trim((string)$leadFirst);
+    $last = trim((string)$leadLast);
+    $name = trim($first . ' ' . $last);
+    if ($name === '') {
+        $name = trim((string)$leadName);
+    }
+    $cc = preg_replace('/\D/', '', (string)$leadCc);
+    $digits = preg_replace('/\D/', '', (string)$leadPhone);
+    $phone = $cc . $digits;
+    $knowledge = trim((string)$leadKnowledge);
     $learn = ($_POST['lead_learn'] ?? '') === 'Yes' ? 'Yes' : 'No';
     if (!$connection) {
         $leadError = 'Could not reach the server database. Please try again later.';
-    } elseif ($name === '' || $phone === '') {
+    } elseif ($name === '' || $digits === '') {
         $leadError = 'Please fill in your name and phone number.';
     } else {
         try {
@@ -171,6 +180,27 @@ function art_block(string $file, string $fallbackClass = ''): string
     .lead-form .opts label { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; margin:0; }
     .lead-form input[type=radio] { height:18px; width:18px; accent-color:var(--gold); }
     .lead-form .submit-row { margin:26px 0 0; text-align:center; }
+    .form-intro { border-bottom:1px solid #e6e9ee; margin-bottom:22px; padding-bottom:20px; text-align:left; }
+    .form-eyebrow { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:0 0 6px; text-transform:uppercase; }
+    .form-title { color:var(--navy); font-size:26px; margin:0 0 4px; }
+    .form-event { color:var(--navy); font-size:17px; font-weight:700; margin:0 0 8px; }
+    .form-desc { color:#3d4652; font-size:15px; margin:0 0 6px; }
+    .form-sub { color:var(--muted); font-size:14px; margin:0; }
+    .form-step[hidden] { display:none; }
+    .form-step { animation:stepIn .32s ease both; }
+    @keyframes stepIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+    .field-row { display:grid; gap:14px; grid-template-columns:1fr 1fr; }
+    .field-row label { margin-top:0; }
+    .phone-row { display:flex; gap:10px; margin-top:7px; }
+    .phone-row select { background:#fff; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); font:16px 'DM Sans',sans-serif; font-weight:600; height:50px; padding:0 10px; }
+    .phone-row input { margin-top:0; }
+    .form-nav { align-items:center; display:flex; gap:12px; margin-top:26px; }
+    .form-nav .button { flex:1; }
+    .btn-ghost { background:none; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); cursor:pointer; font:15px 'DM Sans',sans-serif; font-weight:700; padding:13px 20px; }
+    .btn-ghost:hover { border-color:var(--navy); }
+    .form-msg { border-radius:8px; display:none; font-size:14px; font-weight:600; margin:16px 0 0; padding:12px 14px; }
+    .form-msg.on { display:block; }
+    .form-msg.err { background:#fdeceb; color:#a4262c; }
     .form-error { background:#fbeeec; border-radius:8px; color:#7a2c25; font-size:14px; margin:0 auto 6px; max-width:520px; padding:11px 14px; }
     .thankyou { background:#fff; border-radius:12px; margin:28px auto 0; max-width:560px; padding:34px; }
     .thankyou h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:22px; margin:0 0 8px; }
@@ -231,7 +261,9 @@ function art_block(string $file, string $fallbackClass = ''): string
   .benefit-art .detector { transform:translateX(-45%) rotate(-12deg) scale(.59); top:-7px; }
   .spaced-cta { padding:6px 0 34px; }
   .final { padding:38px 18px; }
-  .lead-form { padding:20px 18px 24px; }
+    .lead-form { padding:20px 18px 24px; }
+    .field-row { grid-template-columns:1fr; }
+    .form-title { font-size:22px; }
   .torn { margin:0; padding:20px 16px; }
   footer { padding-left:10px; padding-right:10px; }
   .footer-menu-btn { display:block; }
@@ -277,25 +309,58 @@ function art_block(string $file, string $fallbackClass = ''): string
         <div class="thankyou"><h3>You're on the list!</h3><p>Thanks, <?= h($leadName) ?>. We'll reach out within one business day to schedule your gold-detection assessment.</p></div>
 <?php else: ?>
 <?php if ($leadError !== ''): ?><div class="form-error"><?= h($leadError) ?></div><?php endif; ?>
-        <form class="lead-form" action="#book" method="post">
+        <form class="lead-form" action="#book" method="post" novalidate id="leadForm">
           <input type="hidden" name="lead_submit" value="1">
-          <label>Full name<span class="hint"></span>
-            <input type="text" name="lead_name" value="<?= h($leadName) ?>" required>
-          </label>
-          <label>Phone number<span class="hint">+234 800 000 0000</span>
-            <input type="tel" name="lead_phone" value="<?= h($leadPhone) ?>" placeholder="+234 800 000 0000" required>
-          </label>
-          <label>What do you know about gold detectors?<span class="hint">Tell us where you are right now</span>
-            <textarea name="lead_knowledge" rows="3" placeholder="e.g. I've watched YouTube videos but never used one"><?= h($leadKnowledge) ?></textarea>
-          </label>
-          <fieldset>
-            <legend>Would you want to learn?</legend>
-            <div class="opts">
-              <label><input type="radio" name="lead_learn" value="Yes" required> Yes</label>
-              <label><input type="radio" name="lead_learn" value="No"> No</label>
+          <div class="form-intro">
+            <p class="form-eyebrow"><?= h($s['form_eyebrow']) ?></p>
+            <p class="form-title"><?= h($s['form_title']) ?></p>
+            <p class="form-event"><?= h($s['form_event']) ?></p>
+            <p class="form-desc"><?= h($s['form_desc']) ?></p>
+            <p class="form-sub"><?= h($s['form_sub']) ?></p>
+          </div>
+          <p class="form-msg err" id="formMsg"></p>
+          <div class="form-step" data-step="1">
+            <div class="field-row">
+              <label>First name *
+                <input type="text" name="lead_first" id="leadFirst" value="<?= h($leadFirst) ?>" autocomplete="given-name">
+              </label>
+              <label>Last name *
+                <input type="text" name="lead_last" id="leadLast" value="<?= h($leadLast) ?>" autocomplete="family-name">
+              </label>
             </div>
-          </fieldset>
-          <div class="submit-row"><button class="button" type="submit"><?= h($s['cta_text']) ?></button></div>
+            <label>Phone number *
+              <span class="phone-row">
+                <select name="lead_cc" id="leadCc" aria-label="Country code">
+                  <option value="234"<?= $leadCc === '234' ? ' selected' : '' ?>>+234</option>
+                  <option value="260"<?= $leadCc === '260' ? ' selected' : '' ?>>+260</option>
+                  <option value="263"<?= $leadCc === '263' ? ' selected' : '' ?>>+263</option>
+                  <option value="27"<?= $leadCc === '27' ? ' selected' : '' ?>>+27</option>
+                  <option value="255"<?= $leadCc === '255' ? ' selected' : '' ?>>+255</option>
+                  <option value="256"<?= $leadCc === '256' ? ' selected' : '' ?>>+256</option>
+                  <option value="44"<?= $leadCc === '44' ? ' selected' : '' ?>>+44</option>
+                  <option value="1"<?= $leadCc === '1' ? ' selected' : '' ?>>+1</option>
+                </select>
+                <input type="tel" name="lead_phone" id="leadPhone" value="<?= h($leadPhone) ?>" placeholder="800 000 0000" autocomplete="tel">
+              </span>
+            </label>
+            <div class="form-nav"><button class="button" type="button" id="leadNext">Continue</button></div>
+          </div>
+          <div class="form-step" data-step="2" hidden>
+            <label>What do you know about gold detectors?<span class="hint">Tell us where you are right now</span>
+              <textarea name="lead_knowledge" rows="3" placeholder="e.g. I've watched YouTube videos but never used one"><?= h($leadKnowledge) ?></textarea>
+            </label>
+            <fieldset>
+              <legend>Would you want to learn?</legend>
+              <div class="opts">
+                <label><input type="radio" name="lead_learn" value="Yes" required> Yes</label>
+                <label><input type="radio" name="lead_learn" value="No"> No</label>
+              </div>
+            </fieldset>
+            <div class="form-nav">
+              <button class="btn-ghost" type="button" id="leadBack">Back</button>
+              <button class="button" type="submit"><?= h($s['form_submit']) ?></button>
+            </div>
+          </div>
         </form>
 <?php endif; ?>
       </section>
@@ -419,6 +484,55 @@ function art_block(string $file, string $fallbackClass = ''): string
       b.addEventListener('click', function () {
         if (v.muted) { v.muted = false; b.textContent = 'Mute'; }
         else { v.muted = true; b.textContent = 'Unmute'; }
+      });
+    })();
+    (function () {
+      var form = document.getElementById('leadForm');
+      if (!form) return;
+      var steps = form.querySelectorAll('.form-step');
+      var next = document.getElementById('leadNext');
+      var back = document.getElementById('leadBack');
+      var msg = document.getElementById('formMsg');
+      var f = document.getElementById('leadFirst');
+      var l = document.getElementById('leadLast');
+      var p = document.getElementById('leadPhone');
+
+      function show(n) {
+        for (var i = 0; i < steps.length; i++) {
+          if (i === n) { steps[i].removeAttribute('hidden'); }
+          else { steps[i].setAttribute('hidden', ''); }
+        }
+        msg.classList.remove('on');
+        var first = steps[n].querySelector('input, textarea, select');
+        if (first) first.focus();
+        if (n === 0 && window.scrollY > 0) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function fail(text) {
+        msg.textContent = text;
+        msg.classList.add('on');
+        trackEvent('form_error', { field: text });
+      }
+
+      next.addEventListener('click', function () {
+        if (!f.value.trim()) return fail('Please enter your first name.');
+        if (!l.value.trim()) return fail('Please enter your last name.');
+        if (p.value.replace(/\D/g, '').length < 6) return fail('Please enter a valid phone number.');
+        trackEvent('form_step', { step: 2 });
+        show(1);
+      });
+
+      back.addEventListener('click', function () { show(0); });
+
+      form.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          if (!e.target.closest('.form-step').hasAttribute('hidden')) next.click();
+        }
+      });
+
+      form.addEventListener('submit', function () {
+        trackEvent('form_submit', { form: 'lead' });
       });
     })();
     (function () {
