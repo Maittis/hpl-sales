@@ -282,7 +282,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 .proof-dark { background:#050505; position:relative; }
 .proof-dark h2, .proof-dark .section-label { color:#fff; }
 .proof-dark .proof-hint, .proof-dark .proof-caption { color:rgba(255,255,255,.55); }
-.proof-coverflow .cf-stage { --cf-w:260px; height:calc(var(--cf-w) / var(--ring-shape,.5625) * 1.12); overflow:hidden; perspective:1200px; perspective-origin:50% 46%; position:relative; }
+.proof-coverflow .cf-stage { --cf-gap:30px; --cf-w:260px; height:calc(var(--cf-w) / var(--ring-shape,.5625) * 1.12); overflow:hidden; perspective:1200px; perspective-origin:50% 46%; position:relative; }
 .proof-coverflow .cf-stage::before { background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.10), transparent 45%); content:''; inset:0; pointer-events:none; position:absolute; }
 .proof-coverflow .ring-item { border:1px solid rgba(255,255,255,.12); border-radius:28px; box-shadow:0 14px 34px rgba(0,0,0,.4); transform-style:preserve-3d; transition:transform .8s cubic-bezier(.22,1,.36,1), opacity .8s cubic-bezier(.22,1,.36,1), filter .8s cubic-bezier(.22,1,.36,1); width:var(--cf-w); will-change:transform,opacity,filter; }
 .proof-coverflow .ring-item::after { border-radius:28px; }
@@ -302,8 +302,8 @@ function art_block(string $file, string $fallbackClass = ''): string
 .proof-coverflow .ring-play { backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); background:rgba(30,30,30,.55); height:64px; width:64px; }
 .proof-coverflow .ring-play:hover { transform:translate(-50%,-50%) scale(1.08); }
 .proof-coverflow .ring-nav button { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); color:#fff; }
-    @media (max-width:1024px) { .proof-coverflow .cf-stage { --cf-w:230px; } }
-    @media (max-width:640px) { .proof-coverflow .cf-stage { --cf-w:min(72vw, 280px); } .proof-coverflow .ring-item { border-radius:22px; } .proof-coverflow .ring-item::after { border-radius:22px; } .proof-coverflow .cf-arrow { height:40px; width:40px; font-size:21px; } }
+    @media (max-width:1024px) { .proof-coverflow .cf-stage { --cf-gap:20px; --cf-w:230px; } }
+    @media (max-width:640px) { .proof-coverflow .cf-stage { --cf-gap:14px; --cf-w:min(65vw, 280px); } .proof-coverflow .ring-item { border-radius:22px; } .proof-coverflow .ring-item::after { border-radius:22px; } .proof-coverflow .cf-arrow { height:40px; width:40px; font-size:21px; } }
     @media (max-width:640px) { .ring { --ring-r:120px; --ring-size:250px; } .ring-item { border-radius:11px; } .ring-item figcaption { font-size:10px; padding:22px 7px 7px; } .ring-play { font-size:22px; height:50px; width:50px; } }
     @media (max-width:400px) { .ring { --ring-r:95px; --ring-size:210px; } .ring-item figcaption { font-size:9px; padding:18px 6px 6px; } }
     .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
@@ -890,7 +890,6 @@ function art_block(string $file, string $fallbackClass = ''): string
           // Reference values, stepped by distance from the centre. The centre card
           // sits at the origin; each step outward moves back in Z, turns inwards,
           // shrinks, dims and blurs a little more.
-          var xs = [0, 190, 350];
           var zs = [0, -80, -150];
           var scs = [1, 0.9, 0.8];
           var rys = [0, 8, 14];
@@ -898,12 +897,26 @@ function art_block(string $file, string $fallbackClass = ''): string
           var blurs = [0, 1, 2];
           var brights = [1, 0.65, 0.45];
 
-          // On a narrow screen the fan is pulled in so the outer cards still reach
-          // the edge of the stage, where the stage clips them as the design intends.
-          var csw = parseFloat(getComputedStyle(ring).getPropertyValue('--cf-w')) || 260;
-          var room = ring.getBoundingClientRect().width / 2 - (csw * 0.8) / 2 - 46;
-          var k = Math.min(1, room / xs[2]);
-          if (k < 0.42) k = 0.42;
+          // The reference leaves clear space between the cards instead of letting them
+          // overlap, so each step outward is worked out from the width of the card
+          // beside it plus a gap. Perspective shortens a card the further back it sits,
+          // so the offset is divided by the same factor to land the edge where it
+          // belongs. Whatever runs past the stage is clipped by the stage.
+          var cs = getComputedStyle(ring);
+          var gap = parseFloat(cs.getPropertyValue('--cf-gap')) || 30;
+          var per = parseFloat(cs.perspective) || 1200;
+          // Taken from the laid out card rather than the custom property, which holds
+          // an unresolved min() on small screens and would not parse to a number.
+          var csw = items[idx].offsetWidth || 260;
+
+          var xs = [0, 0, 0];
+          var edge = csw / 2;
+          for (var a = 1; a < 3; a++) {
+            var f = per / (per - zs[a]);
+            var hw = (csw * scs[a] / 2) * f;
+            xs[a] = (edge + gap + hw) / f;
+            edge = xs[a] * f + hw;
+          }
 
           items.forEach(function (el, i) {
             var off = i - idx;
@@ -912,7 +925,7 @@ function art_block(string $file, string $fallbackClass = ''): string
             var a = Math.min(Math.abs(off), 2);
             var sgn = off < 0 ? -1 : 1;
             if (!animate) el.style.transition = 'none';
-            var x = a === 0 ? 0 : xs[a] * k * sgn;
+            var x = a === 0 ? 0 : xs[a] * sgn;
             el.style.transform = 'translate(-50%,-50%) translate3d(' + x.toFixed(1) + 'px,0,' + zs[a].toFixed(1) + 'px) rotateY(' + (rys[a] * sgn).toFixed(1) + 'deg) scale(' + scs[a].toFixed(3) + ')';
             el.style.opacity = String(ops[a]);
             el.style.setProperty('--cf-blur', blurs[a] + 'px');
