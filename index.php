@@ -520,7 +520,7 @@ function art_block(string $file, string $fallbackClass = ''): string
         <h1><?= h($s['hero_h1']) ?><span><?= h($s['hero_h1_span']) ?></span></h1>
         <p class="hero-sub"><?= h($s['hero_sub']) ?></p>
         <p class="hero-intro"><?= h($s['hero_intro']) ?></p>
-        <div class="detector-panel"><span class="panel-kicker"><?= h($s['panel_kicker']) ?></span><button class="mute-toggle" id="soundBtn" type="button">Unmute</button><video id="promoVideo" autoplay muted loop playsinline preload="metadata" poster=""><?php $promoSrc = hpl_media_url($s['video_drive_id'] ?? ''); ?><?php if ($promoSrc !== '') { ?><source src="<?= h($promoSrc) ?>" type="video/mp4"><?php } ?><div class="video-fallback">Your browser can't play this video. <a href="#" style="text-decoration:underline">Open the promo on Google Drive</a>.</div></video></div>
+        <div class="detector-panel"><span class="panel-kicker"><?= h($s['panel_kicker']) ?></span><button class="mute-toggle" id="soundBtn" type="button">Unmute</button><?php $promoSrc = hpl_media_url($s['video_drive_id'] ?? ''); $promoPoster = trim((string)($s['video_poster'] ?? '')); ?><video id="promoVideo" autoplay muted loop playsinline preload="none"<?= $promoPoster !== '' ? ' poster="' . h($promoPoster) . '"' : '' ?>><?php if ($promoSrc !== '') { ?><source src="<?= h($promoSrc) ?>" type="<?= h(hpl_media_type($promoSrc)) ?>"><?php } ?><div class="video-fallback">Your browser can't play this video.<?php if ($promoSrc !== '') { ?> <a href="<?= h($promoSrc) ?>" style="text-decoration:underline">Open the promo video</a>.<?php } ?></div></video></div>
         <p class="hero-copy"><?= h($s['hero_caption']) ?></p>
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
