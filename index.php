@@ -55,24 +55,37 @@ if (isset($_POST['lead_submit'])) {
 $done = isset($_GET['done']) ? (string)$_GET['done'] : '';
 
 /**
- * Poster frame for a local proof video: the card is painted immediately instead
- * of sitting blank while the real video is still being fetched. Returns an empty
- * string when the poster is missing, so no broken image is ever left behind.
+ * Poster frame for a proof video: the card is painted immediately instead of
+ * sitting blank while the real video is still being fetched.
+ *
+ * A local source is checked against disk so a missing poster never turns into a
+ * broken image. A remote source is trusted and rewritten to the sibling .jpg on
+ * the same host, which is how the Bunny pull zone serves them; a HEAD check
+ * there would add a request per card on every page load, and the failure mode is
+ * a blank card rather than a crash.
  */
 function hpl_poster_attr(string $src): string
 {
-    if ($src === '' || !str_starts_with($src, 'uploads/')) {
+    $src = trim($src);
+    if ($src === '') {
         return '';
     }
+
     $poster = (string)preg_replace('/\.(mp4|m4v|webm|mov|ogv)$/i', '.jpg', $src);
     if ($poster === '' || $poster === $src) {
         return '';
     }
-    if (!is_file(__DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $poster))) {
-        return '';
+
+    if (preg_match('~^https?://~i', $poster)) {
+        return 'poster="' . htmlspecialchars($poster, ENT_QUOTES) . '" ';
     }
 
-    return 'poster="' . htmlspecialchars($poster, ENT_QUOTES) . '" ';
+    if (str_starts_with($poster, 'uploads/')
+        && is_file(__DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $poster))) {
+        return 'poster="' . htmlspecialchars($poster, ENT_QUOTES) . '" ';
+    }
+
+    return '';
 }
 function hpl_countries(): array
 {
