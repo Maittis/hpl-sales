@@ -299,7 +299,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 
 /* 3D coverflow, tuned to the supplied reference: a dominant centre card on a
    near-black stage, neighbours one step back and softened, never fully hidden. */
-.proof-dark { background:#050505; position:relative; }
+.proof-dark { background:radial-gradient(ellipse 55% 75% at 50% 45%, rgba(55,61,72,.85) 0%, rgba(30,33,39,.65) 30%, rgba(10,10,10,.95) 65%, #060606 100%); min-height:100vh; position:relative; }
 .proof-dark h2, .proof-dark .section-label { color:#fff; }
 .proof-dark .proof-hint, .proof-dark .proof-caption { color:rgba(255,255,255,.55); }
 .proof-coverflow .cf-stage { --cf-gap:30px; --cf-w:260px; height:calc(var(--cf-w) / var(--ring-shape,.5625) * 1.12); overflow:hidden; perspective:1200px; perspective-origin:50% 46%; position:relative; }
