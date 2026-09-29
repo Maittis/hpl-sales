@@ -463,7 +463,7 @@ function art_block(string $file, string $fallbackClass = ''): string
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
 
-      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $src = hpl_media_url($s['proof_video_' . $i] ?? ''); if ($src === '') { continue; } $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring') === 'strip' ? 'strip' : 'ring'; ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted loop playsinline preload="metadata" data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $src = hpl_media_url($s['proof_video_' . $i] ?? ''); if ($src === '') { continue; } $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring') === 'strip' ? 'strip' : 'ring'; ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted loop playsinline preload="metadata" data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
@@ -820,6 +820,7 @@ function art_block(string $file, string $fallbackClass = ''): string
       var wrap = document.getElementById('ringWrap');
       var playBtn = document.getElementById('ringPlay');
       var toggleBtn = document.getElementById('ringToggle');
+      var soundBtn = document.getElementById('ringSound');
       var prevBtn = document.getElementById('ringPrev');
       var nextBtn = document.getElementById('ringNext');
       var n = items.length;
@@ -865,10 +866,37 @@ function art_block(string $file, string $fallbackClass = ''): string
         if (playBtn) playBtn.style.display = playing ? 'none' : '';
       }
 
+      // Sound stays off until the visitor asks for it, but the choice then sticks
+      // across every handover instead of being re-muted on each new story.
+      var soundOn = false;
+      try { soundOn = localStorage.getItem('hpl_story_sound') === '1'; } catch (e) {}
+
+      function applySound() {
+        items.forEach(function (el) {
+          var v = el.querySelector('video');
+          if (v) { v.muted = !soundOn; v.volume = 0.8; }
+        });
+        if (soundBtn) {
+          soundBtn.innerHTML = soundOn
+            ? '<span aria-hidden="true">&#128266;</span>'
+            : '<span aria-hidden="true">&#128263;</span>';
+          soundBtn.setAttribute('aria-label', soundOn ? 'Turn sound off' : 'Turn sound on');
+          soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+        }
+      }
+
+      function toggleSound() {
+        soundOn = !soundOn;
+        try { localStorage.setItem('hpl_story_sound', soundOn ? '1' : '0'); } catch (e) {}
+        applySound();
+        var fv = frontVideo();
+        if (soundOn && fv && fv.paused) playFront();
+      }
+
       function playFront() {
         var v = frontVideo();
         if (!v) return;
-        v.muted = true;
+        v.muted = !soundOn;
         var pr = v.play();
         if (pr && pr.catch) pr.catch(function () {});
         syncBtn();
@@ -916,6 +944,8 @@ function art_block(string $file, string $fallbackClass = ''): string
         if (v.paused) { playFront(); } else { v.pause(); syncBtn(); }
       }
 
+      if (soundBtn) soundBtn.addEventListener('click', toggleSound);
+      applySound();
       if (playBtn) playBtn.addEventListener('click', playFront);
       if (toggleBtn) toggleBtn.addEventListener('click', togglePlay);
       if (prevBtn) prevBtn.addEventListener('click', prev);
