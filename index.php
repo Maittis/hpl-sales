@@ -276,6 +276,16 @@ function art_block(string $file, string $fallbackClass = ''): string
     .ring-nav button { align-items:center; background:rgba(17,26,56,.08); border:1px solid rgba(9,15,36,.16); border-radius:50%; color:var(--navy); cursor:pointer; display:flex; font-size:20px; height:40px; justify-content:center; line-height:1; padding:0; width:40px; }
     .ring-nav button:hover { background:var(--gold); border-color:var(--gold); color:#fff; }
     .ring-nav button:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+
+/* 3D coverflow: one card forward, neighbours pushed back, darkened and blurred.
+   Reuses the ring card styles so only the framing changes. */
+.proof-coverflow .ring { --cf-gap:.72; height:calc(var(--ring-w) / var(--ring-shape,0.5625) * 1.16 + 30px); perspective:1500px; perspective-origin:50% 46%; transform-style:preserve-3d; }
+.proof-coverflow .ring-item { border:1px solid rgba(255,255,255,.3); border-radius:26px; box-shadow:0 26px 60px rgba(9,15,36,.34); transform-style:preserve-3d; transition:transform .62s cubic-bezier(.22,.61,.36,1), opacity .62s cubic-bezier(.22,.61,.36,1), filter .62s cubic-bezier(.22,.61,.36,1); will-change:transform,opacity,filter; }
+.proof-coverflow .ring-item::after { border-radius:26px; }
+.proof-coverflow .ring-item.front { box-shadow:0 34px 80px rgba(9,15,36,.46); }
+.proof-coverflow .ring-item { filter:blur(var(--cf-blur,0px)) brightness(var(--cf-dim,1)) saturate(var(--cf-sat,1)); }
+.proof-coverflow .ring-item:hover:not(.front) { filter:blur(var(--cf-blur,0px)) brightness(calc(var(--cf-dim,1) + .12)) saturate(var(--cf-sat,1)); }
+    @media (max-width:640px) { .proof-coverflow .ring { --cf-gap:.58; } }
     @media (max-width:640px) { .ring { --ring-r:120px; --ring-size:250px; } .ring-item { border-radius:11px; } .ring-item figcaption { font-size:10px; padding:22px 7px 7px; } .ring-play { font-size:22px; height:50px; width:50px; } }
     @media (max-width:400px) { .ring { --ring-r:95px; --ring-size:210px; } .ring-item figcaption { font-size:9px; padding:18px 6px 6px; } }
     .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
@@ -463,7 +473,9 @@ function art_block(string $file, string $fallbackClass = ''): string
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
 
-      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $src = hpl_media_url($s['proof_video_' . $i] ?? ''); if ($src === '') { continue; } $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring') === 'strip' ? 'strip' : 'ring'; ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted loop playsinline preload="metadata" data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $src = hpl_media_url($s['proof_video_' . $i] ?? ''); if ($src === '') { continue; } $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring'); if (!in_array($layout, ['ring', 'strip', 'coverflow'], true)) { $layout = 'ring'; } ?><section class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="metadata" data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div>
+<?php elseif ($layout === 'coverflow'): ?>
+<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-size:<?= h((string)(max(160, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted loop playsinline preload="metadata" data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted loop playsinline preload="metadata" data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
@@ -827,6 +839,7 @@ function art_block(string $file, string $fallbackClass = ''): string
       var idx = 0;
 
       var R = 300, size = 300;
+      var cf = !!(wrap && wrap.classList.contains('proof-coverflow'));
 
       function readVars() {
         var cs = getComputedStyle(ring);
@@ -838,6 +851,44 @@ function art_block(string $file, string $fallbackClass = ''): string
 
       function layout(animate) {
         readVars();
+        if (cf) {
+          // coverflow: the offset drives a horizontal slide, a push back in
+          // depth, a slight inward turn, and a blur and dim that both clear
+          // as a card takes focus
+          var gap = parseFloat(getComputedStyle(ring).getPropertyValue('--cf-gap')) || 0.72;
+          var step = size * gap;
+          // The fan has to fit the container, otherwise a narrow window scrolls
+          // sideways. The furthest card is scaled to .68, so allow for its width
+          // and pull the step in until both edges sit inside.
+          var far = Math.min(2, Math.ceil(n / 2) - 1);
+          var room = ring.getBoundingClientRect().width / 2 - (size * 0.68) / 2 - 10;
+          if (far > 0 && room > 0) step = Math.min(step, room / far);
+          // The fan has to fit the container, otherwise a narrow window scrolls
+          // sideways. The furthest card is scaled to .68, so allow for its width
+          // and pull the step in until both edges sit inside.
+          var far = Math.min(2, Math.ceil(n / 2) - 1);
+          var room = ring.getBoundingClientRect().width / 2 - (size * 0.68) / 2 - 10;
+          if (far > 0 && room > 0) step = Math.min(step, room / far);
+          items.forEach(function (el, i) {
+            var off = i - idx;
+            if (off > n / 2) off -= n;
+            if (off < -n / 2) off += n;
+            var a = Math.abs(off);
+            if (!animate) el.style.transition = 'none';
+            var sc = a === 0 ? 1 : Math.max(0.66, 1 - a * 0.16);
+            var z = a === 0 ? 0 : -150 * Math.min(a, 3);
+            var ry = off * -15;
+            el.style.transform = 'translate(-50%,-50%) translateX(' + (off * step).toFixed(1) + 'px) translateZ(' + z.toFixed(1) + 'px) rotateY(' + ry.toFixed(1) + 'deg) scale(' + sc.toFixed(3) + ')';
+            el.style.opacity = a === 0 ? '1' : String(Math.max(0.3, 1 - a * 0.26));
+            el.style.setProperty('--cf-blur', (a === 0 ? 0 : Math.min(a, 2) * 2.4).toFixed(2) + 'px');
+            el.style.setProperty('--cf-dim', (a === 0 ? 1 : Math.max(0.52, 1 - a * 0.17)).toFixed(2));
+            el.style.setProperty('--cf-sat', (a === 0 ? 1 : Math.max(0.7, 1 - a * 0.1)).toFixed(2));
+            el.style.zIndex = String(100 - a);
+            el.classList.toggle('front', a === 0);
+            if (!animate) { void el.offsetWidth; el.style.transition = ''; }
+          });
+          return;
+        }
         items.forEach(function (el, i) {
           var off = i - idx;
           if (off > n / 2) off -= n;
