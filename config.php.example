@@ -25,7 +25,7 @@ function hpl_defaults(): array
         'hero_caption' => 'A practical guide to choosing, setting up, and using the right detector for your ground, goals, and experience.',
         'cta_text' => "I'M READY TO FIND GOLD",
         'social_label' => 'What detectorists are saying:',
-        'social_heading' => 'Real Results',
+        'social_heading' => 'Real Results From Real Detectorists',
         'social_caption' => 'REAL FIELD RESULTS. REAL HPL SUPPORT.',
         'proof_layout' => 'ring',
         'proof_ring_r' => '300',
