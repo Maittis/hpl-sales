@@ -27,7 +27,7 @@ $fields = [
     ['key' => 'b2_desc',           'label' => 'Benefit #2 text',            'type' => 'textarea', 'group' => 'Benefits'],
     ['key' => 'b3_title',          'label' => 'Benefit #3 title',           'type' => 'text',     'group' => 'Benefits'],
     ['key' => 'b3_desc',           'label' => 'Benefit #3 text',            'type' => 'textarea', 'group' => 'Benefits'],
-    ['key' => 'proof_layout', 'label' => 'Story layout', 'type' => 'select', 'group' => 'Proof videos', 'options' => ['ring' => 'Circle of videos (current)', 'coverflow' => '3D coverflow (new, no arrows)', 'strip' => 'Single video + scroll (previous)']],
+    ['key' => 'proof_layout', 'label' => 'Story layout', 'type' => 'select', 'group' => 'Proof videos', 'options' => ['ring' => 'Circle of videos (current)', 'coverflow' => '3D coverflow (cinematic)', 'strip' => 'Single video + scroll (previous)']],
     ['key' => 'proof_ring_r', 'label' => 'Carousel radius (px) - how far the off-screen players swing back', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_ring_size', 'label' => 'Story player width (px, before perspective). 405 shows as about 450px on screen', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_ring_shape', 'label' => 'Story player shape (width / height). 0.5625 = 9:16 vertical, which matches the phone footage. Use 1.78 for 16:9 wide', 'type' => 'text', 'group' => 'Proof videos'],
