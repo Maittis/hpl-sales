@@ -333,6 +333,42 @@ function art_block(string $file, string $fallbackClass = ''): string
 .cf-dots button:hover { background:rgba(255,255,255,.6); }
 .cf-dots button.on { background:var(--gold); width:24px; }
 .cf-dots button:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+
+    /* Sound control for the coverflow, sitting above the cards and aligned to the
+       right. In normal flow rather than absolutely positioned: the heading is
+       centred but full width, so any corner placement inside the section would
+       collide with it at some viewport width, and the only reliable way to keep
+       a long heading readable is to let the control take its own line above the
+       stage. It is the first thing under the heading, which is also where a
+       visitor looks for a sound toggle. */
+    .cf-audio { align-items:center; display:flex; gap:12px; justify-content:flex-end; margin:16px 0 14px; }
+    .cf-audio-btn { align-items:center; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:999px; color:#fff; cursor:pointer; display:flex; font-size:13px; font-weight:700; gap:9px; letter-spacing:.08em; padding:9px 16px; text-transform:uppercase; transition:background-color .2s ease, border-color .2s ease; }
+    .cf-audio-btn:hover { background:rgba(255,255,255,.16); }
+    .cf-audio-btn:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+    .cf-audio-btn[aria-pressed="true"] { background:var(--gold); border-color:var(--gold); color:var(--navy-dark); }
+    .cf-audio-btn[aria-pressed="true"] .cf-audio-ico { text-decoration:none; }
+    .cf-audio-ico { font-size:16px; line-height:1; }
+    .cf-audio-txt { white-space:nowrap; }
+    .cf-audio-vol { align-items:center; display:flex; gap:9px; }
+    .cf-audio-lbl { color:rgba(255,255,255,.62); font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+    .cf-audio-vol input[type="range"] { accent-color:var(--gold); cursor:pointer; height:20px; width:104px; }
+    .cf-audio-vol input[type="range"]:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+    /* A volume of zero is silence, so it is reported as muted rather than as
+       "sound on at zero", which is what the button label would otherwise claim. */
+    .cf-audio[data-effective="off"] .cf-audio-btn { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); color:#fff; }
+
+    @media (max-width:640px) {
+      .cf-audio { gap:10px; justify-content:center; }
+      .cf-audio-btn { font-size:11px; padding:8px 13px; }
+      .cf-audio-vol input[type="range"] { width:84px; }
+      .cf-audio-lbl { display:none; }
+    }
+    /* Narrow phones cannot fit the button and the slider side by side, so the
+       slider drops to its own line under the button. */
+    @media (max-width:430px) {
+      .cf-audio { flex-direction:column; }
+      .cf-audio-vol { justify-content:center; }
+    }
 .proof-coverflow .ring-play { backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); background:rgba(30,30,30,.55); height:64px; width:64px; }
 .proof-coverflow .ring-play:hover { transform:translate(-50%,-50%) scale(1.08); }
 .proof-coverflow .ring-nav button { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); color:#fff; }
@@ -527,7 +563,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 
       <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $src = hpl_media_url($s['proof_video_' . $i] ?? ''); if ($src === '') { continue; } $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring'); if (!in_array($layout, ['ring', 'strip', 'coverflow'], true)) { $layout = 'ring'; } ?><section class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div>
 <?php elseif ($layout === 'coverflow'): ?>
-<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="cf-dots" id="cfDots"></div><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button><div class="cf-audio" id="cfAudio"><button type="button" class="cf-audio-btn" id="cfSound" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><label class="cf-audio-vol"><span class="cf-audio-lbl">Vol</span><input type="range" id="cfVolume" min="0" max="100" step="5" value="80" aria-label="Story volume"></label></div></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="cf-dots" id="cfDots"></div><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
@@ -999,24 +1035,56 @@ function art_block(string $file, string $fallbackClass = ''): string
         if (playBtn) playBtn.style.display = playing ? 'none' : '';
       }
 
-      // Sound stays off until the visitor asks for it, but the choice then sticks
-      // across every handover instead of being re-muted on each new story.
-      var soundOn = false;
-      try { soundOn = localStorage.getItem('hpl_story_sound') === '1'; } catch (e) {}
-
-      function applySound() {
-        items.forEach(function (el) {
-          var v = el.querySelector('video');
-          if (v) { v.muted = !soundOn; v.volume = 0.8; }
-        });
-        if (soundBtn) {
-          soundBtn.innerHTML = soundOn
-            ? '<span aria-hidden="true">&#128266;</span>'
-            : '<span aria-hidden="true">&#128263;</span>';
-          soundBtn.setAttribute('aria-label', soundOn ? 'Turn sound off' : 'Turn sound on');
-          soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+// Sound stays off until the visitor asks for it, but the choice then sticks
+        // across every handover instead of being re-muted on each new story.
+        var soundOn = false;
+        try { soundOn = localStorage.getItem('hpl_story_sound') === '1'; } catch (e) {}
+  
+        // Volume is remembered separately so a visitor who dialled it down gets the
+        // same level back, and so "sound on" and "audible" stay distinct states: a
+        // slider at zero is silence and has to read as muted in the button.
+        var vol = 0.8;
+        try {
+          var savedVol = parseFloat(localStorage.getItem('hpl_story_vol'));
+          if (!isNaN(savedVol) && savedVol >= 0 && savedVol <= 1) vol = savedVol;
+        } catch (e) {}
+  
+        var cfAudio = document.getElementById('cfAudio');
+        var cfSound = document.getElementById('cfSound');
+        var cfVolume = document.getElementById('cfVolume');
+        var cfAudioTxt = cfSound ? cfSound.querySelector('.cf-audio-txt') : null;
+  
+        function audibleNow() { return soundOn && vol > 0; }
+  
+        function applySound() {
+          // A visitor who has not asked for sound never gets it turned on for them
+          // when the section scrolls past, because browsers block autoplay with
+          // audio anyway - the attempt would fail silently and leave the button
+          // out of step with what is playing.
+          var audible = soundOn && vol > 0;
+          items.forEach(function (el) {
+            var v = el.querySelector('video');
+            if (v) { v.muted = !audible; v.volume = vol; }
+          });
+          if (soundBtn) {
+            soundBtn.innerHTML = soundOn
+              ? '<span aria-hidden="true">&#128266;</span>'
+              : '<span aria-hidden="true">&#128263;</span>';
+            soundBtn.setAttribute('aria-label', soundOn ? 'Turn sound off' : 'Turn sound on');
+            soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+          }
+          if (cfSound) {
+            var ico = cfSound.querySelector('.cf-audio-ico');
+            if (ico) ico.innerHTML = audible
+              ? '&#128266;'
+              : (soundOn ? '&#128263;' : '&#128263;');
+            cfSound.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+            cfSound.setAttribute('aria-label', soundOn ? 'Turn sound off' : 'Turn sound on');
+            if (cfAudioTxt) cfAudioTxt.textContent = audible ? 'Sound on' : 'Sound off';
+          }
+          if (cfAudio) cfAudio.setAttribute('data-effective', audible ? 'on' : 'off');
+          if (cfVolume) cfVolume.value = String(Math.round(vol * 100));
         }
-      }
 
       function toggleSound() {
         soundOn = !soundOn;
@@ -1086,6 +1154,25 @@ function art_block(string $file, string $fallbackClass = ''): string
       }
 
       if (soundBtn) soundBtn.addEventListener('click', toggleSound);
+        // The new top right control drives the same soundOn flag as the existing
+        // bottom button rather than keeping its own, so the two can never disagree.
+        if (cfSound) {
+          cfSound.addEventListener('click', function () {
+            if (!soundOn && vol <= 0) vol = 0.8;
+            toggleSound();
+          });
+        }
+        if (cfVolume) {
+          cfVolume.addEventListener('input', function () {
+            vol = Math.max(0, Math.min(1, (parseFloat(cfVolume.value) || 0) / 100));
+            try { localStorage.setItem('hpl_story_vol', String(vol)); } catch (e) {}
+            applySound();
+            // Nudging the slider up is the visitor asking to hear it, so make sure
+            // something is actually playing rather than only changing the level.
+            var fv = frontVideo();
+            if (audibleNow() && fv && fv.paused) playFront();
+          });
+        }
       applySound();
       if (playBtn) playBtn.addEventListener('click', playFront);
       if (toggleBtn) toggleBtn.addEventListener('click', togglePlay);
