@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/video-player.php';
 $s = hpl_settings();
 
 $leadError = '';
@@ -230,6 +231,7 @@ function art_block(string $file, string $fallbackClass = ''): string
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= h($s['topline']) ?></title>
+    <?= hpl_video_player_assets() ?>
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
   <link rel="icon" type="image/png" sizes="48x48" href="img/favicon-48.png">
@@ -259,8 +261,10 @@ function art_block(string $file, string $fallbackClass = ''): string
     .hero h1 span { color:var(--gold-light); }
     .hero-sub { color:var(--gold-light); font-size:18px; font-weight:700; letter-spacing:.01em; line-height:1.35; margin:-6px auto 18px; max-width:620px; }
     .hero-intro { color:#e3e6ed; font-size:19px; line-height:1.45; margin:0 auto 30px; max-width:640px; }
-    .detector-panel { background:#000; border:1px solid rgba(244,202,91,.35); margin:0 auto 30px; max-width:800px; aspect-ratio:16/9; overflow:hidden; position:relative; width:100%; }
-    .detector-panel video { display:block; height:100%; object-fit:cover; width:100%; }
+/* The promo panel now hosts the custom player in video-player.css, which
+       draws its own 16:9 frame and bar. Only the width and spacing stay here so
+       the hero layout around it is unchanged. */
+    .detector-panel { margin:0 auto 30px; max-width:800px; width:100%; }
     .mute-toggle { background:rgba(9,15,36,.82); border:1px solid rgba(244,202,91,.6); color:var(--gold-light); cursor:pointer; font-size:12px; font-weight:700; letter-spacing:.1em; padding:9px 13px; position:absolute; right:14px; text-transform:uppercase; top:14px; z-index:3; }
     .mute-toggle:hover { background:var(--navy); }
     .video-fallback { align-items:center; color:#bfc8d8; display:flex; font-size:15px; height:100%; justify-content:center; padding:30px; text-align:center; }
@@ -571,7 +575,15 @@ function art_block(string $file, string $fallbackClass = ''): string
         <h1><?= h($s['hero_h1']) ?><span><?= h($s['hero_h1_span']) ?></span></h1>
         <p class="hero-sub"><?= h($s['hero_sub']) ?></p>
         <p class="hero-intro"><?= h($s['hero_intro']) ?></p>
-        <div class="detector-panel"><span class="panel-kicker"><?= h($s['panel_kicker']) ?></span><button class="mute-toggle" id="soundBtn" type="button">Unmute</button><?php $promoSrc = hpl_media_url($s['video_drive_id'] ?? ''); $promoPoster = trim((string)($s['video_poster'] ?? '')); ?><video id="promoVideo" autoplay muted loop playsinline preload="none"<?= $promoPoster !== '' ? ' poster="' . h($promoPoster) . '"' : '' ?>><?php if ($promoSrc !== '') { ?><source src="<?= h($promoSrc) ?>" type="<?= h(hpl_media_type($promoSrc)) ?>"><?php } ?><div class="video-fallback">Your browser can't play this video.<?php if ($promoSrc !== '') { ?> <a href="<?= h($promoSrc) ?>" style="text-decoration:underline">Open the promo video</a>.<?php } ?></div></video></div>
+        <div class="detector-panel"><?= hpl_video_player([
+            'src'    => hpl_media_url($s['video_drive_id'] ?? ''),
+            'poster' => hpl_media_url($s['video_poster'] ?? ''),
+            'title'  => (string)($s['hero_h1'] ?? 'HPL Sales promo'),
+            'id'     => 'promoVideo',
+            'kicker' => (string)($s['panel_kicker'] ?? ''),
+            'loop'   => true,
+            'autoplay' => true,
+        ]) ?></div>
         <p class="hero-copy"><?= h($s['hero_caption']) ?></p>
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
@@ -791,18 +803,7 @@ function art_block(string $file, string $fallbackClass = ''): string
         }
       });
     })();
-    (function () {
-      var v = document.getElementById('promoVideo');
-      var b = document.getElementById('soundBtn');
-      if (!v || !b) return;
-      v.volume = 0.7;
-      v.play().catch(function () {});
-      b.addEventListener('click', function () {
-        if (v.muted) { v.muted = false; b.textContent = 'Mute'; }
-        else { v.muted = true; b.textContent = 'Unmute'; }
-      });
-    })();
-    (function () {
+(function () {
       var form = document.getElementById('leadForm');
       if (!form) return;
       var steps = form.querySelectorAll('.form-step');

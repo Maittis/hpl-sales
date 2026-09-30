@@ -1,0 +1,508 @@
+/* Custom video player. Scoped to .hpl-player so it cannot leak into the rest
+   of the HPL Sales page. Purple/violet matches the supplied reference. */
+
+.hpl-player {
+  --pv-a1: #6d28d9;
+  --pv-a2: #8b5cf6;
+  --pv-a3: #a855f7;
+  --pv-bar-h: 50px;
+  --pv-ico: 26px;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #05040c;
+  overflow: hidden;
+  border: 1px solid rgba(139, 92, 246, .35);
+  /* Stops the page from stealing a drag on the progress bar as a scroll. */
+  touch-action: pan-y;
+}
+
+/* The video fills the frame and keeps 16:9 whatever the box is. */
+.hpl-player-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #05040c;
+}
+
+.hpl-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- centre play ---------- */
+
+.hpl-center-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  margin: 0;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 42%, var(--pv-a3) 0%, var(--pv-a2) 45%, var(--pv-a1) 100%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .55), 0 0 0 8px rgba(139, 92, 246, .18), inset 0 1px 0 rgba(255, 255, 255, .25);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease, transform .3s ease, visibility .3s;
+  z-index: 6;
+}
+
+/* White triangle, drawn with borders so there is no icon font to load. */
+.hpl-center-play span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translate(-38%, -50%);
+  border-style: solid;
+  border-width: 17px 0 17px 28px;
+  border-color: transparent transparent transparent #fff;
+}
+
+.hpl-center-play:hover { transform: translate(-50%, -50%) scale(1.08); }
+.hpl-center-play:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+
+/* Shown while paused, or when autoplay was refused outright. */
+.hpl-player.is-paused .hpl-center-play,
+.hpl-player.is-blocked .hpl-center-play {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ---------- unmute notice ---------- */
+
+.hpl-unmute {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--pv-bar-h) + 22px);
+  transform: translate(-50%, 12px);
+  z-index: 7;
+  padding: 11px 22px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--pv-a2) 0%, var(--pv-a1) 100%);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .5);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+}
+
+.hpl-unmute[hidden] { display: block; pointer-events: none; }
+.hpl-player.show-unmute .hpl-unmute { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.hpl-unmute:hover { filter: brightness(1.1); }
+.hpl-unmute:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+/* ---------- captions ---------- */
+
+.hpl-cc {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--pv-bar-h) + 16px);
+  transform: translateX(-50%);
+  z-index: 5;
+  max-width: 84%;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, .78);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.hpl-cc:empty { display: none; }
+
+/* ---------- control bar ---------- */
+
+.hpl-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--pv-bar-h);
+  padding: 0 14px;
+  background: linear-gradient(90deg, var(--pv-a1) 0%, var(--pv-a2) 55%, var(--pv-a3) 100%);
+  box-shadow: 0 -2px 14px rgba(0, 0, 0, .3);
+  opacity: 1;
+  transition: opacity .3s ease, transform .3s ease;
+}
+
+/* Auto-hide: fade the whole bar while playing and idle. */
+.hpl-player.hide-controls .hpl-controls {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+/* The notice stays put whether or not the bar is showing. Letting it drop into
+   the bar's space when the bar faded out made it a moving click target, and the
+   bar sits above it, so it could stop accepting clicks. */
+.hpl-player.hide-controls .hpl-cc { bottom: calc(var(--pv-bar-h) + 16px); }
+
+.hpl-ctrls-left, .hpl-ctrls-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.hpl-ctrls-mid {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.hpl-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--pv-ico);
+  height: var(--pv-ico);
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: background .18s ease, transform .18s ease;
+}
+
+.hpl-btn:hover { background: rgba(255, 255, 255, .18); }
+.hpl-btn:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+
+/* Icons drawn in CSS: no font, no sprite, no extra request. */
+.hpl-ico { display: block; }
+
+.hpl-ico-play {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 7px 0 7px 11px;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 3px;
+}
+
+.hpl-ico-pause {
+  width: 11px;
+  height: 13px;
+  border-style: solid;
+  border-width: 0 4px;
+  border-color: transparent #fff;
+}
+
+.hpl-player.is-paused .hpl-ico-play,
+.hpl-player:not(.is-paused) .hpl-ico-pause { display: none; }
+.hpl-player.is-paused .hpl-ico-pause { display: block; }
+
+/* Rewind 10: circular arrow with "10" on top. */
+.hpl-ico-rew {
+  width: 19px;
+  height: 19px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  transform: rotate(-45deg);
+}
+
+.hpl-ico-rew::after {
+  content: "10";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+/* Speaker body. */
+.hpl-ico-vol {
+  width: 15px;
+  height: 14px;
+  background: #fff;
+  clip-path: polygon(0 30%, 32% 30%, 62% 0, 62% 100%, 32% 70%, 0 70%);
+  margin-right: 2px;
+}
+
+/* Waves, drawn as a second element so it can be toggled. */
+.hpl-ico-volwave { position: relative; width: 0; height: 0; }
+.hpl-ico-volwave::before,
+.hpl-ico-volwave::after {
+  content: "";
+  position: absolute;
+  border: 1.7px solid #fff;
+  border-radius: 50%;
+  clip-path: inset(0 0 0 55%);
+}
+
+.hpl-ico-volwave::before { width: 15px; height: 15px; top: -7.5px; left: 3px; }
+.hpl-ico-volwave::after { width: 7px; height: 7px; top: -3.5px; left: 3px; }
+
+/* Muted state: drop the waves, add a strike. */
+.hpl-player.is-muted .hpl-ico-volwave::before,
+.hpl-player.is-muted .hpl-ico-volwave::after { opacity: .25; }
+
+.hpl-ico-volwave.is-muted::before { opacity: 0; }
+
+.hpl-vol.is-muted .hpl-ico-vol { position: relative; }
+
+.hpl-vol.is-muted::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 2px;
+  background: #fff;
+  transform: rotate(-45deg);
+  border-radius: 2px;
+}
+
+.hpl-ico-cc {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+
+.hpl-player.cc-on .hpl-ccbtn {
+  background: rgba(255, 255, 255, .32);
+  border-radius: 5px;
+}
+
+/* Gear: ring with teeth via conic-gradient. */
+.hpl-ico-gear {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 3px, #fff 3px 6px, transparent 6px),
+    conic-gradient(#fff 0 12%, transparent 12% 20%, #fff 20% 32%, transparent 32% 40%,
+                   #fff 40% 52%, transparent 52% 60%, #fff 60% 72%, transparent 72% 80%,
+                   #fff 80% 92%, transparent 92%);
+  -webkit-mask: radial-gradient(circle, transparent 0 4px, #000 4px);
+  mask: radial-gradient(circle, transparent 0 4px, #000 4px);
+}
+
+/* ---------- time + progress ---------- */
+
+.hpl-time {
+  flex: 0 0 auto;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: .95;
+}
+
+.hpl-progress {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 40px;
+  height: 20px;
+  cursor: pointer;
+  /* Widens the touch target without changing the drawn track. */
+  display: flex;
+  align-items: center;
+}
+
+.hpl-progress:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 4px; }
+
+.hpl-progress-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .3);
+  overflow: hidden;
+}
+
+.hpl-progress-buffer,
+.hpl-progress-played {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+}
+
+.hpl-progress-buffer { background: rgba(255, 255, 255, .45); }
+
+.hpl-progress-played { background: #fff; }
+
+.hpl-progress-knob {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 13px;
+  height: 13px;
+  margin-left: -6.5px;
+  transform: translateY(-50%) scale(.6);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+  opacity: 0;
+  transition: transform .16s ease, opacity .16s ease;
+}
+
+.hpl-player:hover .hpl-progress-knob,
+.hpl-progress:focus-visible .hpl-progress-knob { opacity: 1; transform: translateY(-50%) scale(1); }
+
+/* ---------- volume popup ---------- */
+
+.hpl-vol-pop {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--pv-bar-h) - 6px);
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(12, 6, 28, .95);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .5);
+}
+
+.hpl-vol-pop[hidden] { display: none; }
+
+.hpl-vol-range {
+  width: 110px;
+  height: 4px;
+  margin: 0;
+  accent-color: var(--pv-a3);
+  cursor: pointer;
+}
+
+/* ---------- settings menu ---------- */
+
+.hpl-menu {
+  position: absolute;
+  right: 8px;
+  bottom: calc(var(--pv-bar-h) - 4px);
+  z-index: 9;
+  min-width: 150px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(12, 6, 28, .96);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .55);
+}
+
+.hpl-menu[hidden] { display: none; }
+
+.hpl-menu-title {
+  padding: 2px 6px 8px;
+  color: rgba(255, 255, 255, .7);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.hpl-speeds {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.hpl-speeds button {
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease;
+}
+
+.hpl-speeds button:hover { background: rgba(255, 255, 255, .2); }
+
+.hpl-speeds button[aria-checked="true"] {
+  background: linear-gradient(180deg, var(--pv-a3), var(--pv-a1));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .4);
+}
+
+.hpl-speeds button:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+
+/* ---------- focus ring for the whole frame ---------- */
+
+.hpl-player:focus-within {
+  outline: 2px solid rgba(168, 85, 247, .9);
+  outline-offset: 2px;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 720px) {
+  .hpl-player {
+    --pv-bar-h: 44px;
+    --pv-ico: 24px;
+  }
+  .hpl-controls { padding: 0 8px; gap: 6px; }
+  .hpl-time { font-size: 11px; }
+  .hpl-unmute { font-size: 12.5px; padding: 9px 16px; max-width: calc(100% - 20px); }
+  .hpl-cc { font-size: 13px; bottom: calc(var(--pv-bar-h) + 12px); }
+}
+
+@media (max-width: 560px) {
+  /* Centre play: smaller, still prominent. */
+  .hpl-center-play { width: 72px; height: 72px; }
+  .hpl-center-play span { border-width: 13px 0 13px 21px; }
+
+  /* Rewind and the volume slider button are the first things to go: the
+     progress bar and volume already cover those actions by drag. */
+  .hpl-vol-slider-btn { display: none; }
+  .hpl-rew { display: none; }
+
+  .hpl-ctrls-mid { gap: 7px; }
+  .hpl-unmute { white-space: normal; text-align: center; line-height: 1.35; }
+}
+
+@media (max-width: 420px) {
+  /* Time readouts cost more room than they are worth next to the bar. */
+  .hpl-time-dur { display: none; }
+  .hpl-progress { min-width: 30px; }
+  .hpl-speeds { grid-template-columns: repeat(2, 1fr); }
+  .hpl-menu { min-width: 132px; }
+}
+
+/* Short/landscape phones: keep the frame usable when height is the constraint. */
+@media (max-height: 460px) and (orientation: landscape) {
+  .hpl-player { --pv-bar-h: 40px; --pv-ico: 22px; }
+  .hpl-center-play { width: 60px; height: 60px; }
+  .hpl-center-play span { border-width: 11px 0 11px 18px; }
+  .hpl-unmute { padding: 7px 14px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hpl-center-play,
+  .hpl-unmute,
+  .hpl-controls,
+  .hpl-progress-knob { transition: none; }
+}
