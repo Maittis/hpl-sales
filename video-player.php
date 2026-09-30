@@ -11,6 +11,70 @@
  * players the page renders.
  */
 
+if (!function_exists('hpl_media_url')) {
+    /**
+     * Fallback for config.php builds that predate the media helpers.
+     *
+     * config.php holds the database credentials and is deliberately never
+     * uploaded, so the copy already on the server can be older than this file.
+     * index.php requires config.php first, so when the server does define these
+     * its versions win and these are simply skipped. Without the guard a
+     * missing helper would be a fatal error taking the whole page down.
+     */
+    function hpl_media_url(?string $value): string
+    {
+        $v = trim((string)$value);
+        if ($v === '' || $v === 'YOUR_DRIVE_FILE_ID') {
+            return '';
+        }
+
+        // already a direct URL for some other host (CDN, S3, local upload, ...)
+        if (preg_match('~^https?://(?!drive\.google|driveusercontent|drive\.googleusercontent)~i', $v)) {
+            return $v;
+        }
+
+        // same-site relative path, e.g. uploads/promo.mp4
+        if (!preg_match('~^[a-z][a-z0-9+.-]*:~i', $v)
+            && strpos($v, '..') === false
+            && preg_match('~^[A-Za-z0-9._/-]+$~', $v)
+            && preg_match('~\.(mp4|webm|m4v|mov|ogv|jpe?g|png|gif|webp)$~i', $v)) {
+            return $v;
+        }
+
+        if (preg_match('~/d/([A-Za-z0-9_-]{10,})~', $v, $m)
+            || preg_match('~[?&]id=([A-Za-z0-9_-]{10,})~', $v, $m)) {
+            $id = $m[1];
+        } elseif (preg_match('~^[A-Za-z0-9_-]{25,}$~', $v)) {
+            $id = $v;
+        } else {
+            return '';
+        }
+
+        return 'https://drive.usercontent.google.com/download?id=' . rawurlencode($id) . '&export=download&confirm=t';
+    }
+}
+
+if (!function_exists('hpl_media_type')) {
+    function hpl_media_type(string $url, string $default = 'video/mp4'): string
+    {
+        $ext = strtolower((string)pathinfo((string)(parse_url($url, PHP_URL_PATH) ?? ''), PATHINFO_EXTENSION));
+
+        switch ($ext) {
+            case 'mp4':
+            case 'm4v':
+                return 'video/mp4';
+            case 'webm':
+                return 'video/webm';
+            case 'ogv':
+                return 'video/ogg';
+            case 'mov':
+                return 'video/quicktime';
+            default:
+                return $default;
+        }
+    }
+}
+
 if (!function_exists('hpl_video_player')) {
     /**
      * Render a video player.
