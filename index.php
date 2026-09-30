@@ -3,57 +3,102 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/video-player.php';
 $s = hpl_settings();
 
-$leadError = '';
-$leadName = $_POST['lead_name'] ?? '';
-$leadFirst = $_POST['lead_first'] ?? '';
-$leadLast = $_POST['lead_last'] ?? '';
-$leadCc = $_POST['lead_cc'] ?? (string)($s['form_default_cc'] ?? '260');
-$leadPhone = $_POST['lead_phone'] ?? '';
-$leadKnowledge = $_POST['lead_knowledge'] ?? '';
-$leadEmail = trim((string)($_POST['lead_email'] ?? ''));
-$leadTerrain = trim((string)($_POST['lead_terrain'] ?? ''));
-$leadTarget = trim((string)($_POST['lead_target'] ?? ''));
-$leadTiming = trim((string)($_POST['lead_timing'] ?? ''));
-if (isset($_POST['lead_submit'])) {
-    $connection = db();
-    $first = trim((string)$leadFirst);
-    $last = trim((string)$leadLast);
-    $name = trim($first . ' ' . $last);
-    if ($name === '') {
-        $name = trim((string)$leadName);
+require_once __DIR__ . '/lead-handler.php';
+
+/**
+ * Lead qualification submission.
+ *
+ * Both steps post together, so the whole enquiry is validated and stored as one
+ * row. On rejection the visitor is returned to the step that owns the first bad
+ * field, with everything they typed still filled in.
+ */
+$leadFields = [
+    'lead_name' => '',
+    'lead_cc' => (string)($s['form_default_cc'] ?? '260'),
+    'lead_phone' => '',
+    'lead_email' => '',
+    'lead_country' => '',
+    'lead_city' => '',
+    'lead_looking_for' => '',
+    'lead_finding' => '',
+    'lead_experience' => '',
+    'lead_customer_type' => '',
+    'lead_timing' => '',
+    'lead_message' => '',
+];
+$leadNeedsAdvice = 0;
+$leadSource = 'Landing page';
+$leadErrors = [];
+$leadSent = false;
+$leadStep = 1;
+// Read the token before any output so the session cookie leaves with the headers.
+$leadCsrf = hpl_public_csrf_token();
+
+$leadStep1Fields = ['lead_name', 'lead_cc', 'lead_phone', 'lead_email', 'lead_country', 'lead_city'];
+
+foreach (array_keys($leadFields) as $leadKey) {
+    if (isset($_POST[$leadKey])) {
+        $leadFields[$leadKey] = trim((string)$_POST[$leadKey]);
     }
-    $cc = preg_replace('/\D/', '', (string)$leadCc);
-    $digits = preg_replace('/\D/', '', (string)$leadPhone);
-    $phone = $cc . $digits;
-    $knowledge = trim((string)$leadKnowledge);
-    $learn = ($_POST['lead_learn'] ?? '') === 'Yes' ? 'Yes' : 'No';
-    if (!$connection) {
-        $leadError = 'Could not reach the server database. Please try again later.';
-    } elseif ($name === '' || $digits === '') {
-        $leadError = 'Please fill in your name and phone number.';
-    } elseif ($leadTerrain === '' || $leadTarget === '') {
-        $leadError = 'Please answer the two questions before continuing.';
+}
+if (!empty($_POST['lead_needs_advice'])) {
+    $leadNeedsAdvice = 1;
+}
+if (isset($_POST['lead_source'])) {
+    $leadSource = trim((string)$_POST['lead_source']);
+}
+
+if (isset($_POST['lead_submit'])) {
+    $leadStep = 2;
+    $connection = db();
+
+    if (!hpl_public_csrf_ok()) {
+        $leadErrors['lead_csrf'] = 'Your session expired. Please refresh the page and try again.';
+    } elseif (!$connection) {
+        $leadErrors['lead_csrf'] = 'Could not reach the server database. Please try again later.';
     } else {
-        try {
-            $stmt = $connection->prepare('INSERT INTO leads (name, phone, email, terrain, target, timing, knowledge, wants_to_learn) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-            $emailVal = $leadEmail !== '' ? $leadEmail : null;
-            $stmt->bind_param('ssssssss', $name, $phone, $emailVal, $leadTerrain, $leadTarget, $leadTiming, $knowledge, $learn);
-            $stmt->execute();
-        } catch (mysqli_sql_exception $e) {
-            $leadError = 'Could not save your details right now. Please try again in a moment.';
-        }
-        if ($leadError === '') {
-            $firstOut = trim((string)$first);
-            if ($firstOut === '') {
-                $parts = explode(' ', $name);
-                $firstOut = $parts[0] ?? '';
+        // Keeps a fresh deploy working before anyone runs a migration by hand.
+        hpl_ensure_lead_schema($connection);
+        $result = hpl_lead_message($_POST, hpl_lead_country_names());
+        $leadErrors = $result['errors'];
+        $leadData = $result['data'];
+        $leadNeedsAdvice = (int)($leadData['needs_advice'] ?? 0);
+        $leadSource = (string)($leadData['source'] ?? '');
+
+        if ($leadErrors) {
+            foreach (array_keys($leadErrors) as $bad) {
+                if (in_array($bad, $leadStep1Fields, true)) {
+                    $leadStep = 1;
+                    break;
+                }
             }
-            header('Location: thank-you.php?name=' . rawurlencode($firstOut));
-            exit;
+        } elseif (!hpl_lead_duplicate($connection, (string)$leadData['phone'])) {
+            // A replayed or double-clicked submit is treated as the same enquiry.
+            if (!hpl_lead_save($connection, $leadData)) {
+                $leadErrors['lead_csrf'] = 'Could not save your details right now. Please try again in a moment.';
+            }
+        }
+
+        if (!$leadErrors) {
+            $leadSent = true;
         }
     }
 }
-$done = isset($_GET['done']) ? (string)$_GET['done'] : '';
+
+/**
+ * Per-field error text for the inline validation messages.
+ *
+ * @param array<string,string> $errors
+ */
+function lead_field_error(array $errors, string $field): string
+{
+    return isset($errors[$field]) ? '<span class="field-error" id="' . h($field) . 'Error">' . h($errors[$field]) . '</span>' : '';
+}
+
+function lead_invalid(array $errors, string $field): string
+{
+    return isset($errors[$field]) ? ' aria-invalid="true"' : '';
+}
 
 /**
  * Poster frame for a proof video: the card is painted immediately instead of
@@ -268,7 +313,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .mute-toggle { background:rgba(9,15,36,.82); border:1px solid rgba(244,202,91,.6); color:var(--gold-light); cursor:pointer; font-size:12px; font-weight:700; letter-spacing:.1em; padding:9px 13px; position:absolute; right:14px; text-transform:uppercase; top:14px; z-index:3; }
     .mute-toggle:hover { background:var(--navy); }
     .video-fallback { align-items:center; color:#bfc8d8; display:flex; font-size:15px; height:100%; justify-content:center; padding:30px; text-align:center; }
-    .panel-kicker { background:var(--gold); color:var(--navy-dark); font-size:12px; font-weight:700; left:16px; letter-spacing:.13em; padding:9px 12px; position:absolute; text-transform:uppercase; top:16px; z-index:2; }
+    .panel-kicker { display:none; }
     .hero-copy { color:#bfc8d8; font-size:15px; line-height:1.5; margin:0 auto 18px; max-width:560px; }
     .button { background:var(--gold); border:0; color:var(--navy-dark); cursor:pointer; display:inline-block; font-size:14px; font-weight:700; letter-spacing:.06em; padding:16px 38px; text-transform:uppercase; }
     .button:hover { background:var(--gold-light); }
@@ -287,6 +332,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-cue { align-items:center; animation:nudge 1.8s ease-in-out infinite; background:rgba(17,26,56,.85); border:0; border-radius:50%; bottom:16px; color:#fff; cursor:pointer; display:flex; font-size:24px; height:44px; justify-content:center; position:absolute; right:16px; transition:opacity .3s ease; width:44px; z-index:4; }
     .proof-stage-wrap.moved .proof-cue { opacity:0; pointer-events:none; }
     .proof-stage-wrap { margin:0 auto; max-width:560px; position:relative; }
+    .proof-stage-wrap .ring-sound-btn { bottom:16px; left:16px; opacity:0; position:absolute; z-index:10; }
     @keyframes nudge { 0%,100% { transform:translateX(0); } 50% { transform:translateX(6px); } }
     .proof-empty { background:var(--navy); color:#fff; font-size:14px; margin:0 auto; max-width:420px; padding:60px 20px; }
     .proof-hint { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:16px 0 0; text-transform:uppercase; }
@@ -306,10 +352,13 @@ function art_block(string $file, string $fallbackClass = ''): string
     .ring-item:hover:not(.front) { filter:none; }
     .ring-play { align-items:center; background:rgba(17,26,56,.55); border:0; border-radius:50%; color:#fff; cursor:pointer; display:flex; font-size:26px; height:62px; justify-content:center; left:50%; padding:0 0 0 4px; position:absolute; top:50%; transform:translate(-50%,-50%); transition:opacity .3s ease, transform .3s ease; width:62px; z-index:6; }
     .ring-play:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
-    .ring-wrap.moved .ring-play { opacity:0; pointer-events:none; transform:translate(-50%,-50%) scale(.8); }
     .ring-wrap.playing .ring-play { opacity:0; pointer-events:none; }
     .ring-item video { pointer-events:none; }
     .ring-nav { align-items:center; display:flex; gap:14px; justify-content:center; margin:18px 0 0; }
+    .ring-sound-btn { align-items:center; background:rgba(17,26,56,.75); border:1px solid rgba(244,202,91,.5); border-radius:50%; color:var(--gold-light); cursor:pointer; display:flex; font-size:18px; height:44px; justify-content:center; left:50%; margin-left:-22px; opacity:0; padding:0; position:absolute; bottom:14px; transition:background-color .2s ease, border-color .2s ease; width:44px; z-index:200; }
+    .ring-sound-btn:hover { background:rgba(17,26,56,.9); border-color:var(--gold); }
+    .ring-sound-btn:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+    .ring-sound-btn[aria-pressed="true"] { background:var(--gold); border-color:var(--gold); color:var(--navy-dark); }
     .ring-nav button { align-items:center; background:rgba(17,26,56,.08); border:1px solid rgba(9,15,36,.16); border-radius:50%; color:var(--navy); cursor:pointer; display:flex; font-size:20px; height:40px; justify-content:center; line-height:1; padding:0; width:40px; }
     .ring-nav button:hover { background:var(--gold); border-color:var(--gold); color:#fff; }
     .ring-nav button:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
@@ -345,6 +394,7 @@ function art_block(string $file, string $fallbackClass = ''): string
        cards - those are z-indexed 98..100 by the layout code. */
     .cf-audio { align-items:center; display:flex; gap:10px; position:absolute; right:14px; top:14px; z-index:200; }
     .cf-audio-btn { align-items:center; background:rgba(9,15,36,.82); border:1px solid rgba(244,202,91,.6); border-radius:6px; color:var(--gold-light); cursor:pointer; display:flex; font-size:12px; font-weight:700; gap:7px; letter-spacing:.1em; padding:9px 13px; text-transform:uppercase; transition:background-color .2s ease, border-color .2s ease; }
+    .cf-sound-btn { bottom:14px; left:14px; opacity:0; position:absolute; z-index:200; }
     .cf-audio-btn:hover { background:rgba(9,15,36,.95); border-color:var(--gold); }
     .cf-audio-btn:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
     .cf-audio-btn[aria-pressed="true"] { background:var(--gold); border-color:var(--gold); color:var(--navy-dark); }
@@ -493,7 +543,49 @@ function art_block(string $file, string $fallbackClass = ''): string
     .form-msg.err { background:#fdeceb; color:#a4262c; }
     .lead-form .opt { color:var(--muted); font-size:11px; font-weight:600; letter-spacing:.04em; margin-left:4px; text-transform:uppercase; }
     .lead-form select { background:#fff url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23687083' d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E") no-repeat right 12px center; border:1px solid #cfd4dc; border-radius:8px; color:var(--navy); font:15px 'DM Sans',sans-serif; height:41px; margin-top:5px; padding:0 32px 0 11px; width:100%; -webkit-appearance:none; appearance:none; }
-    .lead-form select:focus { outline:2px solid var(--gold-light); }
+.lead-form select:focus { outline:2px solid var(--gold-light); }
+    /* Two-step qualification funnel */
+    .lead-form { max-width:560px; padding:26px 26px 28px; }
+    .form-progress { margin:0 0 20px; }
+    .form-progress-track { background:#e6e9ee; border-radius:40px; display:block; height:5px; overflow:hidden; }
+    .form-progress-fill { background:linear-gradient(90deg,var(--gold),var(--gold-light)); border-radius:40px; display:block; height:100%; transition:width .35s ease; width:50%; }
+    .form-progress-text { color:var(--muted); display:block; font-size:11.5px; font-weight:700; letter-spacing:.11em; margin-top:9px; text-transform:uppercase; }
+    .form-step-head { border-bottom:1px solid #e6e9ee; margin:0 0 4px; padding-bottom:15px; }
+    .form-step-head h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:21px; letter-spacing:-.01em; line-height:1.2; margin:0 0 5px; }
+    .form-step-head p { color:var(--muted); font-size:13.5px; line-height:1.5; margin:0; }
+    .lead-form .req { color:#c0392b; }
+    .lead-form .field { margin-top:16px; }
+    .lead-form .field > label { font-size:13px; letter-spacing:.02em; margin:0 0 6px; }
+    .lead-form .field-error { color:#a4262c; display:block; font-size:12.5px; font-weight:600; line-height:1.4; margin-top:6px; }
+    .lead-form input[aria-invalid=true], .lead-form select[aria-invalid=true], .lead-form textarea[aria-invalid=true] { border-color:#d98b8b; }
+    .lead-form .q-block[data-invalid] legend { color:#a4262c; }
+    .lead-form .q-block { margin:0; padding:19px 0 0; }
+    .lead-form .q-block legend { font-size:14px; letter-spacing:.01em; margin:0 0 10px; padding:0; }
+    .cards { display:grid; gap:9px; }
+    .lead-form .card { align-items:flex-start; background:#fff; border:1px solid #dfe3ea; border-radius:10px; cursor:pointer; display:flex; gap:12px; margin:0; padding:13px 15px; transition:border-color .18s ease, background .18s ease, box-shadow .18s ease; }
+    .lead-form .card:hover { border-color:var(--gold); }
+    .lead-form .card input { height:1px; margin:0; opacity:0; position:absolute; width:1px; }
+    .card-mark { border:2px solid #c3c9d4; border-radius:50%; flex:none; height:19px; margin-top:2px; position:relative; transition:border-color .18s ease; width:19px; }
+    .card-mark::after { background:var(--navy-dark); border-radius:50%; content:''; height:9px; left:50%; opacity:0; position:absolute; top:50%; transform:translate(-50%,-50%) scale(.5); transition:opacity .18s ease, transform .18s ease; width:9px; }
+    .lead-form .card input:checked ~ .card-mark { border-color:var(--gold); }
+    .lead-form .card input:checked ~ .card-mark::after { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    .lead-form .card input:focus-visible ~ .card-mark { outline:2px solid var(--gold-light); outline-offset:2px; }
+    .lead-form .card.is-on { background:#fffdf5; border-color:var(--gold); box-shadow:0 2px 10px rgba(212,165,44,.18); }
+    .card-text { display:block; min-width:0; }
+    .card-title { color:var(--navy); display:block; font-size:14.5px; font-weight:700; line-height:1.35; }
+    .card-note { color:var(--muted); display:block; font-size:12.5px; font-weight:400; line-height:1.4; margin-top:2px; }
+    .lead-form .advice-check { align-items:flex-start; background:#fffdf5; border:1px solid #f0e2bd; border-radius:10px; cursor:pointer; display:flex; gap:11px; margin-top:18px; padding:14px 15px; }
+    .lead-form .advice-check input { accent-color:var(--gold); flex:none; height:17px; margin:1px 0 0; width:17px; }
+    .lead-form .advice-check span { color:var(--navy); font-size:13.5px; font-weight:600; line-height:1.45; }
+    .lead-form .button[disabled] { cursor:default; opacity:.65; }
+    .lead-form .button.is-busy { pointer-events:none; }
+    .final .lead-success { background:#fff; border-radius:14px; box-shadow:0 20px 48px rgba(4,10,28,.34); margin:26px auto 0; max-width:560px; padding:44px 34px; }
+    .lead-success:focus { outline:none; }
+    .lead-success-mark { align-items:center; background:linear-gradient(140deg,var(--gold),var(--gold-light)); border-radius:50%; color:var(--navy-dark); display:inline-flex; height:66px; justify-content:center; margin-bottom:18px; width:66px; }
+    .lead-success-mark svg { height:34px; width:34px; }
+    .final .lead-success h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:30px; letter-spacing:-.02em; margin:0 0 10px; }
+    .final .lead-success p { color:var(--muted); font-size:15px; line-height:1.6; margin:0 auto; max-width:400px; }
+    .final .lead-success p.lead-success-note { border-top:1px solid #e6e9ee; color:var(--navy); font-size:13px; font-weight:700; margin-top:24px; padding-top:16px; }
     .form-error { background:#fbeeec; border-radius:8px; color:#7a2c25; font-size:14px; margin:0 auto 6px; max-width:520px; padding:11px 14px; }
     .thankyou { background:#fff; border-radius:12px; margin:28px auto 0; max-width:560px; padding:34px; }
     .thankyou h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:22px; margin:0 0 8px; }
@@ -555,6 +647,13 @@ function art_block(string $file, string $fallbackClass = ''): string
   .spaced-cta { padding:6px 0 34px; }
   .final { padding:38px 18px; }
     .lead-form { padding:20px 18px 24px; }
+    .lead-form .card { gap:11px; padding:12px 13px; }
+    .card-title { font-size:14px; }
+    .card-note { font-size:12px; }
+    .form-step-head h3 { font-size:19px; }
+    .form-nav .button { padding:12px 12px; }
+    .final .lead-success { padding:34px 20px; }
+    .final .lead-success h3 { font-size:26px; }
     .field-row { grid-template-columns:1fr; }
     .form-title { font-size:22px; }
   .torn { margin:0; padding:20px 16px; }
@@ -580,7 +679,7 @@ function art_block(string $file, string $fallbackClass = ''): string
             'poster' => hpl_media_url($s['video_poster'] ?? ''),
             'title'  => (string)($s['hero_h1'] ?? 'HPL Sales promo'),
             'id'     => 'promoVideo',
-            'kicker' => (string)($s['panel_kicker'] ?? ''),
+            'kicker' => '',
             'loop'   => true,
             'autoplay' => true,
         ]) ?></div>
@@ -588,9 +687,9 @@ function art_block(string $file, string $fallbackClass = ''): string
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
 
-      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $src = hpl_media_url($s['proof_video_' . $i] ?? ''); if ($src === '') { continue; } $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring'); if (!in_array($layout, ['ring', 'strip', 'coverflow'], true)) { $layout = 'ring'; } ?><section class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video muted loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div>
+      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $src = hpl_media_url($s['proof_video_' . $i] ?? ''); if ($src === '') { continue; } $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring'); if (!in_array($layout, ['ring', 'strip', 'coverflow'], true)) { $layout = 'ring'; } ?><section class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div>
 <?php elseif ($layout === 'coverflow'): ?>
-<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?><div class="cf-audio" id="cfAudio"><button type="button" class="cf-audio-btn" id="cfSound" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><label class="cf-audio-vol"><span class="cf-audio-lbl" aria-hidden="true">&#128266;</span><input type="range" id="cfVolume" min="0" max="100" step="5" value="80" aria-label="Story volume"></label></div></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="cf-dots" id="cfDots"></div><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video muted loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringSound" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128266;</span></button><button type="button" id="ringToggle" aria-label="Pause videos"><span aria-hidden="true">&#10073;&#10073;</span></button><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="cf-audio-btn cf-sound-btn" id="cfSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="cf-dots" id="cfDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
@@ -608,85 +707,120 @@ function art_block(string $file, string $fallbackClass = ''): string
       <section class="final" id="book">
         <h2><?= h($s['final_h']) ?></h2>
         <p><?= h($s['final_sub']) ?></p>
-<?php if ($done === '1'): ?>
-        <div class="thankyou"><h3>You're on the list!</h3><p>Thanks, <?= h($leadName) ?>. We'll reach out within one business day to schedule your gold-detection assessment.</p></div>
+<?php if ($leadSent): ?>
+        <div class="lead-success" id="leadSuccess" role="status" tabindex="-1">
+          <span class="lead-success-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <h3>Thank You!</h3>
+          <p>Your enquiry has been received. A member of our HPL team will contact you shortly to discuss your requirements and recommend the right equipment.</p>
+          <p class="lead-success-note">We aim to respond within one business day.</p>
+        </div>
 <?php else: ?>
-<?php if ($leadError !== ''): ?><div class="form-error"><?= h($leadError) ?></div><?php endif; ?>
-        <form class="lead-form" action="#book" method="post" novalidate id="leadForm">
+        <form class="lead-form" action="#book" method="post" novalidate id="leadForm"<?= $leadStep === 2 ? ' data-start-step="2"' : '' ?>>
           <input type="hidden" name="lead_submit" value="1">
-          <div class="form-intro">
-            <p class="form-eyebrow"><?= h($s['form_eyebrow']) ?></p>
-            <p class="form-title"><?= h($s['form_title']) ?></p>
-            <p class="form-event"><?= h($s['form_event']) ?></p>
-            <p class="form-desc"><?= h($s['form_desc']) ?></p>
-            <p class="form-sub"><?= h($s['form_sub']) ?></p>
+          <input type="hidden" name="lead_source" value="Landing page">
+          <input type="hidden" name="lead_csrf" value="<?= h($leadCsrf) ?>">
+
+          <div class="form-progress">
+            <span class="form-progress-track"><span class="form-progress-fill" id="leadProgressFill"></span></span>
+            <span class="form-progress-text" id="leadProgressText">Step 1 of 2 &middot; Your details</span>
           </div>
-          <p class="form-msg err" id="formMsg"></p>
+
+          <p class="form-msg err<?= isset($leadErrors['lead_csrf']) ? ' on' : '' ?>" id="formMsg"><?= h($leadErrors['lead_csrf'] ?? '') ?></p>
+
           <div class="form-step" data-step="1">
-            <div class="field-row">
-              <label>First name *
-                <input type="text" name="lead_first" id="leadFirst" value="<?= h($leadFirst) ?>" autocomplete="given-name">
-              </label>
-              <label>Last name *
-                <input type="text" name="lead_last" id="leadLast" value="<?= h($leadLast) ?>" autocomplete="family-name">
-              </label>
+            <header class="form-step-head">
+              <h3>Let's start with your details</h3>
+              <p>Please enter your information so our HPL team can contact you.</p>
+            </header>
+
+            <div class="field" data-field="lead_name">
+              <label for="leadName">Full Name <span class="req">*</span></label>
+              <input type="text" id="leadName" name="lead_name" value="<?= h($leadFields['lead_name']) ?>" autocomplete="name" required<?= lead_invalid($leadErrors, 'lead_name') ?>>
+              <?= lead_field_error($leadErrors, 'lead_name') ?>
             </div>
-            <label>Phone number *
+
+            <div class="field" data-field="lead_phone">
+              <label for="leadPhone">WhatsApp Number <span class="req">*</span></label>
               <span class="phone-row">
                 <span class="cc-wrap">
-                  <span class="cc-label"><img class="cc-flag" id="ccFlag" src="img/flags/<?= h(cc_flag((string)$leadCc)) ?>.png" alt=""><span class="cc-text" id="ccText"><?= h(cc_label((string)$leadCc)) ?></span></span>
+                  <span class="cc-label"><img class="cc-flag" id="ccFlag" src="img/flags/<?= h(cc_flag((string)$leadFields['lead_cc'])) ?>.png" alt=""><span class="cc-text" id="ccText"><?= h(cc_label((string)$leadFields['lead_cc'])) ?></span></span>
                   <select name="lead_cc" id="leadCc" aria-label="Country code">
 <?php foreach (hpl_countries() as $ccode => $cinfo): ?>
-                    <option value="<?= h((string)$ccode) ?>" data-flag="<?= h($cinfo['flag']) ?>" title="<?= h($cinfo['name']) ?>"<?= (string)$leadCc === (string)$ccode ? ' selected' : '' ?>><?= h($cinfo['label']) ?></option>
+                    <option value="<?= h((string)$ccode) ?>" data-flag="<?= h($cinfo['flag']) ?>" data-country="<?= h($cinfo['name']) ?>" title="<?= h($cinfo['name']) ?>"<?= (string)$leadFields['lead_cc'] === (string)$ccode ? ' selected' : '' ?>><?= h($cinfo['label']) ?></option>
 <?php endforeach; ?>
                   </select>
                 </span>
-                <input type="tel" name="lead_phone" id="leadPhone" value="<?= h($leadPhone) ?>" placeholder="976 652 858" autocomplete="tel">
+                <input type="tel" id="leadPhone" name="lead_phone" value="<?= h($leadFields['lead_phone']) ?>" placeholder="976 652 858" autocomplete="tel-national" inputmode="tel" required<?= lead_invalid($leadErrors, 'lead_phone') ?>>
               </span>
-            </label>
-            <label>Email address <span class="opt">optional</span>
-              <input type="email" name="lead_email" id="leadEmail" value="<?= h($leadEmail) ?>" placeholder="you@example.com" autocomplete="email">
-            </label>
-            <label><?= h($s['form_q_terrain']) ?> *
-              <select name="lead_terrain" id="leadTerrain">
-                <option value="">Select</option>
-<?php foreach (hpl_options('terrain') as $opt): ?>
-                <option value="<?= h($opt) ?>"<?= $leadTerrain === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
+              <?= lead_field_error($leadErrors, 'lead_phone') ?>
+            </div>
+
+            <div class="field" data-field="lead_email">
+              <label for="leadEmail">Email Address <span class="opt">optional</span></label>
+              <input type="email" id="leadEmail" name="lead_email" value="<?= h($leadFields['lead_email']) ?>" placeholder="you@example.com" autocomplete="email"<?= lead_invalid($leadErrors, 'lead_email') ?>>
+              <?= lead_field_error($leadErrors, 'lead_email') ?>
+            </div>
+
+            <div class="field-row">
+              <div class="field" data-field="lead_country">
+                <label for="leadCountry">Country <span class="req">*</span></label>
+                <select id="leadCountry" name="lead_country" required<?= lead_invalid($leadErrors, 'lead_country') ?>>
+                  <option value="">Select country</option>
+<?php foreach (hpl_lead_country_names() as $countryName): ?>
+                  <option value="<?= h($countryName) ?>"<?= $leadFields['lead_country'] === $countryName ? ' selected' : '' ?>><?= h($countryName) ?></option>
 <?php endforeach; ?>
-              </select>
-            </label>
-            <label><?= h($s['form_q_target']) ?> *
-              <select name="lead_target" id="leadTarget">
-                <option value="">Select</option>
-<?php foreach (hpl_options('target') as $opt): ?>
-                <option value="<?= h($opt) ?>"<?= $leadTarget === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
-<?php endforeach; ?>
-              </select>
-            </label>
-            <label><?= h($s['form_q_timing']) ?>
-              <select name="lead_timing" id="leadTiming">
-                <option value="">Select</option>
-<?php foreach (hpl_options('timing') as $opt): ?>
-                <option value="<?= h($opt) ?>"<?= $leadTiming === $opt ? ' selected' : '' ?>><?= h($opt) ?></option>
-<?php endforeach; ?>
-              </select>
-            </label>
+                </select>
+                <?= lead_field_error($leadErrors, 'lead_country') ?>
+              </div>
+
+              <div class="field" data-field="lead_city">
+                <label for="leadCity">City / Town <span class="req">*</span></label>
+                <input type="text" id="leadCity" name="lead_city" value="<?= h($leadFields['lead_city']) ?>" autocomplete="address-level2" required<?= lead_invalid($leadErrors, 'lead_city') ?>>
+                <?= lead_field_error($leadErrors, 'lead_city') ?>
+              </div>
+            </div>
+
             <div class="form-nav"><button class="button" type="button" id="leadNext">Continue</button></div>
           </div>
+
           <div class="form-step" data-step="2" hidden>
-            <label>What do you know about gold detectors?<span class="hint">Tell us where you are right now</span>
-              <textarea name="lead_knowledge" rows="3" placeholder="e.g. I've watched YouTube videos but never used one"><?= h($leadKnowledge) ?></textarea>
-            </label>
-            <fieldset>
-              <legend>Would you want to learn?</legend>
-              <div class="opts">
-                <label><input type="radio" name="lead_learn" value="Yes" required> Yes</label>
-                <label><input type="radio" name="lead_learn" value="No"> No</label>
+            <header class="form-step-head">
+              <h3>Tell us about what you need</h3>
+              <p>These answers help us send you the right equipment, not a generic price list.</p>
+            </header>
+
+<?php $leadQuestions = hpl_lead_questions(); ?>
+<?php foreach (['lead_looking_for', 'lead_finding', 'lead_experience', 'lead_customer_type', 'lead_timing'] as $qField): ?>
+<?php $question = $leadQuestions[$qField]; ?>
+            <fieldset class="q-block" data-field="<?= h($qField) ?>"<?= isset($leadErrors[$qField]) ? ' data-invalid="1"' : '' ?>>
+              <legend><?= h($question['label']) ?> <span class="req">*</span></legend>
+              <div class="cards">
+<?php foreach ($question['options'] as $qValue => $qNote): ?>
+                <label class="card<?= $leadFields[$qField] === $qValue ? ' is-on' : '' ?>">
+                  <input type="radio" name="<?= h($qField) ?>" value="<?= h($qValue) ?>"<?= $leadFields[$qField] === $qValue ? ' checked' : '' ?>>
+                  <span class="card-mark" aria-hidden="true"></span>
+                  <span class="card-text"><span class="card-title"><?= h($qValue) ?></span><span class="card-note"><?= h($qNote) ?></span></span>
+                </label>
+<?php endforeach; ?>
               </div>
+              <?= lead_field_error($leadErrors, $qField) ?>
             </fieldset>
+<?php endforeach; ?>
+
+            <div class="field" data-field="lead_message">
+              <label for="leadMessage"><?= h($leadQuestions['lead_message']['label']) ?> <span class="opt">optional</span></label>
+              <textarea id="leadMessage" name="lead_message" rows="4" placeholder="Example: I have a mining area in Kitwe and I am looking for a detector for deep gold."><?= h($leadFields['lead_message']) ?></textarea>
+              <?= lead_field_error($leadErrors, 'lead_message') ?>
+            </div>
+
+            <label class="advice-check" for="leadAdvice">
+              <input type="checkbox" id="leadAdvice" name="lead_needs_advice" value="1"<?= $leadNeedsAdvice ? ' checked' : '' ?>>
+              <span>I'm not sure what equipment I need &mdash; please advise me.</span>
+            </label>
+
             <div class="form-nav">
               <button class="btn-ghost" type="button" id="leadBack">Back</button>
-              <button class="button" type="submit"><?= h($s['form_submit']) ?></button>
+              <button class="button" type="submit" id="leadSubmit">Submit &amp; Talk to HPL</button>
             </div>
           </div>
         </form>
@@ -801,21 +935,149 @@ function art_block(string $file, string $fallbackClass = ''): string
           scrollTracked[100] = true;
           trackEvent('scroll', { depth: 100 });
         }
-      });
+});
+      // Shared with the form script below, which runs in its own closure.
+      window.hplTrack = trackEvent;
     })();
 (function () {
       var form = document.getElementById('leadForm');
+      // After a successful POST the confirmation replaces the form, so there is
+      // nothing below to wire up. Move focus to the panel instead: role="status"
+      // alone is not announced reliably on a full page load.
+      var sentPanel = document.getElementById('leadSuccess');
+      if (sentPanel) sentPanel.focus();
       if (!form) return;
+// Analytics lives in its own closure above; reach it without assuming it.
+      function trackEvent(type, data) {
+        if (window.hplTrack) window.hplTrack(type, data);
+      }
+
       var steps = form.querySelectorAll('.form-step');
       var next = document.getElementById('leadNext');
       var back = document.getElementById('leadBack');
+      var submitBtn = document.getElementById('leadSubmit');
       var msg = document.getElementById('formMsg');
-      var f = document.getElementById('leadFirst');
-      var l = document.getElementById('leadLast');
-      var p = document.getElementById('leadPhone');
       var cc = document.getElementById('leadCc');
+      var country = document.getElementById('leadCountry');
       var flag = document.getElementById('ccFlag');
       var ccText = document.getElementById('ccText');
+      var progressFill = document.getElementById('leadProgressFill');
+      var progressText = document.getElementById('leadProgressText');
+      var current = 0;
+      var QUESTIONS = ['lead_looking_for', 'lead_finding', 'lead_experience', 'lead_customer_type', 'lead_timing'];
+      var STEP1 = ['lead_name', 'lead_phone', 'lead_email', 'lead_country', 'lead_city'];
+      var STEP_LABELS = ['Step 1 of 2 \u00b7 Your details', 'Step 2 of 2 \u00b7 Your requirements'];
+
+      function paintProgress() {
+        if (progressFill) progressFill.style.width = (current === 0 ? 50 : 100) + '%';
+        if (progressText) progressText.textContent = STEP_LABELS[current];
+      }
+
+      function clearMsg() {
+        if (msg) { msg.textContent = ''; msg.classList.remove('on'); }
+      }
+
+      function showMsg(text) {
+        if (!msg) return;
+        msg.textContent = text;
+        msg.classList.add('on');
+        msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function clearError(field) {
+        var wrap = form.querySelector('[data-field="' + field + '"]');
+        if (!wrap) return;
+        var note = wrap.querySelector('.field-error');
+        if (note) note.parentNode.removeChild(note);
+        wrap.removeAttribute('data-invalid');
+        var bad = wrap.querySelector('[aria-invalid]');
+        if (bad) bad.removeAttribute('aria-invalid');
+      }
+
+      function setError(field, text) {
+        var wrap = form.querySelector('[data-field="' + field + '"]');
+        if (!wrap) return showMsg(text);
+        var note = wrap.querySelector('.field-error');
+        if (!note) {
+          note = document.createElement('span');
+          note.className = 'field-error';
+          wrap.appendChild(note);
+        }
+        note.textContent = text;
+        wrap.setAttribute('data-invalid', '1');
+        var input = wrap.querySelector('input, select, textarea');
+        // A card group is flagged on the group, not the radio hidden inside it.
+        if (input && input.type !== 'radio' && input.type !== 'checkbox') {
+          input.setAttribute('aria-invalid', 'true');
+        }
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function validateStep1() {
+        clearMsg();
+        for (var i = 0; i < STEP1.length; i++) clearError(STEP1[i]);
+
+        var name = form.querySelector('#leadName');
+        var phone = form.querySelector('#leadPhone');
+        var city = form.querySelector('#leadCity');
+        var email = form.querySelector('#leadEmail');
+
+        if (!name || !name.value.trim()) { setError('lead_name', 'Please enter your full name.'); return false; }
+        if (!phone || phone.value.replace(/\D/g, '').length < 6) { setError('lead_phone', 'Please enter your WhatsApp number.'); return false; }
+        if (email && email.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
+          setError('lead_email', 'Please check that email address, or leave it blank.');
+          return false;
+        }
+        if (!country || !country.value) { setError('lead_country', 'Please select your country.'); return false; }
+        if (!city || !city.value.trim()) { setError('lead_city', 'Please enter your city or town.'); return false; }
+        return true;
+      }
+
+      function validateStep2() {
+        clearMsg();
+        for (var i = 0; i < QUESTIONS.length; i++) {
+          if (!form.querySelector('input[name="' + QUESTIONS[i] + '"]:checked')) {
+            for (var j = 0; j < QUESTIONS.length; j++) clearError(QUESTIONS[j]);
+            setError(QUESTIONS[i], 'Please choose an option to continue.');
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function show(n) {
+        current = n;
+        for (var i = 0; i < steps.length; i++) {
+          if (i === n) steps[i].removeAttribute('hidden');
+          else steps[i].setAttribute('hidden', '');
+        }
+        paintProgress();
+        clearMsg();
+        var first = steps[n].querySelector('input, textarea, select');
+        if (first) first.focus();
+        if (n === 0 && window.scrollY > 0) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      // Card selection state and per-group error clearing.
+      var cards = form.querySelectorAll('.card');
+      for (var c = 0; c < cards.length; c++) {
+        cards[c].addEventListener('change', function () {
+          var name = this.querySelector('input').name;
+          var group = form.querySelectorAll('.card input[name="' + name + '"]');
+          for (var g = 0; g < group.length; g++) {
+            group[g].parentNode.classList.toggle('is-on', group[g].checked);
+          }
+          clearError(name);
+        });
+      }
+
+// Correcting or clearing a field should take its message away; Continue
+      // re-checks everything anyway.
+      form.addEventListener('input', function (e) {
+        var wrap = e.target.closest ? e.target.closest('[data-field]') : null;
+        if (!wrap || !wrap.getAttribute('data-invalid')) return;
+        clearError(wrap.getAttribute('data-field'));
+      });
 
       function paintCc() {
         var o = cc && cc.options ? cc.options[cc.selectedIndex] : null;
@@ -832,46 +1094,64 @@ function art_block(string $file, string $fallbackClass = ''): string
         if (cc) cc.title = o.textContent.replace(/^\+\d+\s*/, '') || 'Country code';
       }
 
+      var userPicked = false;
       if (cc) {
-        cc.addEventListener('change', function () { userPicked = true; paintCc(); });
+        cc.addEventListener('change', function () {
+          userPicked = true;
+          paintCc();
+          var o = cc.options[cc.selectedIndex];
+          // The dialling code usually implies the country, so suggest it.
+          if (country && !country.value && o) {
+            var name = o.getAttribute('data-country');
+            if (name) country.value = name;
+          }
+        });
+        cc.addEventListener('pointerdown', function () { userPicked = true; });
         paintCc();
       }
-
-      var userPicked = false;
-      cc.addEventListener('pointerdown', function () { userPicked = true; });
 
       (function detectCountry() {
         if (userPicked) return;
         var providers = ['https://ipwho.is/', 'https://ipapi.co/json/'];
         var attempt = function (i) {
-          if (i >= providers.length || userPicked) return;
+          if (i >= providers.length || userPicked || !cc) return;
           var ctrl = new AbortController();
           var timer = setTimeout(function () { ctrl.abort(); }, 2600);
           fetch(providers[i], { mode: 'cors', signal: ctrl.signal })
             .then(function (r) { return r.json(); })
             .then(function (d) {
               clearTimeout(timer);
-              if (userPicked) return;
-              var code = d && (d.country_calling_code || d.calling_code) ? String(d.country_calling_code || d.calling_code).replace(/\D/g, '') : '';
-              if (!code) return attempt(i + 1);
-              var rawCountry = d && d.country ? String(d.country) : '';
-              var iso = (d && d.country_code ? String(d.country_code) : (rawCountry.length === 2 ? rawCountry : '')).toLowerCase();
-              var cname = d && d.country_name ? String(d.country_name) : (rawCountry.length > 2 ? rawCountry : '');
-              var match = null;
-              for (var k = 0; k < cc.options.length; k++) {
-                if (cc.options[k].value === code) { match = cc.options[k]; break; }
+              if (userPicked || !d) return;
+              var code = (d.country_calling_code || d.calling_code) ? String(d.country_calling_code || d.calling_code).replace(/\D/g, '') : '';
+              var iso = d.country_code ? String(d.country_code).toLowerCase() : '';
+              if (!code && !iso) return attempt(i + 1);
+
+              if (country && !country.value && iso) {
+                for (var m = 0; m < cc.options.length; m++) {
+                  if (cc.options[m].getAttribute('data-flag') === iso) {
+                    var cname = cc.options[m].getAttribute('data-country');
+                    if (cname) { country.value = cname; break; }
+                  }
+                }
               }
-              if (!match) {
-                match = document.createElement('option');
-                match.value = code;
-                match.textContent = '+' + code + (cname ? ' ' + cname : '');
-                match.setAttribute('data-flag', iso || 'un');
-                cc.insertBefore(match, cc.firstChild);
-              } else if (cc.firstChild !== match) {
-                cc.insertBefore(match, cc.firstChild);
+
+              if (code) {
+                var match = null;
+                for (var k = 0; k < cc.options.length; k++) {
+                  if (cc.options[k].value === code) { match = cc.options[k]; break; }
+                }
+                if (!match) {
+                  match = document.createElement('option');
+                  match.value = code;
+                  match.textContent = '+' + code + (d.country_name ? ' ' + String(d.country_name) : '');
+                  match.setAttribute('data-flag', iso || 'un');
+                  cc.insertBefore(match, cc.firstChild);
+                } else if (cc.firstChild !== match) {
+                  cc.insertBefore(match, cc.firstChild);
+                }
+                cc.value = code;
+                paintCc();
               }
-              cc.value = code;
-              paintCc();
               trackEvent('country_detected', { cc: code });
             })
             .catch(function () { clearTimeout(timer); attempt(i + 1); });
@@ -879,46 +1159,44 @@ function art_block(string $file, string $fallbackClass = ''): string
         if (window.fetch) attempt(0);
       })();
 
-      function show(n) {
-        for (var i = 0; i < steps.length; i++) {
-          if (i === n) { steps[i].removeAttribute('hidden'); }
-          else { steps[i].setAttribute('hidden', ''); }
-        }
-        if (msg) msg.classList.remove('on');
-        var first = steps[n].querySelector('input, textarea, select');
-        if (first) first.focus();
-        if (n === 0 && window.scrollY > 0) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (next) {
+        next.addEventListener('click', function () { if (validateStep1()) show(1); });
       }
+      if (back) back.addEventListener('click', function () { show(0); });
 
-      function fail(text) {
-        if (!msg) return;
-        msg.textContent = text;
-        msg.classList.add('on');
-        trackEvent('form_error', { field: text });
-      }
+form.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' || e.shiftKey || e.target.tagName === 'TEXTAREA') return;
+        // Only the details step is advanced by Enter. On step 2 the key must reach
+        // the button, otherwise preventDefault() below would swallow the submit.
+        if (current !== 0) return;
+        var step = e.target.closest ? e.target.closest('.form-step') : null;
+        if (!step || step.hasAttribute('hidden')) return;
+        // Hold the page either way: show inline errors, or move on without posting.
+        e.preventDefault();
+        if (validateStep1()) show(1);
+      });
 
-      next.addEventListener('click', function () {
-        if (!f.value.trim()) return fail('Please enter your first name.');
-        if (!l.value.trim()) return fail('Please enter your last name.');
-        if (p.value.replace(/\D/g, '').length < 6) return fail('Please enter a valid phone number.');
-        if (!document.getElementById('leadTerrain').value) return fail('Please choose where you will be searching.');
-        if (!document.getElementById('leadTarget').value) return fail('Please tell us what you are hoping to find.');
+      // The server rejected the submission and marked which step owns the error.
+      if (form.getAttribute('data-start-step') === '2') {
         show(1);
-      });
+      } else {
+        paintProgress();
+      }
 
-      back.addEventListener('click', function () { show(0); });
-
-      form.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey && e.target.tagName !== 'TEXTAREA') {
-          e.preventDefault();
-          if (!e.target.closest('.form-step').hasAttribute('hidden')) next.click();
+      var submitting = false;
+      form.addEventListener('submit', function (e) {
+        trackEvent('form_submit', { form: 'lead' });
+        if (!validateStep2()) { e.preventDefault(); return; }
+        // A second click while the first POST is in flight must not add a row.
+        if (submitting) { e.preventDefault(); return; }
+        submitting = true;
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('is-busy');
+          submitBtn.textContent = 'Sending\u2026';
         }
       });
-
-      form.addEventListener('submit', function () {
-        trackEvent('form_submit', { form: 'lead' });
-      });
-    })();
+      })();
     (function () {
       var t = document.getElementById('footerMenuBtn');
       var n = document.getElementById('footerNav');
@@ -1044,6 +1322,7 @@ function art_block(string $file, string $fallbackClass = ''): string
         syncDots();
         var v = frontVideo();
         var playing = v && !v.paused;
+        if (wrap) wrap.classList.toggle('playing', !!playing);
         if (toggleBtn) {
           toggleBtn.innerHTML = playing ? '<span aria-hidden="true">&#10073;&#10073;</span>' : '<span aria-hidden="true">&#9654;</span>';
           toggleBtn.setAttribute('aria-label', playing ? 'Pause videos' : 'Play videos');
@@ -1051,10 +1330,10 @@ function art_block(string $file, string $fallbackClass = ''): string
         if (playBtn) playBtn.style.display = playing ? 'none' : '';
       }
 
-// Sound stays off until the visitor asks for it, but the choice then sticks
+// Sound stays on by default, but the choice then sticks
         // across every handover instead of being re-muted on each new story.
-        var soundOn = false;
-        try { soundOn = localStorage.getItem('hpl_story_sound') === '1'; } catch (e) {}
+        var soundOn = true;
+        try { soundOn = localStorage.getItem('hpl_story_sound') !== '0'; } catch (e) {}
   
         // Volume is remembered separately so a visitor who dialled it down gets the
         // same level back, and so "sound on" and "audible" stay distinct states: a
@@ -1106,8 +1385,6 @@ function art_block(string $file, string $fallbackClass = ''): string
         soundOn = !soundOn;
         try { localStorage.setItem('hpl_story_sound', soundOn ? '1' : '0'); } catch (e) {}
         applySound();
-        var fv = frontVideo();
-        if (soundOn && fv && fv.paused) playFront();
       }
 
       function playFront() {
@@ -1134,28 +1411,28 @@ function art_block(string $file, string $fallbackClass = ''): string
         idx = ((i % n) + n) % n;
         layout(true);
         syncBtn();
-        if (autoplay !== false) playFront();
+        if (autoplay === true) playFront();
         if (wrap) wrap.classList.add('moved');
       }
 
-      function next() { show(idx + 1, true); }
-      function prev() { show(idx - 1, true); }
+      function next() { show(idx + 1, false); }
+      function prev() { show(idx - 1, false); }
 
       items.forEach(function (el, i) {
         el.addEventListener('click', function () {
-          if (i === idx) { togglePlay(); } else { show(i, true); }
+          if (i === idx) { togglePlay(); } else { show(i, false); }
         });
         el.addEventListener('keydown', function (e) {
           if (e.key !== 'Enter' && e.key !== ' ') return;
           e.preventDefault();
-          if (i === idx) { togglePlay(); } else { show(i, true); }
+          if (i === idx) { togglePlay(); } else { show(i, false); }
         });
         var v = el.querySelector('video');
         if (v) v.addEventListener('play', syncBtn);
         if (v) v.addEventListener('pause', syncBtn);
-        // coverflow only: once a story has played out, move to the next one
+        // coverflow only: once a story has played out, do not autoplay next
         if (cf && v) v.addEventListener('ended', function () {
-          if (i === idx) show(i + 1, true);
+          syncBtn();
         });
         if (v) v.addEventListener('playing', function () {
           var nx = items[(i + 1) % n].querySelector('video');
@@ -1186,7 +1463,7 @@ function art_block(string $file, string $fallbackClass = ''): string
             // Nudging the slider up is the visitor asking to hear it, so make sure
             // something is actually playing rather than only changing the level.
             var fv = frontVideo();
-            if (audibleNow() && fv && fv.paused) playFront();
+            // volume change does not autoplay
           });
         }
       applySound();
@@ -1227,14 +1504,8 @@ function art_block(string $file, string $fallbackClass = ''): string
       window.addEventListener('resize', function () { layout(false); });
 
       if (cf) {
-        // Hold the story still while it is being watched, and never advance
-        // a video the visitor cannot see.
-        var resting = false;
-        wrap.addEventListener('mouseenter', function () { resting = true; pauseAll(); });
-        wrap.addEventListener('mouseleave', function () { resting = false; if (!document.hidden) playFront(); });
         document.addEventListener('visibilitychange', function () {
           if (document.hidden) pauseAll();
-          else if (!resting) playFront();
         });
       }
 
@@ -1250,17 +1521,12 @@ function art_block(string $file, string $fallbackClass = ''): string
       window.__hplInView = true;
       var sec = document.querySelector('.proof');
       if (!sec || !('IntersectionObserver' in window)) { return; }
-      var slow = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       new IntersectionObserver(function (entries) {
         var vis = entries[0].isIntersecting;
         window.__hplInView = vis;
-        if (slow) { return; }
         if (!vis) {
           sec.querySelectorAll('video').forEach(function (v) { if (v && !v.paused) { v.pause(); } });
-          return;
         }
-        var front = sec.querySelector('.ring-item.front video') || sec.querySelector('.proof-slide.on video');
-        if (front && front.paused) { front.play().catch(function () {}); }
       }, { rootMargin: '300px 0px' }).observe(sec);
     })();
     (function () {
@@ -1291,8 +1557,6 @@ function art_block(string $file, string $fallbackClass = ''): string
         idx = i;
         var cur = slides[idx];
         cur.classList.add('on');
-        var cv = cur.querySelector('video');
-        if (cv) { cv.play().catch(function () {}); }
         dots.forEach(function (d, n) { d.classList.toggle('on', n === idx); });
         if (wrap) wrap.classList.add('moved');
       }
@@ -1302,10 +1566,6 @@ function art_block(string $file, string $fallbackClass = ''): string
 
       slides[0].classList.add('on');
       dots[0].classList.add('on');
-      var first = slides[0].querySelector('video');
-      if (first && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        first.play().catch(function () {});
-      }
 
       if (cue) cue.addEventListener('click', next);
 

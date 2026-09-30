@@ -132,9 +132,6 @@ if (!function_exists('hpl_video_player')) {
             . ($src !== '' ? ' <a href="' . $e($src) . '" style="text-decoration:underline">Open the video</a>.' : '')
             . '</div></video>';
 
-        if ($kicker !== '') {
-            $h .= '<span class="panel-kicker">' . $e($kicker) . '</span>';
-        }
 
         // Centre play, shown whenever playback is not running.
         $h .= '<button class="hpl-center-play" type="button" aria-label="Play video">'
