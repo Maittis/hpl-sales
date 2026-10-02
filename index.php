@@ -157,6 +157,140 @@ function hpl_poster_attr(string $src): string
 
     return '';
 }
+
+/**
+ * Proof video embeds.
+ *
+ * A proof story can be supplied either as a file the browser plays itself
+ * (<video>) or as a third-party player embed, which is how Bunny Stream and
+ * MediaDelivery hand out their copy-and-paste snippet. The two are told apart
+ * here so the rest of the page can keep rendering <video> for the first and an
+ * <iframe> for the second.
+ *
+ * Only known player hosts are accepted. An arbitrary pasted URL would otherwise
+ * become an iframe pointing anywhere, which is a stored-XSS vector through the
+ * admin panel, so an unrecognised host is treated as "not an embed" and falls
+ * back to hpl_media_url() rather than being rendered.
+ *
+ * Defined in index.php rather than config.php on purpose: config.php is
+ * deliberately left out of the deployment archive because it holds the database
+ * credentials, so the page cannot depend on a helper that only exists there.
+ */
+if (!function_exists('hpl_embed_host_ok')) {
+    function hpl_embed_host_ok(string $host): bool
+    {
+        $host = strtolower($host);
+        $allowed = [
+            'player.mediadelivery.net',
+            'iframe.mediadelivery.net',
+            'player.vimeocdn.com',
+            'player.bunnycdn.net',
+            'www.youtube.com',
+            'www.youtube-nocookie.com',
+            'player.twitch.tv',
+            'fast.wistia.net',
+            'fast.wistia.com',
+        ];
+        foreach ($allowed as $a) {
+            if ($host === $a || substr($host, -strlen('.' . $a)) === '.' . $a) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Pull the player URL out of a pasted embed snippet, or accept a bare
+     * player URL on its own. Returns '' when the value is not a recognised
+     * embed, which is the signal to fall back to the normal media path.
+     */
+    function hpl_embed_url(string $value): string
+    {
+        $v = trim($value);
+        if ($v === '') {
+            return '';
+        }
+
+        // A pasted snippet carries the URL in the iframe's src. Anything else
+        // in the snippet (the wrapper div, inline styles, allow attributes) is
+        // discarded and rebuilt from the URL, so nothing untrusted is echoed.
+        if (stripos($v, '<iframe') !== false || stripos($v, '<div') !== false) {
+            if (!preg_match('~<iframe[^>]+src\s*=\s*["\']([^"\']+)["\']~i', $v, $m)) {
+                return '';
+            }
+            $v = html_entity_decode(trim($m[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+
+        if (!preg_match('~^https?://~i', $v)) {
+            return '';
+        }
+
+        $parts = parse_url($v);
+        if ($parts === false || empty($parts['host']) || !hpl_embed_host_ok($parts['host'])) {
+            return '';
+        }
+
+        $scheme = 'https';
+        $path = (string)($parts['path'] ?? '/');
+        $query = [];
+        if (!empty($parts['query'])) {
+            parse_str($parts['query'], $query);
+        }
+
+        /* Autoplay has to survive the handover: a player that is not running
+           looks broken next to cards that are. Muted autoplay is also the only
+           kind browsers permit without a gesture, and a cross-origin embed
+           cannot be unmuted from here, so muted is fixed on. Visitors unmute
+           using the player's own controls. */
+        $query['autoplay'] = '1';
+        $query['muted'] = '1';
+        if (!isset($query['loop'])) { $query['loop'] = '0'; }
+        $query['playsinline'] = '1';
+        $query['responsive'] = '1';
+        /* Controls stay on: without them there is no way to unmute at all,
+           because the parent page cannot reach into the player. */
+        $query['controls'] = '1';
+
+        return $scheme . '://' . $parts['host'] . $path . '?' . http_build_query($query);
+    }
+
+    /**
+     * True when this proof slot is a player embed rather than a playable file.
+     */
+    function hpl_is_embed(string $value): bool
+    {
+        return hpl_embed_url($value) !== '';
+    }
+
+    /**
+     * The media element for one proof card, in whichever form the slot supplies.
+     *
+     * All three layouts render their card through this so an embed is supported
+     * everywhere a <video> is, and the layouts cannot drift apart again.
+     *
+     * $videoAttrs carries the layout-specific attributes (the hook the carousel
+     * listens on, and loop where that layout wants it).
+     */
+    function hpl_proof_media(array $item, string $videoAttrs = ''): string
+    {
+        $src = (string)($item['src'] ?? '');
+        $caption = (string)($item['caption'] ?? '');
+
+        if (($item['kind'] ?? 'video') === 'embed') {
+            return '<div class="proof-embed">'
+                . '<iframe data-embed-src="' . h($src) . '"'
+                . ' title="' . h($caption !== '' ? $caption : 'Customer story video') . '"'
+                . ' loading="lazy"'
+                . ' allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"'
+                . ' allowfullscreen="true"'
+                . ' referrerpolicy="strict-origin-when-cross-origin"></iframe>'
+                . '</div>';
+        }
+
+        return '<video playsinline preload="none" ' . $videoAttrs . ' ' . hpl_poster_attr($src)
+            . '><source src="' . h($src) . '" type="' . h(hpl_media_type($src)) . '"></video>';
+    }
+}
 function hpl_countries(): array
 {
     return [
@@ -402,6 +536,13 @@ function art_block(string $file, string $fallbackClass = ''): string
     .ring { --ring-w:min(var(--ring-size,300px), 80vw); height:calc(var(--ring-w) / var(--ring-shape,0.5625) * 1.12 + 30px); margin:0 auto; max-width:100%; perspective:calc(var(--ring-r,300px) * 10); position:relative; width:calc(var(--ring-r,300px) * 2 + var(--ring-w) + 40px); }
     .ring-item { background:#0b1226; border-radius:14px; box-shadow:0 12px 30px rgba(9,15,36,.28); cursor:pointer; left:50%; margin:0; overflow:hidden; position:absolute; top:50%; transform:translate(-50%,-50%); transition:transform .3s cubic-bezier(.45,.05,.25,1), opacity .2s ease, filter .2s ease, box-shadow .2s ease; width:var(--ring-w); will-change:transform,opacity; }
     .ring-item video { aspect-ratio:var(--ring-shape,0.5625); display:block; height:auto; object-fit:cover; width:100%; }
+    /* A player embed keeps the same card shape as a native video, so the ring
+       geometry and the coverflow spacing are unchanged. The 16:9 player is
+       centred inside it and letterboxed rather than cropped, because cropping
+       would cut off the top and bottom of someone's field footage. */
+    .proof-embed { align-items:center; aspect-ratio:var(--ring-shape,0.5625); background:#0b1226; display:flex; justify-content:center; overflow:hidden; position:relative; width:100%; }
+    .proof-embed iframe { aspect-ratio:16/9; border:0; display:block; height:auto; max-height:100%; width:100%; }
+    .proof-embed iframe:not([data-on]) { visibility:hidden; }
     .ring-item figcaption { background:linear-gradient(to top,rgba(0,0,0,.86),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:12px; font-weight:700; left:0; line-height:1.25; padding:30px 10px 10px; position:absolute; right:0; text-align:left; }
     .ring-item::after { border:2px solid transparent; border-radius:14px; content:''; inset:0; pointer-events:none; position:absolute; transition:border-color .35s ease; }
     .ring-item.front { box-shadow:0 20px 44px rgba(9,15,36,.4); z-index:5; }
@@ -1099,9 +1240,17 @@ p.lb-hint,
          loop and same values as before - only hoisted, nothing altered. */
       $proofItems = [];
       for ($i = 1; $i <= 15; $i++) {
-          $src = hpl_media_url($s['proof_video_' . $i] ?? '');
+          $raw = (string)($s['proof_video_' . $i] ?? '');
+          /* An embed is checked first: a pasted snippet is not a media URL, so
+             handing it to hpl_media_url() would produce nothing usable. */
+          $embed = hpl_embed_url($raw);
+          if ($embed !== '') {
+              $proofItems[] = ['kind' => 'embed', 'src' => $embed, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
+              continue;
+          }
+          $src = hpl_media_url($raw);
           if ($src === '') { continue; }
-          $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
+          $proofItems[] = ['kind' => 'video', 'src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
       }
       $layout = (string)($s['proof_layout'] ?? 'ring');
       if (!in_array($layout, ['ring', 'strip', 'coverflow'], true)) { $layout = 'ring'; }
@@ -1140,9 +1289,9 @@ p.lb-hint,
       </div>
       <?php endif; ?>
 
-      <section data-pf-group="videos" class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button></div><div class="proof-dots" id="proofDots"></div>
+      <section data-pf-group="videos" class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><?= hpl_proof_media($item, 'loop data-proof-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button></div><div class="proof-dots" id="proofDots"></div>
 <?php elseif ($layout === 'coverflow'): ?>
-<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="cf-audio-btn cf-sound-btn" id="cfSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><div class="cf-dots" id="cfDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><?= hpl_proof_media($item, 'data-ring-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="cf-audio-btn cf-sound-btn" id="cfSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><div class="cf-dots" id="cfDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><?= hpl_proof_media($item, 'loop data-ring-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section data-pf-group="photos" class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= hpl_img_url($item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
@@ -1292,8 +1441,7 @@ p.lb-hint,
           <p>Your enquiry has been received. A member of our HPL team will contact you shortly to discuss your requirements and recommend the right equipment.</p>
           <p class="lead-success-note">We aim to respond within one business day.</p>
           <div class="lead-success-actions">
-            <a href="#hero" class="lead-success-btn lead-success-btn-primary">Back to Hero Section</a>
-            <a href="thank-you.php" class="lead-success-btn lead-success-btn-secondary">Take a Company Tour</a>
+            <a href="thank-you.php" class="lead-success-btn lead-success-btn-secondary">Go to Thank You Page</a>
           </div>
         </div>
 <?php else: ?>
@@ -1963,6 +2111,9 @@ form.addEventListener('keydown', function (e) {
       var nextBtn = document.getElementById('ringNext');
       var n = items.length;
       var idx = 0;
+      // The sound hint lives on the section, not on the carousel element, so it
+      // is reached through the nearest .proof ancestor.
+      var proofSec = ring.closest ? ring.closest('.proof') : null;
       var dotsWrap = document.getElementById('cfDots');
       var dots = [];
       if (cf && dotsWrap) {
@@ -1989,6 +2140,27 @@ form.addEventListener('keydown', function (e) {
       }
 
       function frontVideo() { return items[idx].querySelector('video'); }
+
+      function frontIsEmbed() { return !!items[idx].querySelector('.proof-embed iframe'); }
+
+      /* A cross-origin player cannot be paused or muted from the parent page, so
+         the only reliable way to stop one after a handover is to unload it. The
+         src is also what triggers the player, so nothing is fetched until a
+         card actually reaches the front - five players loading at once would
+         cost far more than the one the visitor is looking at. */
+      function setEmbed(item, on) {
+        var f = item.querySelector('.proof-embed iframe');
+        if (!f) return;
+        if (on) {
+          if (!f.hasAttribute('data-on')) {
+            f.setAttribute('src', f.getAttribute('data-embed-src') || '');
+            f.setAttribute('data-on', '1');
+          }
+        } else if (f.hasAttribute('data-on')) {
+          f.removeAttribute('src');
+          f.removeAttribute('data-on');
+        }
+      }
 
       function layout(animate) {
         readVars();
@@ -2063,8 +2235,20 @@ form.addEventListener('keydown', function (e) {
       function syncBtn() {
         syncDots();
         var v = frontVideo();
-        var playing = v && !v.paused;
+        // An embed is already running: the player was asked to autoplay muted
+        // when it loaded. There is no handle on it to pause, so it counts as
+        // playing and the play overlay stays out of the way.
+        var playing = v ? !v.paused : frontIsEmbed();
         if (wrap) wrap.classList.toggle('playing', !!playing);
+        /* The sound button is the site's own control and it drives <video>
+           elements. With a player embed in front there is nothing for it to
+           reach, so it is hidden rather than left as a control that does
+           nothing - the player's own controls take over. */
+        var embedFront = frontIsEmbed();
+        if (soundBtn) soundBtn.hidden = embedFront;
+        if (cfSound) cfSound.hidden = embedFront;
+        var hint = proofSec ? proofSec.querySelector('.pf-sound-hint') : null;
+        if (hint) hint.hidden = embedFront;
         if (toggleBtn) {
           toggleBtn.innerHTML = playing ? '<span aria-hidden="true">&#10073;&#10073;</span>' : '<span aria-hidden="true">&#9654;</span>';
           toggleBtn.setAttribute('aria-label', playing ? 'Pause videos' : 'Play videos');
@@ -2150,7 +2334,9 @@ form.addEventListener('keydown', function (e) {
         if (i === idx) return;
         var old = items[idx].querySelector('video');
         if (old) { old.pause(); old.currentTime = 0; }
+        setEmbed(items[idx], false);
         idx = ((i % n) + n) % n;
+        setEmbed(items[idx], true);
         layout(true);
         syncBtn();
         if (autoplay === true) playFront();
@@ -2252,6 +2438,11 @@ form.addEventListener('keydown', function (e) {
       }
 
       layout(false);
+      /* The scroll observer below owns when an embed loads: nothing is fetched
+         while the section is off screen, and the observer brings the front one
+         back when it returns. Exposed here because the two pieces of script are
+         otherwise independent. */
+      window.__hplProofFront = function () { setEmbed(items[idx], true); };
       if (n === 1) {
         if (wrap) wrap.classList.add('moved');
         if (prevBtn) prevBtn.style.display = 'none';
@@ -2262,12 +2453,28 @@ form.addEventListener('keydown', function (e) {
     (function () {
       window.__hplInView = true;
       var sec = document.querySelector('.proof');
-      if (!sec || !('IntersectionObserver' in window)) { return; }
+      if (!sec) { return; }
+      if (!('IntersectionObserver' in window)) {
+        // Nothing to gate on without the observer, so show the player at once
+        // rather than leaving the card permanently blank.
+        if (typeof window.__hplProofFront === 'function') { window.__hplProofFront(); }
+        return;
+      }
       new IntersectionObserver(function (entries) {
         var vis = entries[0].isIntersecting;
         window.__hplInView = vis;
         if (!vis) {
           sec.querySelectorAll('video').forEach(function (v) { if (v && !v.paused) { v.pause(); } });
+          // A player embed has no pause handle from here, so scrolling away
+          // unloads it rather than leaving it talking over the page behind.
+          sec.querySelectorAll('.proof-embed iframe[data-on]').forEach(function (f) {
+            f.removeAttribute('src');
+            f.removeAttribute('data-on');
+          });
+        } else if (typeof window.__hplProofFront === 'function') {
+          // Coming back into view has to restore the player that was unloaded
+          // on the way out, otherwise the front card stays blank.
+          window.__hplProofFront();
         }
       }, { rootMargin: '300px 0px' }).observe(sec);
     })();
@@ -2422,6 +2629,12 @@ form.addEventListener('keydown', function (e) {
           if (hide) {
             Array.prototype.forEach.call(g.querySelectorAll('video'), function (v) {
               try { v.pause(); } catch (e) {}
+            });
+            // Same reasoning for a player embed: filtering to another tab
+            // must not leave a muted video running behind the hidden section.
+            Array.prototype.forEach.call(g.querySelectorAll('.proof-embed iframe[data-on]'), function (f) {
+              f.removeAttribute('src');
+              f.removeAttribute('data-on');
             });
           }
         });

@@ -49,35 +49,36 @@ $fields = [
     ['key' => 'proof_ring_shape', 'label' => 'Story player shape (width / height). 0.5625 = 9:16 vertical, which matches the phone footage. Use 1.78 for 16:9 wide', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_hint', 'label' => 'Hint text under the videos', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_hint_strip', 'label' => 'Hint text (circle layout off)', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_1', 'label' => 'Video 1 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_embed_note', 'label' => 'Player embeds: paste the whole Bunny / MediaDelivery embed block into any Video slot above. A 16:9 player is letterboxed inside the card, and the sound button hides on those cards because a cross-origin player cannot be unmuted from the page.', 'type' => 'note', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_1', 'label' => 'Video 1 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_1_caption', 'label' => 'Video 1 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_2', 'label' => 'Video 2 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_2', 'label' => 'Video 2 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_2_caption', 'label' => 'Video 2 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_3', 'label' => 'Video 3 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_3', 'label' => 'Video 3 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_3_caption', 'label' => 'Video 3 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_4', 'label' => 'Video 4 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_4', 'label' => 'Video 4 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_4_caption', 'label' => 'Video 4 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_5', 'label' => 'Video 5 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_5', 'label' => 'Video 5 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_5_caption', 'label' => 'Video 5 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_6', 'label' => 'Video 6 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_6', 'label' => 'Video 6 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_6_caption', 'label' => 'Video 6 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_7', 'label' => 'Video 7 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_7', 'label' => 'Video 7 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_7_caption', 'label' => 'Video 7 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_8', 'label' => 'Video 8 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_8', 'label' => 'Video 8 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_8_caption', 'label' => 'Video 8 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_9', 'label' => 'Video 9 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_9', 'label' => 'Video 9 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_9_caption', 'label' => 'Video 9 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_10', 'label' => 'Video 10 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_10', 'label' => 'Video 10 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_10_caption', 'label' => 'Video 10 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_11', 'label' => 'Video 11 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_11', 'label' => 'Video 11 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_11_caption', 'label' => 'Video 11 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_12', 'label' => 'Video 12 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_12', 'label' => 'Video 12 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_12_caption', 'label' => 'Video 12 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_13', 'label' => 'Video 13 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_13', 'label' => 'Video 13 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_13_caption', 'label' => 'Video 13 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_14', 'label' => 'Video 14 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_14', 'label' => 'Video 14 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_14_caption', 'label' => 'Video 14 caption', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_15', 'label' => 'Video 15 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_15', 'label' => 'Video 15 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_15_caption', 'label' => 'Video 15 caption', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'faq1_q',            'label' => 'Question 1',                 'type' => 'text',     'group' => 'FAQ'],
     ['key' => 'faq1_a',            'label' => 'Answer 1 (one line per paragraph)', 'type' => 'textarea', 'group' => 'FAQ'],
@@ -307,6 +308,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_content'])) {
         $upsert = $connection->prepare('INSERT INTO settings (key_name, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)');
         $saved = 0;
         foreach ($fields as $field) {
+            /* A note is guidance, not a setting. Saving it would write an empty
+               row that the site then reads as a real value. */
+            if (($field['type'] ?? '') === 'note') { continue; }
             $value = (string)($_POST[$field['key']] ?? '');
             $upsert->bind_param('ss', $field['key'], $value);
             $upsert->execute();
@@ -547,6 +551,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
     .grid { display:grid; gap:14px; grid-template-columns:1fr 1fr; }
     .grid .full { grid-column:1/-1; }
     label { display:block; font-size:12px; font-weight:700; margin-bottom:4px; color:var(--text-primary); }
+    .field-note { background:#f4f6fb; border-left:3px solid var(--accent,#2c3e6e); color:var(--text-muted,#5a6478); font-size:12px; line-height:1.55; margin:0; padding:10px 12px; }
     .hint { display:block; font-size:11px; color:var(--text-secondary); margin-top:3px; }
     input[type=text], input[type=password], textarea { border:1px solid var(--border-color); border-radius:6px; font:15px/1.5 'DM Sans',sans-serif; padding:10px 12px; width:100%; background:var(--bg-secondary); color:var(--text-primary); }
     textarea { min-height:90px; resize:vertical; }
@@ -787,9 +792,15 @@ foreach ($groups as $title => $group):
         <h2><?= h($title) ?></h2>
         <div class="grid">
 <?php foreach ($group as $field): ?>
-          <div class="<?= in_array($field['type'], ['textarea', 'select'], true) ? 'full' : '' ?>">
+          <div class="<?= in_array($field['type'], ['textarea', 'select', 'note'], true) ? 'full' : '' ?>">
+<?php if ($field['type'] === 'note'): ?>
+            <p class="field-note"><?= h($field['label']) ?></p>
+<?php else: ?>
             <label for="f_<?= h($field['key']) ?>"><?= h($field['label']) ?></label>
-<?php if ($field['type'] === 'textarea'): ?>
+<?php endif; ?>
+<?php if ($field['type'] === 'note'): ?>
+            <!-- guidance only: rendered above, no control -->
+<?php elseif ($field['type'] === 'textarea'): ?>
             <textarea id="f_<?= h($field['key']) ?>" name="<?= h($field['key']) ?>"><?= h($settings[$field['key']]) ?></textarea>
 <?php elseif ($field['type'] === 'select'): ?>
             <select id="f_<?= h($field['key']) ?>" name="<?= h($field['key']) ?>">
