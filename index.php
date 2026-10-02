@@ -69,7 +69,20 @@ if (!function_exists('hpl_wa_number')) {
         if ($digits !== '') {
             return ['digits' => $digits, 'configured' => true];
         }
-        $digits = hpl_wa_digits((string)(hpl_defaults()['wa_number'] ?? ''), $fallbackCc);
+
+        /* Last resort. The settings row and config.php are both unreliable
+           sources: the row is often left blank, and config.php is excluded
+           from the deployment archive because it carries the database
+           credentials, so the copy running on the server is not this one and
+           cannot be relied on to hold the number. Relying on it meant the
+           button vanished entirely in production while looking perfect in
+           development. This constant ships, so the link always resolves. */
+        $digits = hpl_wa_digits('+260966499575', $fallbackCc);
+
+        if ($digits === '') {
+            $digits = hpl_wa_digits((string)(hpl_defaults()['wa_number'] ?? ''), $fallbackCc);
+        }
+
         return ['digits' => $digits, 'configured' => $digits !== ''];
     }
 }

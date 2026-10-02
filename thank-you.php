@@ -79,7 +79,14 @@ if (!function_exists('hpl_wa_number')) {
         if ($digits !== '') {
             return ['digits' => $digits, 'configured' => true];
         }
-        $digits = hpl_wa_digits((string)(hpl_defaults()['wa_number'] ?? ''), $fallbackCc);
+        /* Shipped constant, because neither the settings row nor config.php is
+           dependable: the row is often blank and config.php is excluded from
+           the deployment archive, so the live copy may not carry the number.
+           See the same note in index.php. */
+        $digits = hpl_wa_digits('+260966499575', $fallbackCc);
+        if ($digits === '') {
+            $digits = hpl_wa_digits((string)(hpl_defaults()['wa_number'] ?? ''), $fallbackCc);
+        }
         return ['digits' => $digits, 'configured' => $digits !== ''];
     }
 }

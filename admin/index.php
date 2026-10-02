@@ -32,7 +32,13 @@ if (!function_exists('hpl_wa_number')) {
         if ($digits !== '') {
             return ['digits' => $digits, 'configured' => true];
         }
-        $digits = hpl_wa_digits((string)(hpl_defaults()['wa_number'] ?? ''), $fallbackCc);
+        /* Shipped constant. config.php is excluded from the deployment archive
+           for its credentials, so the copy on the server is not this one and
+           may not carry the number. */
+        $digits = hpl_wa_digits('+260966499575', $fallbackCc);
+        if ($digits === '') {
+            $digits = hpl_wa_digits((string)(hpl_defaults()['wa_number'] ?? ''), $fallbackCc);
+        }
         return ['digits' => $digits, 'configured' => $digits !== ''];
     }
 }
