@@ -103,7 +103,7 @@ if (!function_exists('hpl_video_player')) {
         $autoplay = !array_key_exists('autoplay', $o) || (bool)$o['autoplay'];
         // The markup keeps muted+autoplay as a floor for when JavaScript never
         // runs. The script tries audible playback first and steps down from there.
-        $startMuted = !array_key_exists('startMuted', $o) || (bool)$o['startMuted'];
+        $startMuted = array_key_exists('startMuted', $o) ? (bool)$o['startMuted'] : false;
 
         $e = static fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 

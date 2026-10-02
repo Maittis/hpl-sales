@@ -28,7 +28,7 @@ for ($i = 1; $i <= 6; $i++) {
 }
 
 $tyVideos = [];
-for ($i = 1; $i <= 3; $i++) {
+for ($i = 1; $i <= 15; $i++) {
     $src = hpl_media_url((string)($s['proof_video_' . $i] ?? ''));
     if ($src === '') {
         continue;

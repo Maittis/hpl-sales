@@ -2,9 +2,9 @@
    of the HPL Sales page. Purple/violet matches the supplied reference. */
 
 .hpl-player {
-  --pv-a1: #6d28d9;
-  --pv-a2: #8b5cf6;
-  --pv-a3: #a855f7;
+  --pv-a1: rgba(0, 0, 0, 0);
+  --pv-a2: rgba(0, 0, 0, 0);
+  --pv-a3: rgba(0, 0, 0, 0);
   --pv-bar-h: 50px;
   --pv-ico: 26px;
   position: relative;
@@ -12,7 +12,7 @@
   aspect-ratio: 16 / 9;
   background: #05040c;
   overflow: hidden;
-  border: 1px solid rgba(139, 92, 246, .35);
+  border: 1px solid rgba(128, 128, 128, 0);
   /* Stops the page from stealing a drag on the progress bar as a scroll. */
   touch-action: pan-y;
 }
@@ -53,7 +53,7 @@
   border-radius: 50%;
   cursor: pointer;
   background: radial-gradient(circle at 50% 42%, var(--pv-a3) 0%, var(--pv-a2) 45%, var(--pv-a1) 100%);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .55), 0 0 0 8px rgba(139, 92, 246, .18), inset 0 1px 0 rgba(255, 255, 255, .25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .55), 0 0 0 8px rgba(128, 128, 128, 0), inset 0 1px 0 rgba(255, 255, 255, .25);
   opacity: 0;
   visibility: hidden;
   transition: opacity .3s ease, transform .3s ease, visibility .3s;
@@ -453,7 +453,7 @@
 /* ---------- focus ring for the whole frame ---------- */
 
 .hpl-player:focus-within {
-  outline: 2px solid rgba(168, 85, 247, .9);
+  outline: 2px solid rgba(128, 128, 128, 0);
   outline-offset: 2px;
 }
 

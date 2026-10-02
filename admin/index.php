@@ -21,6 +21,19 @@ $fields = [
     ['key' => 'social_label',      'label' => 'Small label',                'type' => 'text',     'group' => 'Social proof'],
     ['key' => 'social_heading',    'label' => 'Heading',                    'type' => 'text',     'group' => 'Social proof'],
     ['key' => 'social_caption',    'label' => 'Image caption',              'type' => 'text',     'group' => 'Social proof'],
+    ['key' => 'field_proof_enabled', 'label' => 'Show this section',         'type' => 'select',   'group' => 'Field proof', 'options' => ['1' => 'Visible', '0' => 'Hidden']],
+    ['key' => 'field_proof_label', 'label' => 'Section label',                'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'field_proof_heading', 'label' => 'Section heading',            'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'field_proof_1_eyebrow', 'label' => 'Story 1 label',             'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'field_proof_1_title', 'label' => 'Story 1 title',               'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'field_proof_1_headline', 'label' => 'Story 1 headline',         'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'field_proof_1_text', 'label' => 'Story 1 text',                 'type' => 'textarea', 'group' => 'Field proof'],
+    ['key' => 'field_proof_1_cta', 'label' => 'Story 1 button text',           'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'field_proof_2_eyebrow', 'label' => 'Story 2 label',             'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'field_proof_2_title', 'label' => 'Story 2 title',               'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'field_proof_2_headline', 'label' => 'Story 2 headline',         'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'field_proof_2_text', 'label' => 'Story 2 text',                 'type' => 'textarea', 'group' => 'Field proof'],
+    ['key' => 'field_proof_2_cta', 'label' => 'Story 2 button text',           'type' => 'text',     'group' => 'Field proof'],
     ['key' => 'benefits_label',    'label' => 'Section label',              'type' => 'text',     'group' => 'Benefits'],
     ['key' => 'b1_title',          'label' => 'Benefit #1 title',           'type' => 'text',     'group' => 'Benefits'],
     ['key' => 'b1_desc',           'label' => 'Benefit #1 text',            'type' => 'textarea', 'group' => 'Benefits'],
@@ -44,6 +57,26 @@ $fields = [
     ['key' => 'proof_video_4_caption', 'label' => 'Video 4 caption', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_5', 'label' => 'Video 5 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_5_caption', 'label' => 'Video 5 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_6', 'label' => 'Video 6 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_6_caption', 'label' => 'Video 6 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_7', 'label' => 'Video 7 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_7_caption', 'label' => 'Video 7 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_8', 'label' => 'Video 8 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_8_caption', 'label' => 'Video 8 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_9', 'label' => 'Video 9 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_9_caption', 'label' => 'Video 9 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_10', 'label' => 'Video 10 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_10_caption', 'label' => 'Video 10 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_11', 'label' => 'Video 11 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_11_caption', 'label' => 'Video 11 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_12', 'label' => 'Video 12 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_12_caption', 'label' => 'Video 12 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_13', 'label' => 'Video 13 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_13_caption', 'label' => 'Video 13 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_14', 'label' => 'Video 14 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_14_caption', 'label' => 'Video 14 caption', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_15', 'label' => 'Video 15 (upload below, or paste a direct link / Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_15_caption', 'label' => 'Video 15 caption', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'faq1_q',            'label' => 'Question 1',                 'type' => 'text',     'group' => 'FAQ'],
     ['key' => 'faq1_a',            'label' => 'Answer 1 (one line per paragraph)', 'type' => 'textarea', 'group' => 'FAQ'],
     ['key' => 'faq2_q',            'label' => 'Question 2',                 'type' => 'text',     'group' => 'FAQ'],
@@ -111,6 +144,11 @@ $imageSlots = [
     ['key' => 'benefit_3',  'file' => 'benefit-3.jpg',  'label' => 'Benefit card 3 image'],
     ['key' => 'logo',       'file' => 'hpllogo.jpeg',   'label' => 'Header / footer logo'],
     ['key' => 'benefit_bg', 'file' => 'benefit-bg.png', 'label' => 'Benefits section background band'],
+    ['key' => 'field_proof_1_image', 'file' => 'field-proof-1.jpg', 'label' => 'Field proof story 1 photo'],
+    ['key' => 'field_proof_2_image', 'file' => 'field-proof-2.jpg', 'label' => 'Field proof story 2 photo'],
+    ['key' => 'customer_voice_whatsapp', 'file' => 'customer-voice-whatsapp.jpg', 'label' => 'Customer voices - WhatsApp screenshot'],
+    ['key' => 'customer_voice_facebook', 'file' => 'customer-voice-facebook.jpg', 'label' => 'Customer voices - Facebook screenshot'],
+    ['key' => 'customer_voice_tiktok', 'file' => 'customer-voice-tiktok.jpg', 'label' => 'Customer voices - TikTok screenshot'],
     ['key' => 'slide_1',    'file' => 'slide-1.jpg',    'label' => 'Auto-slide testimonial 1 (landscape)'],
     ['key' => 'slide_2',    'file' => 'slide-2.jpg',    'label' => 'Auto-slide testimonial 2 (landscape)'],
     ['key' => 'slide_3',    'file' => 'slide-3.jpg',    'label' => 'Auto-slide testimonial 3 (landscape)'],
@@ -132,9 +170,42 @@ $videoSlots = [
     ['key' => 'proof_video_3', 'file' => 'story-3.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 3 (MP4 / WebM)', 'setting' => 'uploads/proof/story-3.mp4'],
     ['key' => 'proof_video_4', 'file' => 'story-4.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 4 (MP4 / WebM)', 'setting' => 'uploads/proof/story-4.mp4'],
     ['key' => 'proof_video_5', 'file' => 'story-5.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 5 (MP4 / WebM)', 'setting' => 'uploads/proof/story-5.mp4'],
+    ['key' => 'proof_video_6', 'file' => 'story-6.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 6 (MP4 / WebM)', 'setting' => 'uploads/proof/story-6.mp4'],
+    ['key' => 'proof_video_7', 'file' => 'story-7.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 7 (MP4 / WebM)', 'setting' => 'uploads/proof/story-7.mp4'],
+    ['key' => 'proof_video_8', 'file' => 'story-8.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 8 (MP4 / WebM)', 'setting' => 'uploads/proof/story-8.mp4'],
+    ['key' => 'proof_video_9', 'file' => 'story-9.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 9 (MP4 / WebM)', 'setting' => 'uploads/proof/story-9.mp4'],
+    ['key' => 'proof_video_10', 'file' => 'story-10.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 10 (MP4 / WebM)', 'setting' => 'uploads/proof/story-10.mp4'],
+    ['key' => 'proof_video_11', 'file' => 'story-11.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 11 (MP4 / WebM)', 'setting' => 'uploads/proof/story-11.mp4'],
+    ['key' => 'proof_video_12', 'file' => 'story-12.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 12 (MP4 / WebM)', 'setting' => 'uploads/proof/story-12.mp4'],
+    ['key' => 'proof_video_13', 'file' => 'story-13.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 13 (MP4 / WebM)', 'setting' => 'uploads/proof/story-13.mp4'],
+    ['key' => 'proof_video_14', 'file' => 'story-14.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 14 (MP4 / WebM)', 'setting' => 'uploads/proof/story-14.mp4'],
+    ['key' => 'proof_video_15', 'file' => 'story-15.mp4', 'dir' => 'uploads/proof/', 'label' => 'Customer story video 15 (MP4 / WebM)', 'setting' => 'uploads/proof/story-15.mp4'],
 ];
 
 $settings = hpl_settings();
+
+/**
+ * Column order and headings for the lead list, the CSV export and the detail
+ * block, declared once so they can never disagree with each other.
+ */
+$leadColumns = [
+    'name'         => 'Name',
+    'phone'        => 'WhatsApp',
+    'email'        => 'Email',
+    'country'      => 'Country',
+    'city'         => 'City / Town',
+    'looking_for'  => 'Looking for',
+    'finding'      => 'Looking to find',
+    'experience'   => 'Detector experience',
+    'customer_type'=> 'Customer type',
+    'timing'       => 'Buy timeframe',
+    'knowledge'    => 'Message',
+    'needs_advice' => 'Needs advice',
+    'source'       => 'Source',
+    'status'       => 'Status',
+    'submitted_at' => 'Submitted',
+];
+
 $activeTab = (string)($_POST['tab'] ?? $_GET['tab'] ?? 'leads');
 if (!in_array($activeTab, ['leads', 'settings', 'images', 'analytics'], true)) {
     $activeTab = 'leads';
@@ -144,6 +215,12 @@ $error = '';
 
 $connection = db();
 
+// The lead table gains the qualification columns on first use after a deploy,
+// so the list never has to guard against a missing column per query.
+if ($connection) {
+    hpl_ensure_lead_schema($connection);
+}
+
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     if (!$connection) {
         header('Location: index.php');
@@ -152,10 +229,13 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=hpl-leads-' . date('Y-m-d') . '.csv');
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['Name', 'Phone', 'Email', 'Terrain', 'Target', 'Timing', 'Knowledge', 'Wants to learn', 'Status', 'Submitted']);
-    $result = $connection->query('SELECT name, phone, email, terrain, target, timing, knowledge, wants_to_learn, status, submitted_at FROM leads ORDER BY id DESC');
+    fputcsv($out, array_values($leadColumns));
+    $select = 'SELECT `' . implode('`, `', array_keys($leadColumns)) . '` FROM leads ORDER BY id DESC';
+    $result = $connection->query($select);
     while ($row = $result->fetch_assoc()) {
+        // Leading tab keeps Excel from reading the number as a numeric value.
         $row['phone'] = "\t" . $row['phone'];
+        $row['needs_advice'] = ((int)$row['needs_advice']) ? 'Yes' : 'No';
         $row['submitted_at'] = date('Y-m-d H:i:s', strtotime($row['submitted_at']));
         fputcsv($out, $row);
     }
@@ -336,7 +416,8 @@ if ($connection) {
             }
         }
     }
-    $leadResult = $connection->query('SELECT id, name, phone, email, terrain, target, timing, knowledge, wants_to_learn, status, submitted_at FROM leads ORDER BY id DESC LIMIT 100');
+    $leadSelect = 'SELECT id, `' . implode('`, `', array_keys($leadColumns)) . '` FROM leads ORDER BY id DESC LIMIT 100';
+    $leadResult = $connection->query($leadSelect);
     if ($leadResult) {
         while ($row = $leadResult->fetch_assoc()) {
             $leads[] = $row;
@@ -548,20 +629,27 @@ if ($connection) {
       <?php else: ?>
         <div class="table-scroll">
         <table class="leads">
-          <thead><tr><th>Submitted</th><th>Name</th><th>Phone</th><th>Email</th><th>Terrain</th><th>Target</th><th>Timing</th><th>Knows about detectors</th><th>Wants to learn</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Submitted</th><th>Name</th><th>WhatsApp</th><th>Location</th><th>Looking for</th><th>Looking to find</th><th>Experience</th><th>Customer type</th><th>Timing</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
           <?php foreach ($leads as $lead): ?>
+<?php
+  // One attribute carries the whole record so the detail modal stays in step with
+  // the column list above without a second set of data-* pairs to maintain.
+  $leadDetail = $lead;
+  $leadDetail['submitted_at'] = date('M j, Y H:i', strtotime((string)$lead['submitted_at']));
+  $leadDetail['needs_advice'] = ((int)($lead['needs_advice'] ?? 0)) ? 'Yes' : 'No';
+?>
             <tr>
-              <td class="muted"><?= h(date('M j, Y H:i', strtotime($lead['submitted_at']))) ?></td>
-              <td><span class="lead-name" data-id="<?= (int)$lead['id'] ?>" data-name="<?= htmlspecialchars(json_encode($lead['name']), ENT_QUOTES) ?>" data-phone="<?= htmlspecialchars(json_encode($lead['phone']), ENT_QUOTES) ?>" data-knowledge="<?= htmlspecialchars(json_encode($lead['knowledge']), ENT_QUOTES) ?>" data-wants="<?= htmlspecialchars(json_encode($lead['wants_to_learn']), ENT_QUOTES) ?>" data-status="<?= htmlspecialchars(json_encode($lead['status']), ENT_QUOTES) ?>" data-submitted="<?= htmlspecialchars(json_encode(date('M j, Y H:i', strtotime($lead['submitted_at']))), ENT_QUOTES) ?>"><?= h($lead['name']) ?></span></td>
+              <td class="muted"><?= h($leadDetail['submitted_at']) ?></td>
+              <td><span class="lead-name" data-lead="<?= htmlspecialchars(json_encode($leadDetail), ENT_QUOTES) ?>"><?= h($lead['name']) ?></span></td>
               <td><?= h($lead['phone']) ?></td>
-              <td class="muted"><?= h($lead['email'] ?? '') ?></td>
-              <td class="muted"><?= h($lead['terrain'] ?? '') ?></td>
-              <td class="muted"><?= h($lead['target'] ?? '') ?></td>
+              <td class="muted"><?= h(trim(($lead['city'] ?? '') . ($lead['city'] !== '' && $lead['country'] !== '' ? ', ' : '') . ($lead['country'] ?? ''))) ?></td>
+              <td class="muted"><?= h($lead['looking_for'] ?? '') ?></td>
+              <td class="muted"><?= h($lead['finding'] ?? '') ?></td>
+              <td class="muted"><?= h($lead['experience'] ?? '') ?></td>
+              <td class="muted"><?= h($lead['customer_type'] ?? '') ?></td>
               <td class="muted"><?= h($lead['timing'] ?? '') ?></td>
-              <td class="muted"><?= h($lead['knowledge']) ?></td>
-              <td><?= h($lead['wants_to_learn']) ?></td>
-              <td><span class="badge <?= $lead['status'] === 'contacted' ? 'contacted' : 'new' ?>"><?= h($lead['status']) ?></span></td>
+              <td><span class="badge <?= $lead['status'] === 'contacted' ? 'contacted' : 'new' ?>"><?= h(ucfirst((string)$lead['status'])) ?></span></td>
               <td>
                 <div class="ops">
 <?php
@@ -749,33 +837,13 @@ foreach ($groups as $title => $group):
     </div>
   </div>
 
+  <script>
+    window.HPL_LEAD_LABELS = <?= json_encode($leadColumns) ?>;
+  </script>
   <div class="modal-overlay" id="leadModalOverlay" onclick="hideLeadModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <h2 id="modalLeadName">Lead Details</h2>
-      <div class="modal-row">
-        <div class="modal-label">Name</div>
-        <div class="modal-value" id="modalName"></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-label">Phone</div>
-        <div class="modal-value" id="modalPhone"></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-label">Knowledge about detectors</div>
-        <div class="modal-value" id="modalKnowledge"></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-label">Wants to learn</div>
-        <div class="modal-value" id="modalWantsToLearn"></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-label">Status</div>
-        <div class="modal-value" id="modalStatus"></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-label">Submitted</div>
-        <div class="modal-value" id="modalSubmitted"></div>
-      </div>
+      <div id="modalLeadBody"></div>
       <div style="margin-top:24px;text-align:right">
         <button class="modal-close" onclick="hideLeadModal()">Close</button>
       </div>
@@ -783,21 +851,39 @@ foreach ($groups as $title => $group):
   </div>
 
   <script>
+    // Renders straight from the shared column list, so a new field shows up in the
+    // detail view as soon as it is added to $leadColumns.
     function showLeadModal(element) {
-      var name = JSON.parse(element.dataset.name);
-      var phone = JSON.parse(element.dataset.phone);
-      var knowledge = JSON.parse(element.dataset.knowledge);
-      var wantsToLearn = JSON.parse(element.dataset.wants);
-      var status = JSON.parse(element.dataset.status);
-      var submitted = JSON.parse(element.dataset.submitted);
+      var lead = {};
+      try {
+        lead = JSON.parse(element.getAttribute('data-lead')) || {};
+      } catch (err) {
+        lead = {};
+      }
 
-      document.getElementById('modalLeadName').textContent = name;
-      document.getElementById('modalName').textContent = name;
-      document.getElementById('modalPhone').textContent = phone;
-      document.getElementById('modalKnowledge').textContent = knowledge;
-      document.getElementById('modalWantsToLearn').textContent = wantsToLearn;
-      document.getElementById('modalStatus').textContent = status;
-      document.getElementById('modalSubmitted').textContent = submitted;
+      var labels = window.HPL_LEAD_LABELS || {};
+      var body = document.getElementById('modalLeadBody');
+      body.textContent = '';
+
+      Object.keys(labels).forEach(function (key) {
+        if (key === 'name') return;
+        var value = lead[key];
+        if (value === null || value === undefined || value === '') return;
+
+        var row = document.createElement('div');
+        row.className = 'modal-row';
+        var label = document.createElement('div');
+        label.className = 'modal-label';
+        label.textContent = labels[key];
+        var text = document.createElement('div');
+        text.className = 'modal-value';
+        text.textContent = String(value);
+        row.appendChild(label);
+        row.appendChild(text);
+        body.appendChild(row);
+      });
+
+      document.getElementById('modalLeadName').textContent = lead.name || 'Lead Details';
       document.getElementById('leadModalOverlay').style.display = 'block';
     }
 

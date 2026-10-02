@@ -34,6 +34,14 @@ $leadStep = 1;
 // Read the token before any output so the session cookie leaves with the headers.
 $leadCsrf = hpl_public_csrf_token();
 
+$waNumber = preg_replace('/[^0-9]/', '', (string)($s['wa_number'] ?? ''));
+$waText = str_replace('{name}', 'there', (string)($s['whatsapp_msg'] ?? ''));
+$waUrl = $waNumber !== ''
+    ? 'https://wa.me/' . $waNumber . '?text=' . rawurlencode($waText)
+    : 'https://wa.me/?text=' . rawurlencode($waText);
+$quickContactUrl = $waUrl;
+$quickContactLabel = 'WhatsApp';
+
 $leadStep1Fields = ['lead_name', 'lead_cc', 'lead_phone', 'lead_email', 'lead_country', 'lead_city'];
 
 foreach (array_keys($leadFields) as $leadKey) {
@@ -58,7 +66,14 @@ if (isset($_POST['lead_submit'])) {
         $leadErrors['lead_csrf'] = 'Could not reach the server database. Please try again later.';
     } else {
         // Keeps a fresh deploy working before anyone runs a migration by hand.
-        hpl_ensure_lead_schema($connection);
+        // config.php runs mysqli in strict mode, so a rejected ALTER throws;
+        // log it and carry on rather than 500-ing the visitor's submission.
+        try {
+            hpl_ensure_lead_schema($connection);
+        } catch (mysqli_sql_exception $e) {
+            error_log('hpl: lead schema migration failed: ' . $e->getMessage());
+        }
+
         $result = hpl_lead_message($_POST, hpl_lead_country_names());
         $leadErrors = $result['errors'];
         $leadData = $result['data'];
@@ -72,9 +87,18 @@ if (isset($_POST['lead_submit'])) {
                     break;
                 }
             }
-        } elseif (!hpl_lead_duplicate($connection, (string)$leadData['phone'])) {
-            // A replayed or double-clicked submit is treated as the same enquiry.
-            if (!hpl_lead_save($connection, $leadData)) {
+        } else {
+            try {
+                if (!hpl_lead_duplicate($connection, (string)$leadData['phone'])) {
+                    // A replayed or double-clicked submit is treated as the same enquiry.
+                    if (!hpl_lead_save($connection, $leadData)) {
+                        $leadErrors['lead_csrf'] = 'Could not save your details right now. Please try again in a moment.';
+                    }
+                }
+            } catch (mysqli_sql_exception $e) {
+                // Duplicate column, missing table, lost connection - all of these
+                // would otherwise surface as a bare 500 page.
+                error_log('hpl: lead save failed: ' . $e->getMessage());
                 $leadErrors['lead_csrf'] = 'Could not save your details right now. Please try again in a moment.';
             }
         }
@@ -276,7 +300,6 @@ function art_block(string $file, string $fallbackClass = ''): string
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= h($s['topline']) ?></title>
-    <?= hpl_video_player_assets() ?>
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
   <link rel="icon" type="image/png" sizes="48x48" href="img/favicon-48.png">
@@ -310,6 +333,30 @@ function art_block(string $file, string $fallbackClass = ''): string
        draws its own 16:9 frame and bar. Only the width and spacing stay here so
        the hero layout around it is unchanged. */
     .detector-panel { margin:0 auto 30px; max-width:800px; width:100%; }
+
+    /* Bunny Stream promo embed. The wrapper owns the 16:9 box so the frame
+       keeps the existing panel dimensions while the player fills it. */
+    .promo-embed { margin:0 auto 30px; max-width:800px; width:100%; }
+    .promo-frame {
+      aspect-ratio:16/9;
+      background:#05040c;
+      border:1px solid rgba(128,128,128,0);
+      border-radius:14px;
+      overflow:hidden;
+      position:relative;
+      width:100%;
+    }
+    .promo-frame-el {
+      border:0;
+      display:block;
+      height:100%;
+      left:0;
+      position:absolute;
+      top:0;
+      width:100%;
+    }
+    .promo-frame-fallback { padding:60px 20px; text-align:center; }
+    .promo-frame-fallback a { color:var(--gold); font-weight:700; }
     .mute-toggle { background:rgba(9,15,36,.82); border:1px solid rgba(244,202,91,.6); color:var(--gold-light); cursor:pointer; font-size:12px; font-weight:700; letter-spacing:.1em; padding:9px 13px; position:absolute; right:14px; text-transform:uppercase; top:14px; z-index:3; }
     .mute-toggle:hover { background:var(--navy); }
     .video-fallback { align-items:center; color:#bfc8d8; display:flex; font-size:15px; height:100%; justify-content:center; padding:30px; text-align:center; }
@@ -325,14 +372,14 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof { text-align:center; }
     .proof h2 { margin-bottom:20px; }
     .proof-stage { aspect-ratio:4/5; background:#000; box-shadow:0 14px 28px rgba(9,15,36,.16); margin:0 auto; max-height:52vh; max-width:520px; overflow:hidden; position:relative; width:min(520px,92vw); }
-    .proof-slide { inset:0; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .45s ease, transform .55s ease; }
+    .proof-slide { inset:0; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .25s ease, transform .3s ease; }
     .proof-slide.on { opacity:1; transform:none; z-index:2; }
     .proof-slide video { display:block; height:100%; object-fit:cover; width:100%; }
     .proof-slide figcaption { background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:14px; font-weight:700; left:0; padding:38px 14px 14px; position:absolute; right:0; text-align:left; }
     .proof-cue { align-items:center; animation:nudge 1.8s ease-in-out infinite; background:rgba(17,26,56,.85); border:0; border-radius:50%; bottom:16px; color:#fff; cursor:pointer; display:flex; font-size:24px; height:44px; justify-content:center; position:absolute; right:16px; transition:opacity .3s ease; width:44px; z-index:4; }
     .proof-stage-wrap.moved .proof-cue { opacity:0; pointer-events:none; }
     .proof-stage-wrap { margin:0 auto; max-width:560px; position:relative; }
-    .proof-stage-wrap .ring-sound-btn { bottom:16px; left:16px; opacity:0; position:absolute; z-index:10; }
+    .proof-stage-wrap .ring-sound-btn { right:16px; top:16px; position:absolute; z-index:10; }
     @keyframes nudge { 0%,100% { transform:translateX(0); } 50% { transform:translateX(6px); } }
     .proof-empty { background:var(--navy); color:#fff; font-size:14px; margin:0 auto; max-width:420px; padding:60px 20px; }
     .proof-hint { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:16px 0 0; text-transform:uppercase; }
@@ -342,7 +389,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     /* circle of videos */
     .ring-wrap { margin:26px auto 0; max-width:100%; position:relative; touch-action:pan-y; }
     .ring { --ring-w:min(var(--ring-size,300px), 80vw); height:calc(var(--ring-w) / var(--ring-shape,0.5625) * 1.12 + 30px); margin:0 auto; max-width:100%; perspective:calc(var(--ring-r,300px) * 10); position:relative; width:calc(var(--ring-r,300px) * 2 + var(--ring-w) + 40px); }
-    .ring-item { background:#0b1226; border-radius:14px; box-shadow:0 12px 30px rgba(9,15,36,.28); cursor:pointer; left:50%; margin:0; overflow:hidden; position:absolute; top:50%; transform:translate(-50%,-50%); transition:transform .62s cubic-bezier(.45,.05,.25,1), opacity .4s ease, filter .5s ease, box-shadow .4s ease; width:var(--ring-w); will-change:transform,opacity; }
+    .ring-item { background:#0b1226; border-radius:14px; box-shadow:0 12px 30px rgba(9,15,36,.28); cursor:pointer; left:50%; margin:0; overflow:hidden; position:absolute; top:50%; transform:translate(-50%,-50%); transition:transform .3s cubic-bezier(.45,.05,.25,1), opacity .2s ease, filter .2s ease, box-shadow .2s ease; width:var(--ring-w); will-change:transform,opacity; }
     .ring-item video { aspect-ratio:var(--ring-shape,0.5625); display:block; height:auto; object-fit:cover; width:100%; }
     .ring-item figcaption { background:linear-gradient(to top,rgba(0,0,0,.86),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:12px; font-weight:700; left:0; line-height:1.25; padding:30px 10px 10px; position:absolute; right:0; text-align:left; }
     .ring-item::after { border:2px solid transparent; border-radius:14px; content:''; inset:0; pointer-events:none; position:absolute; transition:border-color .35s ease; }
@@ -355,7 +402,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .ring-wrap.playing .ring-play { opacity:0; pointer-events:none; }
     .ring-item video { pointer-events:none; }
     .ring-nav { align-items:center; display:flex; gap:14px; justify-content:center; margin:18px 0 0; }
-    .ring-sound-btn { align-items:center; background:rgba(17,26,56,.75); border:1px solid rgba(244,202,91,.5); border-radius:50%; color:var(--gold-light); cursor:pointer; display:flex; font-size:18px; height:44px; justify-content:center; left:50%; margin-left:-22px; opacity:0; padding:0; position:absolute; bottom:14px; transition:background-color .2s ease, border-color .2s ease; width:44px; z-index:200; }
+    .ring-sound-btn { align-items:center; background:rgba(17,26,56,.75); border:1px solid rgba(244,202,91,.5); border-radius:50%; color:var(--gold-light); cursor:pointer; display:flex; font-size:18px; height:44px; justify-content:center; right:14px; padding:0; position:absolute; top:14px; transition:background-color .2s ease, border-color .2s ease; width:44px; z-index:200; }
     .ring-sound-btn:hover { background:rgba(17,26,56,.9); border-color:var(--gold); }
     .ring-sound-btn:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
     .ring-sound-btn[aria-pressed="true"] { background:var(--gold); border-color:var(--gold); color:var(--navy-dark); }
@@ -370,7 +417,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 .proof-dark .proof-hint, .proof-dark .proof-caption { color:rgba(255,255,255,.55); }
 .proof-coverflow .cf-stage { --cf-gap:30px; --cf-w:260px; height:calc(var(--cf-w) / var(--ring-shape,.5625) * 1.12); overflow:hidden; perspective:1200px; perspective-origin:50% 46%; position:relative; }
 .proof-coverflow .cf-stage::before { background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.10), transparent 45%); content:''; inset:0; pointer-events:none; position:absolute; }
-.proof-coverflow .ring-item { border:1px solid rgba(255,255,255,.12); border-radius:28px; box-shadow:0 14px 34px rgba(0,0,0,.4); transform-style:preserve-3d; transition:transform .8s cubic-bezier(.22,1,.36,1), opacity .8s cubic-bezier(.22,1,.36,1), filter .8s cubic-bezier(.22,1,.36,1); width:var(--cf-w);  }
+.proof-coverflow .ring-item { border:1px solid rgba(255,255,255,.12); border-radius:28px; box-shadow:0 14px 34px rgba(0,0,0,.4); transform-style:preserve-3d; transition:transform .4s cubic-bezier(.22,1,.36,1), opacity .4s cubic-bezier(.22,1,.36,1), filter .4s cubic-bezier(.22,1,.36,1); width:var(--cf-w);  }
 .proof-coverflow .ring-item.front { will-change:transform,opacity,filter; }
 .proof-coverflow .ring-item::after { border-radius:28px; }
 .proof-coverflow .ring-item.front { box-shadow:0 20px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.2), 0 0 58px rgba(255,255,255,.09); }
@@ -394,7 +441,7 @@ function art_block(string $file, string $fallbackClass = ''): string
        cards - those are z-indexed 98..100 by the layout code. */
     .cf-audio { align-items:center; display:flex; gap:10px; position:absolute; right:14px; top:14px; z-index:200; }
     .cf-audio-btn { align-items:center; background:rgba(9,15,36,.82); border:1px solid rgba(244,202,91,.6); border-radius:6px; color:var(--gold-light); cursor:pointer; display:flex; font-size:12px; font-weight:700; gap:7px; letter-spacing:.1em; padding:9px 13px; text-transform:uppercase; transition:background-color .2s ease, border-color .2s ease; }
-    .cf-sound-btn { bottom:14px; left:14px; opacity:0; position:absolute; z-index:200; }
+    .cf-sound-btn { right:14px; top:14px; position:absolute; z-index:200; }
     .cf-audio-btn:hover { background:rgba(9,15,36,.95); border-color:var(--gold); }
     .cf-audio-btn:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
     .cf-audio-btn[aria-pressed="true"] { background:var(--gold); border-color:var(--gold); color:var(--navy-dark); }
@@ -447,9 +494,9 @@ function art_block(string $file, string $fallbackClass = ''): string
     @media (max-width:400px) { .ring { --ring-r:95px; --ring-size:210px; } .ring-item figcaption { font-size:9px; padding:18px 6px 6px; } }
     .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
     .slides-frame { aspect-ratio:16/9; background:var(--navy); margin:0 auto; max-height:56vh; overflow:hidden; position:relative; }
-    .slides-frame img { height:100%; inset:0; object-fit:cover; opacity:0; position:absolute; transform:scale(1.04); transition:opacity .9s ease, transform 1.4s ease; width:100%; }
+    .slides-frame img { height:100%; inset:0; object-fit:cover; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .28s ease, transform .7s ease; width:100%; }
     .slides-frame img.on { opacity:1; transform:none; z-index:2; }
-    .slides-cap { background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:15px; font-weight:700; left:0; opacity:0; padding:44px 20px 18px; position:absolute; right:0; text-align:left; transition:opacity .6s ease; z-index:3; }
+    .slides-cap { background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:15px; font-weight:700; left:0; opacity:0; padding:44px 20px 18px; position:absolute; right:0; text-align:left; transition:opacity .3s ease; z-index:3; }
     .slides-cap.on { opacity:1; }
     .slides-cap span { color:#f4ca5b; display:block; font-size:12px; font-weight:700; letter-spacing:.12em; margin-bottom:4px; text-transform:uppercase; }
     .slides-dots { display:flex; gap:9px; justify-content:center; margin:18px 0 0; }
@@ -460,6 +507,126 @@ function art_block(string $file, string $fallbackClass = ''): string
     .slides { background:var(--navy); }
     .slides h2 { color:#fff; }
     .slides .section-label { color:var(--gold); }
+    .proof-mix { background:linear-gradient(180deg,#f4f1ea 0%,#f8f5f1 100%); border-top:1px solid rgba(17,26,56,.06); }
+    .proof-field-section { background:var(--navy); border-top:1px solid rgba(244,202,91,.28); }
+    .proof-field-section h2 { color:var(--gold-light); }
+    .proof-field-section > .section-label { color:var(--gold); }
+    .proof-mix-grid { display:grid; gap:26px; grid-template-columns:1fr; margin:28px auto 0; max-width:1220px; }
+    .proof-mix-story-link { color:inherit; display:block; text-decoration:none; }
+    .proof-mix-card-link { color:inherit; display:block; height:100%; text-decoration:none; }
+    .proof-mix-card { background:#fff; border:1px solid rgba(17,26,56,.08); border-radius:18px; box-shadow:0 18px 45px rgba(17,26,56,.08); display:flex; flex-direction:column; height:100%; overflow:hidden; transition:transform .25s ease, box-shadow .25s ease; }
+    .proof-mix-card-link:hover .proof-mix-card,
+    .proof-mix-card-link:focus-visible .proof-mix-card { box-shadow:0 28px 60px rgba(17,26,56,.12); transform:translateY(-3px); }
+    .proof-mix-media { aspect-ratio:4/3; background:linear-gradient(135deg,#111a38,#2b385c); position:relative; overflow:hidden; }
+    .proof-mix-story {
+      background:var(--navy); border:1px solid rgba(244,202,91,.42); border-radius:18px; box-shadow:0 18px 45px rgba(0,0,0,.22); display:grid; gap:0; grid-template-columns:minmax(0,1fr); overflow:hidden;
+      text-decoration:none; transition:transform .25s ease, box-shadow .25s ease; width:100%; animation:proof-story-enter .65s cubic-bezier(.2,.7,.2,1) both;
+    }
+    .proof-mix-story:nth-child(2) { animation-delay:.1s; }
+    .proof-mix-story:hover,
+    .proof-mix-story:focus-within,
+    .proof-mix-story:hover { box-shadow:0 24px 50px rgba(0,0,0,.32),0 0 0 1px rgba(244,202,91,.28); transform:translateY(-3px); }
+    @keyframes proof-story-enter { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    .proof-mix-story-header {
+      background:var(--navy); color:#fff; padding:18px 24px 14px;
+    }
+    .proof-mix-story-header .eyebrow {
+      color:var(--gold-light); display:inline-block; font-size:11px; font-weight:700; letter-spacing:.14em; margin:0 0 8px; text-transform:uppercase;
+    }
+    .proof-mix-story-header h3 {
+      color:#fff; font-family:'Space Grotesk',sans-serif; font-size:clamp(28px,4vw,42px); letter-spacing:-.04em; line-height:1.08; margin:0;
+    }
+    .proof-mix-story-body {
+      align-items:stretch; display:grid; gap:28px; grid-template-columns:minmax(260px,.9fr) minmax(0,1.1fr); padding:26px;
+    }
+    .proof-mix-story-copy {
+      align-self:center; grid-column:2; grid-row:1;
+    }
+    .proof-mix-story:nth-child(2) .proof-mix-story-copy { grid-column:1; }
+    .proof-mix-story-copy h4 {
+      color:var(--gold-light); font-family:'Space Grotesk',sans-serif; font-size:clamp(22px,3vw,32px); letter-spacing:-.03em; line-height:1.15; margin:0 0 14px;
+    }
+    .proof-mix-story-copy p {
+      color:rgba(255,255,255,.78); font-size:15px; line-height:1.65; margin:0;
+    }
+    .proof-mix-story-actions {
+      display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;
+    }
+    .proof-mix-story-actions span {
+      color:var(--navy); font-size:12px; font-weight:700; white-space:nowrap;
+    }
+    .proof-mix-story-actions a {
+      border-radius:8px; display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; padding:12px 16px; text-transform:uppercase;
+    }
+    .proof-mix-story-actions .primary {
+      background:var(--gold); color:var(--navy-dark); text-decoration:none;
+    }
+    .proof-mix-story-actions .secondary {
+      border:1px solid rgba(244,202,91,.42); color:var(--gold-light); text-decoration:none;
+    }
+    .proof-mix-story-media {
+      aspect-ratio:4/3; background:#0b122a; border:1px solid rgba(244,202,91,.24); border-radius:14px; grid-column:1; grid-row:1; overflow:hidden; width:100%;
+    }
+    .proof-mix-story:nth-child(2) .proof-mix-story-media { grid-column:2; }
+    .proof-mix-story-media img {
+      display:block; height:100%; object-fit:contain; width:100%;
+    }
+    .proof-mix-media img,
+    .proof-mix-media video { display:block; height:100%; object-fit:cover; width:100%; }
+    .proof-mix-media::after { background:linear-gradient(to top, rgba(9,15,36,.72), rgba(9,15,36,0) 46%); content:''; inset:0; position:absolute; }
+    .proof-mix-type { background:rgba(17,26,56,.82); border:1px solid rgba(244,202,91,.5); border-radius:999px; color:#f7d56b; font-size:10px; font-weight:700; inset:14px auto auto 14px; letter-spacing:.12em; padding:7px 10px; position:absolute; text-transform:uppercase; z-index:1; }
+    .proof-mix-body { display:flex; flex:1; flex-direction:column; gap:8px; padding:18px 18px 20px; }
+    .proof-mix-body h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:22px; letter-spacing:-.04em; line-height:1.1; margin:0; }
+    .proof-mix-body p { color:var(--muted); font-size:14px; line-height:1.55; margin:0; max-width:none; }
+    .proof-mix-ghost { align-items:center; background:linear-gradient(130deg,#f3d67a,#d9b654 40%,#8b6d26); color:#111a38; display:flex; font-size:18px; font-weight:700; height:100%; justify-content:center; letter-spacing:.08em; text-align:center; text-transform:uppercase; }
+    .proof-mix-story-media.proof-mix-ghost { min-height:100px; }
+    @media (max-width:760px) {
+      .proof-mix-story-body { gap:18px; grid-template-columns:1fr; padding:18px; }
+      .proof-mix-story-copy,
+      .proof-mix-story:nth-child(2) .proof-mix-story-copy { grid-column:1; grid-row:2; }
+      .proof-mix-story-media,
+      .proof-mix-story:nth-child(2) .proof-mix-story-media { aspect-ratio:16/10; grid-column:1; grid-row:1; }
+    }
+    @media (max-width:480px) {
+      .proof-mix-story-header { padding:16px 18px 12px; }
+      .proof-mix-story-body { gap:16px; padding:16px; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      .proof-mix-story { animation:none; transition:none; }
+    }
+    .proof-social-wrap { display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:28px auto 0; max-width:1220px; }
+    .proof-social-card { background:#fff; border:1px solid rgba(17,26,56,.08); border-radius:18px; box-shadow:0 18px 45px rgba(17,26,56,.08); overflow:hidden; }
+    .proof-social-top { align-items:center; background:#fff; display:flex; gap:9px; justify-content:space-between; padding:12px 14px; }
+    .proof-social-brand { align-items:center; display:flex; gap:8px; }
+    .proof-social-dot { background:linear-gradient(135deg,#2dd4bf,#14b8a6); border-radius:50%; display:block; height:10px; width:10px; }
+    .proof-social-app { color:#111a38; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+    .proof-social-body { background:linear-gradient(180deg,#f9fafb,#eef2f7); padding:14px; }
+    .proof-social-body p { color:#1f2937; font-size:13px; line-height:1.5; margin:0; }
+    .proof-social-screenshot { background:#f3f6fb; border:1px solid rgba(17,26,56,.08); border-radius:12px; min-height:190px; overflow:hidden; position:relative; }
+    .proof-social-screenshot.has-image { aspect-ratio:9/16; margin:0 auto; max-width:420px; min-height:0; }
+    .proof-social-screenshot.has-image::before { display:none; }
+    .proof-social-screenshot.has-image > img { display:block; height:100%; object-fit:contain; width:100%; }
+    .proof-social-screenshot::before { background:linear-gradient(135deg, rgba(255,255,255,.8), rgba(231,236,243,.3)); content:''; inset:0; position:absolute; }
+    .proof-social-screenshot.whatsapp { background:linear-gradient(180deg,#d7f7d7,#f5f9f5); }
+    .proof-social-screenshot.facebook { background:linear-gradient(180deg,#edf3ff,#ecf2ff); }
+    .proof-social-screenshot.tiktok { background:linear-gradient(180deg,#f8eef8,#f5ebfb); }
+    .proof-social-screenshot .mock { background:#fff; border:1px solid rgba(17,26,56,.08); border-radius:12px; box-shadow:0 10px 25px rgba(17,26,56,.06); left:50%; max-width:82%; padding:12px 12px 16px; position:absolute; top:50%; transform:translate(-50%,-50%); width:82%; }
+    .proof-social-screenshot .mock-head { display:flex; gap:8px; margin-bottom:10px; }
+    .proof-social-screenshot .mock-avatar { background:linear-gradient(135deg,#f3d67a,#d4a52c); border-radius:50%; height:24px; width:24px; }
+    .proof-social-screenshot .mock-name { background:#dfe7f4; border-radius:6px; height:10px; margin-top:6px; width:70px; }
+    .proof-social-screenshot .mock-line { background:#eceff5; border-radius:6px; display:block; height:8px; margin:7px 0; }
+    .proof-social-screenshot .mock-line.short { width:42%; }
+    .proof-social-screenshot .mock-line.long { width:94%; }
+    .proof-social-screenshot .mock-line.mid { width:76%; }
+    .proof-social-screenshot .mock-chip { background:#e7f7ed; border-radius:999px; display:inline-block; height:18px; margin-top:8px; width:84px; }
+    @media (max-width:1024px) {
+      .proof-mix-grid { grid-template-columns:1fr; }
+      .proof-social-wrap { grid-template-columns:1fr; }
+    }
+    @media (max-width:640px) {
+      .proof-mix-grid { grid-template-columns:1fr; }
+      .proof-mix-body h3 { font-size:19px; }
+    }
     .proof-gallery { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:860px; padding:6px 0 10px; }
     .proof-item { align-self:start; background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); padding:12px 12px 18px; position:relative; transition:transform .25s ease; }
     .proof-item:nth-child(odd) { transform:rotate(-2.6deg); }
@@ -586,6 +753,12 @@ function art_block(string $file, string $fallbackClass = ''): string
     .final .lead-success h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:30px; letter-spacing:-.02em; margin:0 0 10px; }
     .final .lead-success p { color:var(--muted); font-size:15px; line-height:1.6; margin:0 auto; max-width:400px; }
     .final .lead-success p.lead-success-note { border-top:1px solid #e6e9ee; color:var(--navy); font-size:13px; font-weight:700; margin-top:24px; padding-top:16px; }
+    .lead-success-actions { display:flex; gap:12px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
+    .lead-success-btn { border-radius:8px; display:inline-block; font-size:14px; font-weight:700; padding:12px 24px; text-decoration:none; }
+    .lead-success-btn-primary { background:var(--gold); color:var(--navy-dark); }
+    .lead-success-btn-primary:hover { background:var(--gold-light); }
+    .lead-success-btn-secondary { background:transparent; border:1px solid var(--navy); color:var(--navy); }
+    .lead-success-btn-secondary:hover { background:var(--navy); color:#fff; }
     .form-error { background:#fbeeec; border-radius:8px; color:#7a2c25; font-size:14px; margin:0 auto 6px; max-width:520px; padding:11px 14px; }
     .thankyou { background:#fff; border-radius:12px; margin:28px auto 0; max-width:560px; padding:34px; }
     .thankyou h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:22px; margin:0 0 8px; }
@@ -615,11 +788,56 @@ function art_block(string $file, string $fallbackClass = ''): string
     .cookie-btn.accept:hover { background:#f4ca5b; }
     .cookie-btn.deny { background:#eef0f4; color:#2c3e6e; }
     .cookie-btn.deny:hover { background:#fff; }
+    .wa-float {
+      align-items:center;
+      background:linear-gradient(135deg,#1ecb5a,#16a34a);
+      border-radius:999px;
+      bottom:24px;
+      box-shadow:0 18px 36px rgba(16,185,129,.38);
+      color:#fff;
+      display:inline-flex;
+      gap:10px;
+      justify-content:center;
+      padding:12px 16px 12px 14px;
+      position:fixed;
+      right:20px;
+      text-decoration:none;
+      transition:transform .2s ease, box-shadow .2s ease;
+      z-index:1100;
+    }
+    .wa-float:hover,
+    .wa-float:focus-visible {
+      box-shadow:0 20px 40px rgba(16,185,129,.44);
+      transform:translateY(-2px);
+    }
+    .wa-float-icon {
+      align-items:center;
+      background:rgba(255,255,255,.18);
+      border-radius:50%;
+      display:inline-flex;
+      font-size:19px;
+      font-weight:700;
+      height:30px;
+      justify-content:center;
+      width:30px;
+    }
+    .wa-float-label {
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
     @media (max-width:640px) {
   .cookie-banner { padding:16px 14px; }
   .cookie-content { flex-direction:column; align-items:flex-start; gap:12px; }
   .cookie-buttons { width:100%; justify-content:space-between; }
   .cookie-btn { flex:1; text-align:center; }
+  .wa-float {
+    bottom:18px;
+    padding:10px 14px 10px 12px;
+    right:14px;
+  }
+  .wa-float-label { letter-spacing:.06em; }
   .topline { font-size:9px; padding:8px 12px; }
   header { padding:16px 16px; }
   .nav { gap:8px; }
@@ -662,6 +880,162 @@ function art_block(string $file, string $fallbackClass = ''): string
   .footer-legal { flex-wrap:wrap; padding:18px 0 10px; }
   .footer-legal a { font-size:12px; font-weight:300; }
     }
+  /* Visitors who ask for less motion get instant photo changes and no
+     drifting scale, rather than a faster version of the same movement. */
+  @media (prefers-reduced-motion:reduce) {
+    .slides-frame img, .proof-slide, .ring-item, .slides-cap { transition-duration:.01ms !important; }
+    .slides-frame img.on { transform:none !important; }
+  }
+
+  /* ===================================================================
+     PROOF ENHANCEMENT - additive layer.
+     Namespaced .pf-* (filter) and .lb-* (lightbox) so nothing here can
+     collide with the existing .proof-* / .slides-* / .ring-* rules, and so
+     the whole layer can be removed without touching the original code.
+     =================================================================== */
+
+  /* ---- filter bar ----
+     The bar sits between the hero and the proof sections, so it has to carry
+     the same dark band as both of them - otherwise a light pill row is left
+     stranded on the white page background between two dark sections. */
+  .pf-bar {
+    align-items:center; background:var(--navy);
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+    margin:0; padding:26px 16px 30px;
+  }
+  .pf-bar[hidden] { display:none; }
+  .pf-tab {
+    -webkit-appearance:none; appearance:none;
+    background:transparent; border:1px solid rgba(212,175,55,.45);
+    border-radius:999px; color:rgba(255,255,255,.9); cursor:pointer;
+    font-family:inherit; font-size:12px; font-weight:700;
+    letter-spacing:.12em; padding:9px 16px; text-transform:uppercase;
+    transition:background-color .25s ease, border-color .25s ease, color .25s ease, transform .25s ease;
+  }
+  .pf-tab:hover { border-color:rgba(212,175,55,.85); color:#fff; transform:translateY(-1px); }
+  .pf-tab.is-on { background:var(--gold); border-color:var(--gold); color:#111; }
+  .pf-n { font-size:10px; font-weight:700; margin-left:7px; opacity:.62; }
+  .pf-tab:focus-visible, .lb-btn:focus-visible, .slides-frame img:focus-visible {
+    outline:2px solid var(--gold); outline-offset:3px;
+  }
+  /* A filter hides content by presentation only: the nodes stay in the DOM,
+     so switching back restores everything exactly as it was. */
+  [data-pf-group].pf-hidden { display:none; }
+
+  /* ---- field photos become interactive ---- */
+  .slides-frame img { cursor:zoom-in; }
+  .slides-frame img::after { content:none; }
+  /* Subtle affordance: the photos are clickable but nothing on the page
+     says so yet. */
+p.lb-hint,
+   .lb-hint {
+    color:rgba(255,255,255,.72); font-size:12px; font-weight:600;
+    letter-spacing:.1em; margin:14px 0 0; max-width:none; text-align:center;
+    text-transform:uppercase;
+  }
+  .lb-hint[hidden] { display:none; }
+  /* Sound hint. Hidden by JS the moment the existing toggle reports sound on,
+      so it can never contradict the button state. Needs a specific selector
+      to win against global .section p typography. */
+  p.pf-sound-hint,
+  .pf-sound-hint {
+    align-items:center; color:rgba(255,255,255,.72); display:flex;
+    font-size:11px; font-weight:700; gap:8px; justify-content:center;
+    letter-spacing:.16em; margin:16px 0 0; text-transform:uppercase;
+  }
+  .pf-sound-hint[hidden] { display:none; }
+
+  /* ---- lightbox ---- */
+  .lb {
+    align-items:center; background:rgba(6,8,16,.94);
+    display:none; inset:0; justify-content:center;
+    padding:20px; position:fixed; z-index:120;
+  }
+  .lb.is-open { display:flex; }
+  .lb-dialog {
+    background:var(--navy,#0d1226); border:1px solid rgba(212,175,55,.24);
+    border-radius:16px; box-shadow:0 30px 80px rgba(0,0,0,.6);
+    display:grid; gap:0; grid-template-columns:1fr; margin:auto;
+    max-height:92vh; max-width:1040px; overflow:hidden; position:relative; width:100%;
+  }
+  .lb-stage {
+    align-items:center; background:#05040c; display:flex;
+    justify-content:center; min-height:220px; overflow:hidden; position:relative;
+  }
+  .lb-img {
+    display:block; height:auto; max-height:66vh; max-width:100%;
+    object-fit:contain; width:100%;
+  }
+  .lb-info { border-top:1px solid rgba(255,255,255,.09); padding:20px 24px 22px; }
+  .lb-eyebrow {
+    color:var(--gold,#d4af37); font-size:11px; font-weight:700;
+    letter-spacing:.16em; margin:0 0 10px; text-transform:uppercase;
+  }
+  .lb-caption { font-size:16px; line-height:1.55; margin:0; }
+  /* Story rows only render when a real value exists, so this block is empty
+     on the current content instead of showing placeholder text. */
+  .lb-story { border-top:1px solid rgba(255,255,255,.08); margin-top:16px; padding-top:16px; }
+  .lb-story[hidden] { display:none; }
+  .lb-row { display:grid; gap:3px 14px; grid-template-columns:104px 1fr; margin:0 0 11px; }
+  .lb-row:last-child { margin-bottom:0; }
+  .lb-row dt {
+    color:rgba(255,255,255,.62); font-size:11px; font-weight:700;
+    letter-spacing:.11em; padding-top:2px; text-transform:uppercase;
+  }
+  .lb-row dd { font-size:14px; line-height:1.5; margin:0; }
+  .lb-storytext { color:rgba(255,255,255,.86); font-size:15px; line-height:1.65; margin:0 0 16px; }
+  .lb-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+  .lb-link {
+    border:1px solid rgba(212,175,55,.4); border-radius:999px; color:var(--gold,#d4af37);
+    display:inline-block; font-size:12px; font-weight:700; letter-spacing:.1em;
+    padding:9px 16px; text-decoration:none; text-transform:uppercase;
+    transition:background-color .2s ease, color .2s ease;
+  }
+  .lb-link:hover { background:var(--gold,#d4af37); color:#111; }
+  .lb-btn {
+    -webkit-appearance:none; appearance:none; background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.18); border-radius:50%; color:#fff;
+    cursor:pointer; display:flex; font-size:20px; height:44px; line-height:1;
+    align-items:center; justify-content:center; padding:0; width:44px;
+    transition:background-color .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .lb-btn:hover { background:rgba(212,175,55,.9); border-color:var(--gold,#d4af37); color:#111; transform:scale(1.06); }
+  .lb-close {
+    align-items:center; background:rgba(6,8,16,.72); border:1px solid rgba(255,255,255,.2);
+    display:flex; height:40px; justify-content:center; line-height:1;
+    position:absolute; right:12px; top:12px; width:40px; z-index:2;
+  }
+  .lb-nav {
+    align-items:center; background:rgba(6,8,16,.72); border:1px solid rgba(255,255,255,.2);
+    display:flex; height:52px; justify-content:center; position:absolute;
+    top:50%; transform:translateY(-50%); width:52px; z-index:2;
+  }
+  .lb-prev { left:12px; }
+  .lb-next { right:12px; }
+  .lb-count {
+    color:rgba(255,255,255,.7); font-size:12px; font-weight:700; letter-spacing:.14em;
+    text-align:right;
+  }
+  .lb.is-swiping .lb-img { transition:none; }
+
+   @media (max-width:760px) {
+     .pf-bar { gap:7px; padding:20px 12px 24px; }
+     /* Keep the tap target at 44px even though the label itself is smaller. */
+     .pf-tab { font-size:11px; min-height:44px; padding:8px 13px; }
+    .lb { padding:0; }
+    .lb-dialog { border-radius:0; height:100%; max-height:100%; max-width:none; }
+    .lb-stage { flex:1 1 auto; }
+    .lb-img { max-height:none; }
+    .lb-info { max-height:46vh; overflow-y:auto; padding:16px 18px 20px; }
+    .lb-nav { height:46px; width:46px; }
+    .lb-prev { left:8px; }
+    .lb-next { right:8px; }
+    .lb-close { height:44px; right:8px; top:8px; width:44px; }
+    .lb-row { grid-template-columns:1fr; gap:1px; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .pf-tab, .lb-btn, .lb-link { transition:none; }
+  }
   </style>
 </head>
 <body>
@@ -669,29 +1043,222 @@ function art_block(string $file, string $fallbackClass = ''): string
     <div class="topline"><?= h($s['topline']) ?></div>
     <header><div class="nav"><a class="brand logo-chip" href="#top"><img class="header-logo" src="img/hpllogo.jpeg" alt="HPL Gold Detectors"></a><nav class="nav-links"><a href="#what-you-get"><?= h($s['nav_1']) ?></a><a href="#faq"><?= h($s['nav_2']) ?></a></nav><a class="nav-cta" href="#book"><?= h($s['nav_cta']) ?></a></div></header>
     <main id="top">
-      <section class="hero">
+      <section class="hero" id="hero">
         <span class="live-pill"><i></i><?= h($s['live_pill']) ?></span>
         <h1><?= h($s['hero_h1']) ?><span><?= h($s['hero_h1_span']) ?></span></h1>
         <p class="hero-sub"><?= h($s['hero_sub']) ?></p>
         <p class="hero-intro"><?= h($s['hero_intro']) ?></p>
-        <div class="detector-panel"><?= hpl_video_player([
-            'src'    => hpl_media_url($s['video_drive_id'] ?? ''),
-            'poster' => hpl_media_url($s['video_poster'] ?? ''),
-            'title'  => (string)($s['hero_h1'] ?? 'HPL Sales promo'),
-            'id'     => 'promoVideo',
-            'kicker' => '',
-            'loop'   => true,
-            'autoplay' => true,
-        ]) ?></div>
+        <div class="detector-panel promo-embed">
+          <?php
+            /* Promotional video is served from Bunny Stream. The library and
+               video IDs are the only things that change if the video is ever
+               replaced; everything else is fixed by the embed contract. */
+            $bunnyLibrary = '767583';
+            $bunnyVideo   = '62e9fec8-7052-4949-8a03-8104493b3795';
+            $bunnySrc     = 'https://player.mediadelivery.net/embed/' . $bunnyLibrary . '/' . $bunnyVideo;
+            /* muted=false is the desired state. The script below steps down to
+               muted only if the browser refuses audible autoplay, then restores
+               sound on the visitor's first interaction. See hpl_promo_player. */
+            $bunnyParams = 'autoplay=true&muted=false&loop=false&preload=true&responsive=true&playsinline=true';
+            $bunnyTitle  = (string)($s['hero_h1'] ?? 'HPL Sales promo');
+          ?>
+          <div class="promo-frame">
+            <iframe
+              class="promo-frame-el"
+              id="promoPlayer"
+              src="<?= h($bunnySrc . '?' . $bunnyParams) ?>"
+              title="<?= h($bunnyTitle) ?>"
+              loading="eager"
+              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen="true"></iframe>
+          </div>
+          <noscript>
+            <div class="promo-frame-fallback">
+              <a href="<?= h($bunnySrc) ?>" target="_blank" rel="noopener">Watch the HPL promo video</a>
+            </div>
+          </noscript>
+        </div>
         <p class="hero-copy"><?= h($s['hero_caption']) ?></p>
         <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
       </section>
 
-      <?php $proofItems = []; for ($i = 1; $i <= 5; $i++) { $src = hpl_media_url($s['proof_video_' . $i] ?? ''); if ($src === '') { continue; } $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')]; } ?><?php $layout = (string)($s['proof_layout'] ?? 'ring'); if (!in_array($layout, ['ring', 'strip', 'coverflow'], true)) { $layout = 'ring'; } ?><section class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button></div><p class="proof-hint"><?= h($s['proof_hint_strip']) ?></p><div class="proof-dots" id="proofDots"></div>
-<?php elseif ($layout === 'coverflow'): ?>
-<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="cf-audio-btn cf-sound-btn" id="cfSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="cf-dots" id="cfDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <?php
+      /* Collected first because the filter bar below reports on it. Same
+         loop and same values as before - only hoisted, nothing altered. */
+      $proofItems = [];
+      for ($i = 1; $i <= 15; $i++) {
+          $src = hpl_media_url($s['proof_video_' . $i] ?? '');
+          if ($src === '') { continue; }
+          $proofItems[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
+      }
+      $layout = (string)($s['proof_layout'] ?? 'ring');
+      if (!in_array($layout, ['ring', 'strip', 'coverflow'], true)) { $layout = 'ring'; }
 
-      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
+      /* Proof content model.
+         Categories are declared once here and rendered from data, so a new
+         proof type (customer message, find photo, detector screenshot, result)
+         can be added later by appending one group plus its section markup -
+         with no change to the filter, the nav or the lightbox.
+
+         Only groups that actually hold content are emitted, so a category can
+         never appear as an empty or broken tab. Counts are read from the same
+         sources the sections below already use, which keeps this additive
+         layer from becoming a second source of truth. */
+      $proofGroups = [];
+      if (!empty($proofItems)) {
+          $proofGroups[] = ['key' => 'videos', 'label' => 'Videos', 'count' => count($proofItems)];
+      }
+      $photoCount = 0;
+      for ($i = 1; $i <= 6; $i++) {
+          if (file_exists(__DIR__ . '/img/slide-' . $i . '.jpg')) { $photoCount++; }
+      }
+      if ($photoCount > 0) {
+          $proofGroups[] = ['key' => 'photos', 'label' => 'Field Photos', 'count' => $photoCount];
+      }
+      ?>
+      <?php if (count($proofGroups) > 0): ?>
+      <div class="pf-bar" id="pfBar" role="group" aria-label="Filter customer proof">
+        <button type="button" class="pf-tab is-on" data-pf="all" aria-pressed="true">All</button>
+        <?php foreach ($proofGroups as $g): ?>
+        <button type="button" class="pf-tab" data-pf="<?= h($g['key']) ?>" aria-pressed="false"
+                aria-label="<?= h($g['label'] . ', ' . (int)$g['count'] . ' items') ?>">
+          <?= h($g['label']) ?><span class="pf-n" aria-hidden="true"><?= (int)$g['count'] ?></span>
+        </button>
+        <?php endforeach; ?>
+      </div>
+      <?php endif; ?>
+
+      <section data-pf-group="videos" class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><video loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-proof-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button></div><div class="proof-dots" id="proofDots"></div>
+<?php elseif ($layout === 'coverflow'): ?>
+<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="cf-audio-btn cf-sound-btn" id="cfSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><div class="cf-dots" id="cfDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+
+      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section data-pf-group="photos" class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2>Real field stories</h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
+
+      <?php
+        $fieldProofImage1 = file_exists(__DIR__ . '/img/field-proof-1.jpg') ? 'img/field-proof-1.jpg' : 'img/slide-1.jpg';
+        $fieldProofImage2 = file_exists(__DIR__ . '/img/field-proof-2.jpg') ? 'img/field-proof-2.jpg' : 'img/slide-2.jpg';
+      ?>
+      <?php if (($s['field_proof_enabled'] ?? '1') === '1'): ?>
+      <section class="section proof-mix proof-field-section">
+        <div class="section-label"><?= h($s['field_proof_label'] ?? 'Field proof') ?></div>
+        <h2><?= h($s['field_proof_heading'] ?? 'What the ground is proving') ?></h2>
+        <div class="proof-mix-grid">
+          <article class="proof-mix-story">
+            <div class="proof-mix-story-header">
+              <div class="eyebrow"><?= h($s['field_proof_1_eyebrow'] ?? 'Field proof') ?></div>
+              <h3><?= h($s['field_proof_1_title'] ?? 'Detectorist story') ?></h3>
+            </div>
+            <div class="proof-mix-story-body">
+              <div class="proof-mix-story-copy">
+                <h4><?= h($s['field_proof_1_headline'] ?? 'Choosing the right detector for challenging ground.') ?></h4>
+                <p><?= h($s['field_proof_1_text'] ?? '') ?></p>
+                <div class="proof-mix-story-actions">
+                  <a class="primary" href="#book"><?= h($s['field_proof_1_cta'] ?? 'Book a call') ?></a>
+                  <a class="secondary" href="proof-story.php?story=detectorist-story">Full story</a>
+                </div>
+              </div>
+              <div class="proof-mix-story-media">
+                <img src="<?= h($fieldProofImage1) ?>" alt="<?= h($s['field_proof_1_title'] ?? 'Detectorist story') ?>" loading="lazy">
+              </div>
+            </div>
+          </article>
+
+          <article class="proof-mix-story">
+            <div class="proof-mix-story-header">
+              <div class="eyebrow"><?= h($s['field_proof_2_eyebrow'] ?? 'Field photo') ?></div>
+              <h3><?= h($s['field_proof_2_title'] ?? 'On-ground proof') ?></h3>
+            </div>
+            <div class="proof-mix-story-body">
+              <div class="proof-mix-story-copy">
+                <h4><?= h($s['field_proof_2_headline'] ?? 'Customer field shots showing real usage and working conditions.') ?></h4>
+                <p><?= h($s['field_proof_2_text'] ?? '') ?></p>
+                <div class="proof-mix-story-actions">
+                  <a class="primary" href="#what-you-get"><?= h($s['field_proof_2_cta'] ?? 'See the field kit') ?></a>
+                  <a class="secondary" href="proof-story.php?story=on-ground-proof">Full story</a>
+                </div>
+              </div>
+              <div class="proof-mix-story-media">
+                <img src="<?= h($fieldProofImage2) ?>" alt="<?= h($s['field_proof_2_title'] ?? 'On-ground proof') ?>" loading="lazy">
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+      <?php endif; ?>
+
+      <section class="section proof-mix">
+        <div class="section-label">Customer voices</div>
+        <h2>See what our customers are saying</h2>
+        <div class="proof-social-wrap">
+          <article class="proof-social-card">
+            <div class="proof-social-top">
+              <div class="proof-social-brand"><span class="proof-social-dot"></span><span class="proof-social-app">WhatsApp</span></div>
+              <span class="proof-social-app">Today</span>
+            </div>
+            <div class="proof-social-body">
+              <div class="proof-social-screenshot whatsapp<?= file_exists(__DIR__ . '/img/customer-voice-whatsapp.jpg') ? ' has-image' : '' ?>">
+                <?php if (file_exists(__DIR__ . '/img/customer-voice-whatsapp.jpg')): ?>
+                <img src="img/customer-voice-whatsapp.jpg" alt="WhatsApp message from an HPL customer" loading="lazy">
+                <?php else: ?>
+                <div class="mock">
+                  <div class="mock-head"><span class="mock-avatar"></span><span class="mock-name"></span></div>
+                  <span class="mock-line long"></span>
+                  <span class="mock-line mid"></span>
+                  <span class="mock-line short"></span>
+                  <span class="mock-chip"></span>
+                </div>
+                <?php endif; ?>
+              </div>
+            </div>
+          </article>
+
+          <article class="proof-social-card">
+            <div class="proof-social-top">
+              <div class="proof-social-brand"><span class="proof-social-dot" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);"></span><span class="proof-social-app">Facebook</span></div>
+              <span class="proof-social-app">Post</span>
+            </div>
+            <div class="proof-social-body">
+              <div class="proof-social-screenshot facebook<?= file_exists(__DIR__ . '/img/customer-voice-facebook.jpg') ? ' has-image' : '' ?>">
+                <?php if (file_exists(__DIR__ . '/img/customer-voice-facebook.jpg')): ?>
+                <img src="img/customer-voice-facebook.jpg" alt="Facebook post from an HPL customer" loading="lazy">
+                <?php else: ?>
+                <div class="mock">
+                  <div class="mock-head"><span class="mock-avatar" style="background:linear-gradient(135deg,#f9a8d4,#ec4899);"></span><span class="mock-name"></span></div>
+                  <span class="mock-line long"></span>
+                  <span class="mock-line mid"></span>
+                  <span class="mock-line short"></span>
+                  <span class="mock-chip" style="background:#dbeafe; width:110px;"></span>
+                </div>
+                <?php endif; ?>
+              </div>
+            </div>
+          </article>
+
+          <article class="proof-social-card">
+            <div class="proof-social-top">
+              <div class="proof-social-brand"><span class="proof-social-dot" style="background:linear-gradient(135deg,#f472b6,#a855f7);"></span><span class="proof-social-app">TikTok</span></div>
+              <span class="proof-social-app">Video</span>
+            </div>
+            <div class="proof-social-body">
+              <div class="proof-social-screenshot tiktok<?= file_exists(__DIR__ . '/img/customer-voice-tiktok.jpg') ? ' has-image' : '' ?>">
+                <?php if (file_exists(__DIR__ . '/img/customer-voice-tiktok.jpg')): ?>
+                <img src="img/customer-voice-tiktok.jpg" alt="TikTok post featuring an HPL detector" loading="lazy">
+                <?php else: ?>
+                <div class="mock">
+                  <div class="mock-head"><span class="mock-avatar" style="background:linear-gradient(135deg,#fcd34d,#f59e0b);"></span><span class="mock-name"></span></div>
+                  <span class="mock-line long"></span>
+                  <span class="mock-line mid"></span>
+                  <span class="mock-line short"></span>
+                  <span class="mock-chip" style="background:#fce7f3; width:94px;"></span>
+                </div>
+                <?php endif; ?>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
 
       <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><?= art_block('benefit-1.jpg') ?></div><h3><?= h($s['b1_title']) ?></h3><p><?= h($s['b1_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-2.jpg') ?></div><h3><?= h($s['b2_title']) ?></h3><p><?= h($s['b2_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-3.jpg') ?></div><h3><?= h($s['b3_title']) ?></h3><p><?= h($s['b3_desc']) ?></p></article></div></div></section>
 
@@ -713,6 +1280,10 @@ function art_block(string $file, string $fallbackClass = ''): string
           <h3>Thank You!</h3>
           <p>Your enquiry has been received. A member of our HPL team will contact you shortly to discuss your requirements and recommend the right equipment.</p>
           <p class="lead-success-note">We aim to respond within one business day.</p>
+          <div class="lead-success-actions">
+            <a href="#hero" class="lead-success-btn lead-success-btn-primary">Back to Hero Section</a>
+            <a href="thank-you.php" class="lead-success-btn lead-success-btn-secondary">Take a Company Tour</a>
+          </div>
         </div>
 <?php else: ?>
         <form class="lead-form" action="#book" method="post" novalidate id="leadForm"<?= $leadStep === 2 ? ' data-start-step="2"' : '' ?>>
@@ -750,7 +1321,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 <?php endforeach; ?>
                   </select>
                 </span>
-                <input type="tel" id="leadPhone" name="lead_phone" value="<?= h($leadFields['lead_phone']) ?>" placeholder="976 652 858" autocomplete="tel-national" inputmode="tel" required<?= lead_invalid($leadErrors, 'lead_phone') ?>>
+                <input type="tel" id="leadPhone" name="lead_phone" value="<?= h($leadFields['lead_phone']) ?>" placeholder="123 456 789" autocomplete="tel-national" inputmode="tel" required<?= lead_invalid($leadErrors, 'lead_phone') ?>>
               </span>
               <?= lead_field_error($leadErrors, 'lead_phone') ?>
             </div>
@@ -854,6 +1425,10 @@ function art_block(string $file, string $fallbackClass = ''): string
         </div>
       </div>
     </div>
+    <a class="wa-float" href="<?= h($quickContactUrl) ?>" target="_blank" rel="noopener" aria-label="<?= h('Message the HPL team on WhatsApp') ?>">
+      <span class="wa-float-icon" aria-hidden="true">✆</span>
+      <span class="wa-float-label"><?= h($quickContactLabel) ?></span>
+    </a>
   </div>
   <script>
     (function () {
@@ -909,12 +1484,168 @@ function art_block(string $file, string $fallbackClass = ''): string
         });
       }
 
-      var promoVideo = document.getElementById('promoVideo');
-      if (promoVideo) {
-        promoVideo.addEventListener('play', function() {
-          trackEvent('video_play', { video: 'promo' });
+/* ---------- Bunny Stream promo: autoplay ladder ----------
+         Desired state is autoplay WITH sound. The embed URL already asks for
+         that (autoplay=true&muted=false), so step 1 is the player trying on
+         its own. This script only handles what the URL cannot decide:
+         whether the browser allowed it.
+
+         1. ready      -> poll getPaused; wait for playback to actually begin.
+         2. if it began -> confirm the state with getMuted. Audible = done.
+         3. if muted, or if it never began within ~3s -> mute()+play(), which
+            muted autoplay always permits, so the visitor sees motion instead of
+            a stopped frame. Then wait for one real interaction and unmute.
+         4. error code 5 -> the browser refused play(). Treat as the same as 3.
+
+         Every step is a plain play()/unmute() the browser is free to refuse.
+         Nothing here works around the autoplay policy. */
+      (function () {
+        var frame = document.getElementById('promoPlayer');
+        /* Guard on the frame only. playerjs is loaded further down by this
+           same closure, so it is never defined yet at this point. */
+        if (!frame) return;
+
+        var GESTURES = ['pointerdown', 'keydown', 'touchstart'];
+        var state = {
+          playing: false,
+          audible: false,
+          fallback: false,  /* we muted it because sound was refused */
+          upgraded: false    /* sound restored on first interaction */
+        };
+        var player = null;
+
+        function track(type, data) { if (window.hplTrack) window.hplTrack(type, data); }
+
+        function supports(name) {
+          return !player.supports || player.supports('method', name);
+        }
+
+        /* Called once playback is known to be running, to learn whether the
+           sound survived. getMuted is the only honest signal for this: some
+           browsers report a successful play() and still hold the mute. */
+        function confirmSound() {
+          if (!supports('getMuted')) return;
+          player.getMuted(function (muted) {
+            state.audible = !muted;
+            /* getMuted resolves after the play event, so the audio state is
+               reported from here rather than guessed at play time. */
+            track('video_sound', { video: 'promo', on: state.audible });
+            if (muted && state.fallback) armFirstGesture();
+          });
+        }
+
+        /* Sound was refused. Muted autoplay is always permitted, so this can
+           only improve the outcome. No iframe reload, so playback does not
+           restart from the beginning.
+
+           Deliberately safe to call more than once: the first call can land
+           before the media is ready to start, and a guard that treated
+           "already muted" as "already handled" would strand the player on a
+           stopped frame. mute() and play() are both idempotent. */
+        function stepDownToMuted() {
+          state.fallback = true;
+          if (supports('mute')) player.mute();
+          play();
+          armFirstGesture();
+        }
+
+        function play() {
+          if (!supports('play')) return;
+          var p = player.play();
+          /* Either shape is fine: a promise we swallow, or fire-and-forget
+             where the error event is the only report. A refusal is handled by
+             stepDownToMuted from the error listener and the supervisor below,
+             never from here, to avoid recursing on repeated rejections. */
+          if (p && p.then) p.catch(function () { /* handled elsewhere */ });
+        }
+
+        /* A blocked audible attempt can only be cleared by a real user
+           interaction, because that is what lifts the restriction.
+
+           Armed immediately, not after the fallback: the player can take a
+           few seconds to become ready, and an interaction during that window
+           is exactly the one that unlocks audible autoplay. Once the visitor
+           touches the volume themselves we stop interfering, so this runs at
+           most once per page load. */
+        function armFirstGesture() {
+          if (state.gestureArmed || state.upgraded) return;
+          state.gestureArmed = true;
+          var fire = function () {
+            if (state.upgraded) return;
+            GESTURES.forEach(function (t) { document.removeEventListener(t, fire); });
+            state.gestureArmed = false;
+            state.upgraded = true;
+            if (supports('unmute')) player.unmute();
+            /* Commands sent before the player is ready are dropped, so hold
+               the request and apply it as soon as it reports ready. */
+            if (state.ready) play();
+            else state.pendingGesture = true;
+          };
+          GESTURES.forEach(function (t) {
+            document.addEventListener(t, fire, { passive: true });
+          });
+        }
+
+        /* Supervise rather than trust a single check. A blocked autoplay produces no
+           event at all, so this polls getPaused until playback actually begins,
+           which keeps a slow connection from being mistaken for a block. If
+           nothing has started after ~4s the muted nudge is re-issued
+           periodically: the first one can land before the media is ready. */
+        function verifyAutoplay() {
+          var elapsed = 0;
+          var timer = window.setInterval(function () {
+            elapsed += 500;
+            player.getPaused(function (paused) {
+              if (paused) return;
+              window.clearInterval(timer);
+              state.playing = true;
+              confirmSound();
+            });
+            if (elapsed >= 4000 && elapsed < 14000 && elapsed % 2000 === 0) {
+              stepDownToMuted();
+            }
+          }, 500);
+        }
+
+        function bind() {
+          player = new playerjs.Player(frame);
+
+          player.on('ready', function () {
+            state.ready = true;
+            /* A gesture that arrived while the player was still loading. */
+            if (state.pendingGesture) {
+              state.pendingGesture = false;
+              if (supports('unmute')) player.unmute();
+              play();
+            }
+            verifyAutoplay();
+          });
+
+player.on('play', function () {
+          state.playing = true;
+          track('video_play', { video: 'promo' });
         });
-      }
+
+          /* Code 5 is the documented signal for a play() the browser refused
+             because autoplay was blocked. */
+          player.on('error', function (data) {
+            if (data && data.code === 5) stepDownToMuted();
+          });
+        }
+
+        /* player.js must be loaded before the iframe can be bound. */
+        var lib = document.createElement('script');
+        lib.src = 'https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js';
+        lib.async = true;
+        lib.onload = bind;
+        /* If player.js cannot load, the embed still autoplays on its own via
+           its own parameters, so there is nothing to repair here. */
+        lib.onerror = function () { /* embed is self-sufficient */ };
+        document.head.appendChild(lib);
+
+        /* Armed here so an early interaction is never missed. */
+        armFirstGesture();
+      })();
 
       var scrollTracked = { 25: false, 50: false, 75: false, 100: false };
       window.addEventListener('scroll', function() {
@@ -1636,7 +2367,7 @@ form.addEventListener('keydown', function (e) {
       function next() { show((i + 1) % imgs.length); }
       function prev() { show((i - 1 + imgs.length) % imgs.length); }
 
-      function start() { timer = window.setInterval(next, 4200); }
+      function start() { timer = window.setInterval(next, 2600); }
       function stop() { if (timer) { window.clearInterval(timer); timer = null; } }
       function restart() { stop(); start(); }
 
@@ -1652,6 +2383,292 @@ form.addEventListener('keydown', function (e) {
       document.addEventListener('visibilitychange', function () {
         if (document.hidden) stop(); else start();
       });
+    })();
+
+    /* ===================================================================
+       PROOF ENHANCEMENT: filter navigation + field-photo lightbox.
+       Purely additive. It reads the two existing sections, adds a filter and
+       a viewer, and never edits the markup, the video sources or the slider
+       behaviour above.
+       =================================================================== */
+    (function () {
+      'use strict';
+
+      /* ---------- filter ---------- */
+      var bar = document.getElementById('pfBar');
+      var groups = Array.prototype.slice.call(document.querySelectorAll('[data-pf-group]'));
+      var tabs = bar ? Array.prototype.slice.call(bar.querySelectorAll('.pf-tab')) : [];
+
+      /* Hiding a section is presentation only - the nodes stay put, so going
+         back to "All" restores the original page exactly. */
+      function apply(key) {
+        groups.forEach(function (g) {
+          var k = g.getAttribute('data-pf-group');
+          var hide = key !== 'all' && k !== key;
+          g.classList.toggle('pf-hidden', hide);
+          /* A hidden section keeps playing its videos in some browsers, which
+             would leave audio running for something nobody can see. */
+          if (hide) {
+            Array.prototype.forEach.call(g.querySelectorAll('video'), function (v) {
+              try { v.pause(); } catch (e) {}
+            });
+          }
+        });
+        tabs.forEach(function (t) {
+          var on = t.getAttribute('data-pf') === key;
+          t.classList.toggle('is-on', on);
+          t.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
+
+      tabs.forEach(function (t) {
+        t.addEventListener('click', function () { apply(t.getAttribute('data-pf')); });
+      });
+      if (bar && tabs.length) { apply('all'); }
+
+      /* ---------- field photo lightbox ----------
+         Photos stay exactly where they are. The existing <img> elements get
+         keyboard semantics and open the viewer, so the auto-advancing slider,
+         its dots and its caption all keep working untouched. */
+      var frame = document.getElementById('slidesFrame');
+      if (!frame) return;
+      var imgs = Array.prototype.slice.call(frame.querySelectorAll('img'));
+      if (!imgs.length) return;
+
+      /* Reads only what is really in the markup. Story fields are optional
+         data-* attributes: when a field has no value it is simply not shown,
+         so the viewer never has to display invented information. To attach a
+         real story later, add the attributes to that <img>:
+           data-story-customer, data-story-location, data-story-detector,
+           data-story-result, data-story-text, data-story-video */
+      function field(img, name) {
+        return (img.getAttribute('data-story-' + name) || '').trim();
+      }
+
+      var photos = imgs.map(function (img, i) {
+        img.setAttribute('role', 'button');
+        img.setAttribute('tabindex', '0');
+        img.setAttribute('aria-label', 'Open field story ' + (i + 1) + (img.getAttribute('data-caption') ? ': ' + img.getAttribute('data-caption') : ''));
+        return {
+          src: img.getAttribute('src'),
+          alt: img.getAttribute('alt') || '',
+          caption: img.getAttribute('data-caption') || '',
+          customer: field(img, 'customer'),
+          location: field(img, 'location'),
+          detector: field(img, 'detector'),
+          result: field(img, 'result'),
+          story: field(img, 'text'),
+          video: field(img, 'video'),
+          el: img
+        };
+      });
+
+      var lb = null, idx = 0, lastFocus = null;
+
+      function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function build() {
+        var d = document.createElement('div');
+        d.className = 'lb';
+        d.id = 'lbRoot';
+        d.setAttribute('role', 'dialog');
+        d.setAttribute('aria-modal', 'true');
+        d.setAttribute('aria-label', 'Field story');
+        d.innerHTML =
+          '<div class="lb-dialog" id="lbDialog">' +
+            '<button type="button" class="lb-btn lb-close" id="lbClose" aria-label="Close field story"><span aria-hidden="true">&times;</span></button>' +
+            '<button type="button" class="lb-nav lb-prev" id="lbPrev" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button>' +
+            '<button type="button" class="lb-nav lb-next" id="lbNext" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button>' +
+            '<div class="lb-stage" id="lbStage"><img class="lb-img" id="lbImg" alt=""></div>' +
+            '<div class="lb-info">' +
+              '<p class="lb-eyebrow" id="lbEyebrow"></p>' +
+              '<p class="lb-count" id="lbCount"></p>' +
+              '<p class="lb-caption" id="lbCaption"></p>' +
+              '<div class="lb-story" id="lbStory" hidden>' +
+                '<p class="lb-storytext" id="lbStoryText"></p>' +
+                '<dl id="lbRows"></dl>' +
+                '<div class="lb-actions" id="lbActions"></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        document.body.appendChild(d);
+        lb = d;
+      }
+
+      var IMG = null, EYEBROW = null, COUNT = null, CAPTION = null,
+          STORY = null, STORYTEXT = null, ROWS = null, ACTIONS = null;
+
+      function cache() {
+        IMG = lb.querySelector('#lbImg');
+        EYEBROW = lb.querySelector('#lbEyebrow');
+        COUNT = lb.querySelector('#lbCount');
+        CAPTION = lb.querySelector('#lbCaption');
+        STORY = lb.querySelector('#lbStory');
+        STORYTEXT = lb.querySelector('#lbStoryText');
+        ROWS = lb.querySelector('#lbRows');
+        ACTIONS = lb.querySelector('#lbActions');
+      }
+
+      function row(label, value) {
+        return '<div class="lb-row"><dt>' + esc(label) + '</dt><dd>' + esc(value) + '</dd></div>';
+      }
+
+      function render() {
+        var p = photos[idx];
+        IMG.setAttribute('src', p.src);
+        IMG.setAttribute('alt', p.alt);
+        EYEBROW.textContent = 'Field story #' + String(idx + 1).padStart(2, '0');
+        COUNT.textContent = String(idx + 1).padStart(2, '0') + ' / ' + String(photos.length).padStart(2, '0');
+        CAPTION.textContent = p.caption;
+
+        /* Story area only exists when there is real information to show. */
+        var rows = '';
+        if (p.customer) { rows += row('Customer', p.customer); }
+        if (p.location) { rows += row('Location', p.location); }
+        if (p.detector) { rows += row('Detector', p.detector); }
+        if (p.result)   { rows += row('Result', p.result); }
+        STORYTEXT.hidden = !p.story;
+        if (p.story) { STORYTEXT.textContent = p.story; }
+
+        ACTIONS.innerHTML = '';
+        if (p.video) {
+          var a = document.createElement('a');
+          a.className = 'lb-link';
+          a.href = p.video;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = 'Watch customer story';
+          ACTIONS.appendChild(a);
+        }
+
+        var hasStory = rows || p.story || p.video;
+        STORY.hidden = !hasStory;
+        ROWS.innerHTML = rows;
+
+        /* Multi-photo galleries get arrows; a single photo does not. */
+        lb.querySelector('#lbPrev').hidden = photos.length < 2;
+        lb.querySelector('#lbNext').hidden = photos.length < 2;
+      }
+
+      function go(step) {
+        idx = (idx + step + photos.length) % photos.length;
+        render();
+      }
+
+      function open(i) {
+        if (!lb) { build(); cache(); }
+        idx = i;
+        lastFocus = document.activeElement;
+        render();
+        lb.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        lb.querySelector('#lbClose').focus();
+      }
+
+      function close() {
+        if (!lb || !lb.classList.contains('is-open')) return;
+        lb.classList.remove('is-open');
+        document.body.style.overflow = '';
+        if (lastFocus && lastFocus.focus) lastFocus.focus();
+      }
+
+      if (!lb) { build(); cache(); }
+
+      lb.querySelector('#lbClose').addEventListener('click', close);
+      lb.querySelector('#lbPrev').addEventListener('click', function () { go(-1); });
+      lb.querySelector('#lbNext').addEventListener('click', function () { go(1); });
+
+      /* Clicking the dimmed backdrop closes; clicking the dialog does not. */
+      lb.addEventListener('click', function (e) {
+        if (e.target === lb) close();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (!lb || !lb.classList.contains('is-open')) return;
+        if (e.key === 'Escape') { close(); return; }
+        if (e.key === 'ArrowLeft') { go(-1); return; }
+        if (e.key === 'ArrowRight') { go(1); return; }
+        /* Keep Tab inside the dialog while it is open. */
+        if (e.key === 'Tab') {
+          var f = lb.querySelectorAll('button:not([hidden])');
+          if (!f.length) return;
+          var first = f[0], last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      });
+
+      /* Opening a photo wins over the slider's click-to-advance, which is why
+         propagation is stopped here rather than the existing handler removed. */
+      frame.addEventListener('click', function (e) {
+        var img = e.target;
+        if (!img || img.tagName !== 'IMG') return;
+        e.stopPropagation();
+        open(imgs.indexOf(img));
+      });
+
+      frame.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+        var img = e.target;
+        if (!img || img.tagName !== 'IMG') return;
+        e.preventDefault();
+        e.stopPropagation();
+        open(imgs.indexOf(img));
+      });
+
+      /* Swipe. Decided on touchend so vertical scrolling is never hijacked. */
+      var sx = 0, sy = 0, tracking = false;
+      lb.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 1) { tracking = false; return; }
+        sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true;
+      }, { passive: true });
+      lb.addEventListener('touchend', function (e) {
+        if (!tracking) return;
+        tracking = false;
+        var t = e.changedTouches[0];
+        var dx = t.clientX - sx, dy = t.clientY - sy;
+        if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) { go(dx < 0 ? 1 : -1); }
+      }, { passive: true });
+
+      /* Keep the gallery clean: no extra instruction text is needed. */
+    })();
+
+    /* ---------- sound affordance ----------
+       The testimonial area already has a working sound toggle with an
+       aria-pressed state. All this does is make the option discoverable while
+       sound is still off, then get out of the way.
+
+       It deliberately never calls play(), mute() or unmute(): browsers only
+       allow audible autoplay after a real interaction, and forcing or
+       re-prompting is exactly what visitors dislike. */
+    (function () {
+      'use strict';
+      var proof = document.querySelector('[data-pf-group="videos"]');
+      if (!proof) return;
+      /* The toggle is named differently per layout; all of them carry the same
+         aria-pressed contract. */
+      var btn = proof.querySelector('#cfSound, #ringSound');
+      if (!btn) return;
+      if (proof.querySelector('.pf-sound-hint')) return;
+
+      var hint = document.createElement('p');
+      hint.className = 'pf-sound-hint';
+      hint.innerHTML = '<span aria-hidden="true">&#128266;</span> Tap to hear the story';
+
+      var anchor = proof.querySelector('.proof-caption') || proof.querySelector('.ring-nav') || proof.querySelector('.ring-wrap');
+      if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(hint, anchor); }
+      else { proof.appendChild(hint); }
+
+      function sync() {
+        var on = btn.getAttribute('aria-pressed') === 'true';
+        hint.hidden = on;
+      }
+      btn.addEventListener('click', function () { window.setTimeout(sync, 0); });
+      sync();
     })();
   </script>
 </body>

@@ -75,6 +75,9 @@
     this.hiddenTimer = null;
     this.wasPlaying = false;
     this.userPaused = false;
+    this.userMuted = false;
+    this.retryArmed = false;
+    this.retryOff = [];
     this.inView = false;
 
     this.loop = root.dataset.loop === '1';
@@ -267,10 +270,60 @@
     this.ladder();
   };
 
+  /* Audible autoplay is refused outright until the page has been interacted
+     with. Rather than settling for muted, keep knocking: browsers lift the
+     restriction the instant a gesture happens, and also on tab focus, so this
+     turns the audible attempt into "the earliest moment the browser allows"
+     instead of "only if the visitor finds the unmute button". */
+  Player.prototype.armAudibleRetry = function () {
+    if (this.retryArmed || this.userMuted) return;
+    this.retryArmed = true;
+    var self = this;
+
+    var knobs = function () {
+      var v = self.v;
+      if (v.paused || v.readyState < 1 || !self.inView) return;
+      if (v.muted || v.volume === 0) self.attemptSound(1);
+    };
+
+    ['canplay', 'loadeddata', 'playing', 'volumechange'].forEach(function (type) {
+      v_event(self, type, knobs);
+    });
+
+    /* Returning to the tab means a gesture has practically always happened,
+       which is the most common moment for the policy to lift. */
+    v_event(self, 'visibilitychange', function () {
+      if (!document.hidden) knobs();
+    });
+    document.addEventListener('focus', knobs);
+
+    /* One-shot cleanup once audio is actually running, so a paused hero is not
+       holding three listeners open for the life of the page. */
+    v_event(self, 'playing', function () {
+      if (self.v.muted) return;
+      self.disarmAudibleRetry();
+    }, { once: true });
+  };
+
+  Player.prototype.disarmAudibleRetry = function () {
+    if (!this.retryArmed) return;
+    this.retryArmed = false;
+    this.retryOff.forEach(function (fn) { fn(); });
+    this.retryOff.length = 0;
+  };
+
+  /* Small helper: bind, and remember how to undo it. */
+  function v_event(player, type, fn, opts) {
+    var target = type === 'visibilitychange' ? document : player.v;
+    target.addEventListener(type, fn, opts || false);
+    player.retryOff.push(function () { target.removeEventListener(type, fn, opts || false); });
+  }
+
   Player.prototype.ladder = function () {
     var self = this;
     var v = this.v;
     this.state = 'trying';
+    this.armAudibleRetry();
 
     /* State A: ask for sound first. */
     v.muted = false;
@@ -295,6 +348,7 @@
             self.state = 'B';
             self.root.classList.add('show-unmute');
             self.wake();
+            self.armFirstGestureUnmute();
           })
           .catch(function () {
             /* State C: autoplay is off entirely. Wait for a click. */
@@ -311,6 +365,8 @@
   Player.prototype.attemptSound = function (level) {
     var self = this;
     var v = this.v;
+    /* Once the visitor has chosen silence, nothing here may override it. */
+    if (this.userMuted) return;
     v.muted = false;
     v.volume = level;
     if (this.volRange) this.volRange.value = String(Math.round(level * 100));
@@ -326,9 +382,45 @@
     if (p && p.then) p.then(null, revert);
   };
 
+  /* Every browser refuses audible autoplay until the visitor has interacted
+     with the page, so State B can only ever step down to muted. Once a real
+     gesture lands we are allowed sound, so restore it without making the
+     visitor hunt for the unmute button. Listeners are torn down together
+     because the first gesture satisfies the requirement for all of them. */
+  Player.prototype.armFirstGestureUnmute = function () {
+    if (this.gestureArmed) return;
+    this.gestureArmed = true;
+    var self = this;
+    var types = ['pointerdown', 'keydown', 'touchstart'];
+    var fire = function (ev) {
+      if (self.state !== 'B') return;
+      /* If the visitor has since pressed mute, that decision outranks us. */
+      if (self.userMuted) {
+        types.forEach(function (type) { document.removeEventListener(type, fire); });
+        self.gestureArmed = false;
+        return;
+      }
+      /* Deliberate clicks on the volume controls must win. Without this the
+         mute button would mute and this handler would immediately unmute it
+         again on the same click, which looks like a broken control. */
+      if (ev && ev.target && ev.target.closest) {
+        if (ev.target.closest('.hpl-vol, .hpl-vol-slider-btn, .hpl-vol-range')) return;
+      }
+      types.forEach(function (type) {
+        document.removeEventListener(type, fire);
+      });
+      self.gestureArmed = false;
+      self.unmuteNow();
+    };
+    types.forEach(function (type) {
+      document.addEventListener(type, fire, { passive: true });
+    });
+  };
+
   Player.prototype.unmuteNow = function () {
     var self = this;
     var v = this.v;
+    this.userMuted = false;
     this.attemptSound(1);
     this.root.classList.remove('show-unmute');
     /* Wait for the verdict so the notice can come back if audio was refused. */
@@ -373,6 +465,10 @@
   Player.prototype.setVolume = function (val) {
     this.v.volume = val;
     this.v.muted = val === 0;
+    /* Dragging the slider to zero is a mute decision, so stop the retries
+       from immediately turning the sound back on behind their back. */
+    this.userMuted = val === 0;
+    if (this.userMuted) this.disarmAudibleRetry();
     if (!this.v.muted) claimAudio(this);
     this.sync();
     this.wake();
@@ -382,8 +478,12 @@
     if (this.v.muted) {
       /* Coming back from muted at a stored 0 would look broken, so fall back
          to a sensible level rather than staying silent. */
+      this.userMuted = false;
+      this.disarmAudibleRetry();
       this.attemptSound(this.v.volume || 0.7);
     } else {
+      this.userMuted = true;
+      this.disarmAudibleRetry();
       this.forceMute();
     }
     this.sync();
