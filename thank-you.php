@@ -2,6 +2,19 @@
 require_once __DIR__ . '/config.php';
 $s = hpl_settings();
 
+/* An uploaded image keeps its filename, so the browser serves the cached copy
+   and a successful replacement looks like it did nothing. Stamping the URL with
+   the file's mtime makes a changed image a new resource and leaves unchanged
+   ones cached. Kept local to this page so it cannot clash with config.php. */
+if (!function_exists('hpl_img_url')) {
+    function hpl_img_url(string $file): string
+    {
+        $path = __DIR__ . '/img/' . $file;
+        $stamp = is_file($path) ? (string)@filemtime($path) : '';
+        return h('img/' . $file) . ($stamp !== '' ? '?v=' . $stamp : '');
+    }
+}
+
 $visitor = trim((string)($_GET['name'] ?? ''));
 $visitor = preg_replace('/[\x00-\x1F\x7F]/u', '', $visitor);
 $visitor = trim(preg_replace('/\s+/u', ' ', $visitor));
@@ -139,7 +152,7 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
       <div class="grid">
 <?php foreach ($tyPhotos as $p): ?>
         <figure>
-          <img src="<?= h('img/' . $p['file']) ?>" alt="<?= h($p['caption'] !== '' ? $p['caption'] : 'Customer find') ?>" loading="lazy">
+          <img src="<?= hpl_img_url($p['file']) ?>" alt="<?= h($p['caption'] !== '' ? $p['caption'] : 'Customer find') ?>" loading="lazy">
 <?php if ($p['caption'] !== ''): ?>
           <figcaption><?= h($p['caption']) ?></figcaption>
 <?php endif; ?>
@@ -181,7 +194,7 @@ $waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlenco
 
     <div class="foot">
 <?php if (file_exists(__DIR__ . '/img/hpllogo.jpeg')): ?>
-      <img src="img/hpllogo.jpeg" alt="HPL Gold Detectors">
+      <img src="<?= hpl_img_url('hpllogo.jpeg') ?>" alt="HPL Gold Detectors">
 <?php endif; ?>
       <div>&copy; <?= h(date('Y')) ?> <?= h($s['brand_name']) ?></div>
     </div>

@@ -21,6 +21,8 @@ $fields = [
     ['key' => 'social_label',      'label' => 'Small label',                'type' => 'text',     'group' => 'Social proof'],
     ['key' => 'social_heading',    'label' => 'Heading',                    'type' => 'text',     'group' => 'Social proof'],
     ['key' => 'social_caption',    'label' => 'Image caption',              'type' => 'text',     'group' => 'Social proof'],
+    ['key' => 'slides_label',   'label' => 'Photo section label',           'type' => 'text',     'group' => 'Field proof'],
+    ['key' => 'slides_heading', 'label' => 'Photo section heading',         'type' => 'text',     'group' => 'Field proof'],
     ['key' => 'field_proof_enabled', 'label' => 'Show this section',         'type' => 'select',   'group' => 'Field proof', 'options' => ['1' => 'Visible', '0' => 'Hidden']],
     ['key' => 'field_proof_label', 'label' => 'Section label',                'type' => 'text',     'group' => 'Field proof'],
     ['key' => 'field_proof_heading', 'label' => 'Section heading',            'type' => 'text',     'group' => 'Field proof'],
@@ -146,9 +148,6 @@ $imageSlots = [
     ['key' => 'benefit_bg', 'file' => 'benefit-bg.png', 'label' => 'Benefits section background band'],
     ['key' => 'field_proof_1_image', 'file' => 'field-proof-1.jpg', 'label' => 'Field proof story 1 photo'],
     ['key' => 'field_proof_2_image', 'file' => 'field-proof-2.jpg', 'label' => 'Field proof story 2 photo'],
-    ['key' => 'customer_voice_whatsapp', 'file' => 'customer-voice-whatsapp.jpg', 'label' => 'Customer voices - WhatsApp screenshot'],
-    ['key' => 'customer_voice_facebook', 'file' => 'customer-voice-facebook.jpg', 'label' => 'Customer voices - Facebook screenshot'],
-    ['key' => 'customer_voice_tiktok', 'file' => 'customer-voice-tiktok.jpg', 'label' => 'Customer voices - TikTok screenshot'],
     ['key' => 'slide_1',    'file' => 'slide-1.jpg',    'label' => 'Auto-slide testimonial 1 (landscape)'],
     ['key' => 'slide_2',    'file' => 'slide-2.jpg',    'label' => 'Auto-slide testimonial 2 (landscape)'],
     ['key' => 'slide_3',    'file' => 'slide-3.jpg',    'label' => 'Auto-slide testimonial 3 (landscape)'],
@@ -162,6 +161,12 @@ $imageSlots = [
     ['key' => 'ty_5',       'file' => 'ty-5.jpg',       'label' => 'Thank-you photo 5 (landscape)'],
     ['key' => 'ty_6',       'file' => 'ty-6.jpg',       'label' => 'Thank-you photo 6 (landscape)'],
 ];
+
+  $customerVoiceImageSlots = [
+    ['key' => 'customer_voice_whatsapp', 'file' => 'customer-voice-whatsapp.jpg', 'label' => 'WhatsApp screenshot'],
+    ['key' => 'customer_voice_facebook', 'file' => 'customer-voice-facebook.jpg', 'label' => 'Facebook screenshot'],
+    ['key' => 'customer_voice_tiktok', 'file' => 'customer-voice-tiktok.jpg', 'label' => 'TikTok screenshot'],
+  ];
 
 $videoSlots = [
     ['key' => 'thankyou_video', 'file' => 'thankyou.mp4', 'dir' => 'img/', 'label' => 'Thank-you page video (MP4 / WebM)', 'setting' => ''],
@@ -207,11 +212,38 @@ $leadColumns = [
 ];
 
 $activeTab = (string)($_POST['tab'] ?? $_GET['tab'] ?? 'leads');
-if (!in_array($activeTab, ['leads', 'settings', 'images', 'analytics'], true)) {
+if (!in_array($activeTab, ['leads', 'settings', 'images', 'customer-voices', 'analytics'], true)) {
     $activeTab = 'leads';
 }
 $message = '';
 $error = '';
+
+/* Post/Redirect/Get.
+   Every mutating action ends by redirecting instead of rendering the POST
+   response. Without this, refreshing the page replays the POST - the browser
+   warns about resubmitting, and if the user confirms, the upload runs a second
+   time and silently overwrites what they just saved. */
+function hpl_flash(string $type, string $text): void
+{
+    $_SESSION['hpl_flash'] = ['type' => $type, 'text' => $text];
+}
+
+function hpl_redirect_after_post(string $tab = ''): void
+{
+    if (isset($_SESSION['hpl_flash'])) {
+        $url = 'index.php?flash=1' . ($tab !== '' ? '&tab=' . rawurlencode($tab) : '');
+        header('Location: ' . $url);
+        exit;
+    }
+}
+
+/* Pick up a flashed message left by the redirect above. */
+if (isset($_GET['flash']) && isset($_SESSION['hpl_flash'])) {
+    $flash = $_SESSION['hpl_flash'];
+    unset($_SESSION['hpl_flash']);
+    if (($flash['type'] ?? '') === 'error') { $error = (string)$flash['text']; }
+    else { $message = (string)$flash['text']; }
+}
 
 $connection = db();
 
@@ -314,7 +346,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_image'])) {
     } else {
         $key = (string)($_POST['upload_image'] ?? '');
         $slot = null;
-        foreach ($imageSlots as $candidate) {
+        foreach (array_merge($imageSlots, $customerVoiceImageSlots) as $candidate) {
             if ($candidate['key'] === $key) { $slot = $candidate; break; }
         }
         if (!$slot) {
@@ -450,6 +482,13 @@ if ($connection) {
             }
         }
     }
+}
+
+/* All POST handling is done by this point. Hand the result to the redirect so
+   a refresh cannot repeat the action. */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== '')) {
+    hpl_flash($error !== '' ? 'error' : 'ok', $error !== '' ? $error : $message);
+    hpl_redirect_after_post($activeTab);
 }
 ?><!doctype html>
 <html lang="en">
@@ -608,6 +647,7 @@ if ($connection) {
       <button class="tab-btn <?= $activeTab === 'analytics' ? 'active' : '' ?>" type="button" role="tab" aria-selected="<?= $activeTab === 'analytics' ? 'true' : 'false' ?>" data-tab="analytics">Analytics</button>
       <button class="tab-btn <?= $activeTab === 'settings' ? 'active' : '' ?>" type="button" role="tab" aria-selected="<?= $activeTab === 'settings' ? 'true' : 'false' ?>" data-tab="settings">Settings</button>
       <button class="tab-btn <?= $activeTab === 'images' ? 'active' : '' ?>" type="button" role="tab" aria-selected="<?= $activeTab === 'images' ? 'true' : 'false' ?>" data-tab="images">Images</button>
+      <button class="tab-btn <?= $activeTab === 'customer-voices' ? 'active' : '' ?>" type="button" role="tab" aria-selected="<?= $activeTab === 'customer-voices' ? 'true' : 'false' ?>" data-tab="customer-voices">Customer voices</button>
     </div>
 
     <div class="tab-panel <?= $activeTab === 'leads' ? 'active' : '' ?>" id="panel-leads" role="tabpanel">
@@ -792,6 +832,33 @@ foreach ($groups as $title => $group):
         </div>
       </form>
     </div>
+    </div>
+
+    <div class="tab-panel <?= $activeTab === 'customer-voices' ? 'active' : '' ?>" id="panel-customer-voices" role="tabpanel">
+      <form method="post" enctype="multipart/form-data">
+        <?= csrf_field() ?>
+        <input type="hidden" name="tab" value="customer-voices">
+        <div class="card">
+          <h2>Customer voices screenshots</h2>
+          <p class="hint">Upload a JPG, PNG, WebP, or GIF for each social post. The matching card updates as soon as the upload completes.</p>
+          <div class="grid">
+<?php foreach ($customerVoiceImageSlots as $slot): ?>
+            <div>
+              <label for="up_<?= h($slot['key']) ?>"><?= h($slot['label']) ?></label>
+<?php if (file_exists(__DIR__ . '/../img/' . $slot['file'])): ?>
+              <img class="img-thumb" src="../img/<?= h($slot['file']) ?>" alt="<?= h($slot['label']) ?>">
+<?php else: ?>
+              <div class="img-empty">No screenshot uploaded yet</div>
+<?php endif; ?>
+              <input type="file" id="up_<?= h($slot['key']) ?>" name="<?= h($slot['key']) ?>" accept=".jpg,.jpeg,.png,.webp,.gif">
+              <div class="btn-row">
+                <button class="btn" type="submit" name="upload_image" value="<?= h($slot['key']) ?>">Upload <?= h($slot['label']) ?></button>
+              </div>
+            </div>
+<?php endforeach; ?>
+          </div>
+        </div>
+      </form>
     </div>
 
     <div class="tab-panel <?= $activeTab === 'images' ? 'active' : '' ?>" id="panel-images" role="tabpanel">

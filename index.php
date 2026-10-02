@@ -284,10 +284,21 @@ function cc_label(string $cc): string
 
 const DETECTOR_ART = '<div class="detector"><div class="handle"></div><div class="control"><div class="screen"></div><i></i></div><div class="shaft"></div><div class="coil"></div></div>';
 
+/* An uploaded image keeps the same filename, so the browser would keep serving
+   its cached copy and a successful replacement would look like it did nothing.
+   Stamping the URL with the file's mtime makes a changed image a new resource
+   and an unchanged one still hit the cache. */
+function hpl_img_url(string $file): string
+{
+    $path = __DIR__ . '/img/' . $file;
+    $stamp = is_file($path) ? (string)@filemtime($path) : '';
+    return h('img/' . $file) . ($stamp !== '' ? '?v=' . $stamp : '');
+}
+
 function art_block(string $file, string $fallbackClass = ''): string
 {
     if (file_exists(__DIR__ . '/img/' . $file)) {
-        return '<img class="art-img" src="' . h('img/' . $file) . '" alt="HPL Gold Detectors" loading="lazy">';
+        return '<img class="art-img" src="' . hpl_img_url($file) . '" alt="HPL Gold Detectors" loading="lazy">';
     }
     if ($fallbackClass !== '') {
         return '<span class="' . h($fallbackClass) . '">' . DETECTOR_ART . '</span>';
@@ -489,7 +500,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 .proof-coverflow .ring-play:hover { transform:translate(-50%,-50%) scale(1.08); }
 .proof-coverflow .ring-nav button { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); color:#fff; }
     @media (max-width:1024px) { .proof-coverflow .cf-stage { --cf-gap:20px; --cf-w:230px; } }
-    @media (max-width:640px) { .proof-coverflow .cf-stage { --cf-gap:14px; --cf-w:min(65vw, 280px); } .proof-coverflow .ring-item { border-radius:22px; } .proof-coverflow .ring-item::after { border-radius:22px; } .proof-coverflow .cf-arrow { height:40px; width:40px; font-size:21px; } }
+    @media (max-width:640px) { .proof-coverflow .cf-stage { --cf-gap:14px; --cf-w:min(58vw, 250px); } .proof-coverflow .ring-item { border-radius:22px; } .proof-coverflow .ring-item::after { border-radius:22px; } .proof-coverflow .cf-arrow { height:40px; width:40px; font-size:21px; } }
     @media (max-width:640px) { .ring { --ring-r:120px; --ring-size:250px; } .ring-item { border-radius:11px; } .ring-item figcaption { font-size:10px; padding:22px 7px 7px; } .ring-play { font-size:22px; height:50px; width:50px; } }
     @media (max-width:400px) { .ring { --ring-r:95px; --ring-size:210px; } .ring-item figcaption { font-size:9px; padding:18px 6px 6px; } }
     .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
@@ -569,7 +580,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     }
     .proof-mix-story:nth-child(2) .proof-mix-story-media { grid-column:2; }
     .proof-mix-story-media img {
-      display:block; height:100%; object-fit:contain; width:100%;
+      display:block; height:100%; object-fit:cover; width:100%;
     }
     .proof-mix-media img,
     .proof-mix-media video { display:block; height:100%; object-fit:cover; width:100%; }
@@ -603,7 +614,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-social-body { background:linear-gradient(180deg,#f9fafb,#eef2f7); padding:14px; }
     .proof-social-body p { color:#1f2937; font-size:13px; line-height:1.5; margin:0; }
     .proof-social-screenshot { background:#f3f6fb; border:1px solid rgba(17,26,56,.08); border-radius:12px; min-height:190px; overflow:hidden; position:relative; }
-    .proof-social-screenshot.has-image { aspect-ratio:9/16; margin:0 auto; max-width:420px; min-height:0; }
+    .proof-social-screenshot.has-image { aspect-ratio:4/5; margin:0 auto; max-width:420px; min-height:0; }
     .proof-social-screenshot.has-image::before { display:none; }
     .proof-social-screenshot.has-image > img { display:block; height:100%; object-fit:contain; width:100%; }
     .proof-social-screenshot::before { background:linear-gradient(135deg, rgba(255,255,255,.8), rgba(231,236,243,.3)); content:''; inset:0; position:absolute; }
@@ -1041,7 +1052,7 @@ p.lb-hint,
 <body>
   <div class="page">
     <div class="topline"><?= h($s['topline']) ?></div>
-    <header><div class="nav"><a class="brand logo-chip" href="#top"><img class="header-logo" src="img/hpllogo.jpeg" alt="HPL Gold Detectors"></a><nav class="nav-links"><a href="#what-you-get"><?= h($s['nav_1']) ?></a><a href="#faq"><?= h($s['nav_2']) ?></a></nav><a class="nav-cta" href="#book"><?= h($s['nav_cta']) ?></a></div></header>
+    <header><div class="nav"><a class="brand logo-chip" href="#top"><img class="header-logo" src="<?= hpl_img_url('hpllogo.jpeg') ?>" alt="HPL Gold Detectors"></a><nav class="nav-links"><a href="#what-you-get"><?= h($s['nav_1']) ?></a><a href="#faq"><?= h($s['nav_2']) ?></a></nav><a class="nav-cta" href="#book"><?= h($s['nav_cta']) ?></a></div></header>
     <main id="top">
       <section class="hero" id="hero">
         <span class="live-pill"><i></i><?= h($s['live_pill']) ?></span>
@@ -1133,11 +1144,11 @@ p.lb-hint,
 <?php elseif ($layout === 'coverflow'): ?>
 <div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="cf-audio-btn cf-sound-btn" id="cfSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><div class="cf-dots" id="cfDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><video loop playsinline preload="none" <?= hpl_poster_attr($item['src']) ?>data-ring-video><source src="<?= h($item['src']) ?>" type="<?= h(hpl_media_type($item['src'])) ?>"></video><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
-      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section data-pf-group="photos" class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2>Real field stories</h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= h('img/' . $item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
+      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section data-pf-group="photos" class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= hpl_img_url($item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
       <?php
-        $fieldProofImage1 = file_exists(__DIR__ . '/img/field-proof-1.jpg') ? 'img/field-proof-1.jpg' : 'img/slide-1.jpg';
-        $fieldProofImage2 = file_exists(__DIR__ . '/img/field-proof-2.jpg') ? 'img/field-proof-2.jpg' : 'img/slide-2.jpg';
+        $fieldProofImage1 = file_exists(__DIR__ . '/img/field-proof-1.jpg') ? hpl_img_url('field-proof-1.jpg') : hpl_img_url('slide-1.jpg');
+        $fieldProofImage2 = file_exists(__DIR__ . '/img/field-proof-2.jpg') ? hpl_img_url('field-proof-2.jpg') : hpl_img_url('slide-2.jpg');
       ?>
       <?php if (($s['field_proof_enabled'] ?? '1') === '1'): ?>
       <section class="section proof-mix proof-field-section">
@@ -1159,7 +1170,7 @@ p.lb-hint,
                 </div>
               </div>
               <div class="proof-mix-story-media">
-                <img src="<?= h($fieldProofImage1) ?>" alt="<?= h($s['field_proof_1_title'] ?? 'Detectorist story') ?>" loading="lazy">
+                <img src="<?= $fieldProofImage1 ?>" alt="<?= h($s['field_proof_1_title'] ?? 'Detectorist story') ?>" loading="lazy">
               </div>
             </div>
           </article>
@@ -1179,7 +1190,7 @@ p.lb-hint,
                 </div>
               </div>
               <div class="proof-mix-story-media">
-                <img src="<?= h($fieldProofImage2) ?>" alt="<?= h($s['field_proof_2_title'] ?? 'On-ground proof') ?>" loading="lazy">
+                <img src="<?= $fieldProofImage2 ?>" alt="<?= h($s['field_proof_2_title'] ?? 'On-ground proof') ?>" loading="lazy">
               </div>
             </div>
           </article>
@@ -1200,7 +1211,7 @@ p.lb-hint,
             <div class="proof-social-body">
               <div class="proof-social-screenshot whatsapp<?= file_exists(__DIR__ . '/img/customer-voice-whatsapp.jpg') ? ' has-image' : '' ?>">
                 <?php if (file_exists(__DIR__ . '/img/customer-voice-whatsapp.jpg')): ?>
-                <img src="img/customer-voice-whatsapp.jpg" alt="WhatsApp message from an HPL customer" loading="lazy">
+                <img src="<?= hpl_img_url("customer-voice-whatsapp.jpg") ?>" alt="WhatsApp message from an HPL customer" loading="lazy">
                 <?php else: ?>
                 <div class="mock">
                   <div class="mock-head"><span class="mock-avatar"></span><span class="mock-name"></span></div>
@@ -1222,7 +1233,7 @@ p.lb-hint,
             <div class="proof-social-body">
               <div class="proof-social-screenshot facebook<?= file_exists(__DIR__ . '/img/customer-voice-facebook.jpg') ? ' has-image' : '' ?>">
                 <?php if (file_exists(__DIR__ . '/img/customer-voice-facebook.jpg')): ?>
-                <img src="img/customer-voice-facebook.jpg" alt="Facebook post from an HPL customer" loading="lazy">
+                <img src="<?= hpl_img_url("customer-voice-facebook.jpg") ?>" alt="Facebook post from an HPL customer" loading="lazy">
                 <?php else: ?>
                 <div class="mock">
                   <div class="mock-head"><span class="mock-avatar" style="background:linear-gradient(135deg,#f9a8d4,#ec4899);"></span><span class="mock-name"></span></div>
@@ -1244,7 +1255,7 @@ p.lb-hint,
             <div class="proof-social-body">
               <div class="proof-social-screenshot tiktok<?= file_exists(__DIR__ . '/img/customer-voice-tiktok.jpg') ? ' has-image' : '' ?>">
                 <?php if (file_exists(__DIR__ . '/img/customer-voice-tiktok.jpg')): ?>
-                <img src="img/customer-voice-tiktok.jpg" alt="TikTok post featuring an HPL detector" loading="lazy">
+                <img src="<?= hpl_img_url("customer-voice-tiktok.jpg") ?>" alt="TikTok post featuring an HPL detector" loading="lazy">
                 <?php else: ?>
                 <div class="mock">
                   <div class="mock-head"><span class="mock-avatar" style="background:linear-gradient(135deg,#fcd34d,#f59e0b);"></span><span class="mock-name"></span></div>
@@ -1400,7 +1411,7 @@ p.lb-hint,
     </main>
     <footer role="contentinfo" aria-label="Site Footer"><div class="footer-inner">
       <div class="footer-top">
-        <a class="footer-brand logo-chip" href="#top"><img class="footer-logo" src="img/hpllogo.jpeg" alt="HPL Gold Detectors"></a>
+        <a class="footer-brand logo-chip" href="#top"><img class="footer-logo" src="<?= hpl_img_url('hpllogo.jpeg') ?>" alt="HPL Gold Detectors"></a>
         <button class="footer-menu-btn" type="button" id="footerMenuBtn" aria-label="Open Footer Menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
       </div>
       <nav class="footer-nav" id="footerNav" aria-label="Footer Navigation"><ul>
