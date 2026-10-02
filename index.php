@@ -336,7 +336,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 
     /* Bunny Stream promo embed. The wrapper owns the 16:9 box so the frame
        keeps the existing panel dimensions while the player fills it. */
-    .promo-embed { margin:0 auto 30px; max-width:800px; width:100%; }
+    .promo-embed { margin:0 auto 30px; max-width:1000px; width:100%; }
     .promo-frame {
       aspect-ratio:16/9;
       background:#05040c;
