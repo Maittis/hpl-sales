@@ -164,7 +164,8 @@ if (isset($_POST['lead_submit'])) {
         }
 
         if (!$leadErrors) {
-            $leadSent = true;
+          header('Location: thank-you.php?name=' . rawurlencode($leadFields['lead_name']));
+          exit;
         }
     }
 }
@@ -297,13 +298,9 @@ if (!function_exists('hpl_embed_host_ok')) {
             parse_str($parts['query'], $query);
         }
 
-        /* Autoplay has to survive the handover: a player that is not running
-           looks broken next to cards that are. Muted autoplay is also the only
-           kind browsers permit without a gesture, and a cross-origin embed
-           cannot be unmuted from here, so muted is fixed on. Visitors unmute
-           using the player's own controls. */
-        $query['autoplay'] = '1';
-        $query['muted'] = '1';
+        /* Proof videos begin only when the visitor presses the player controls. */
+        $query['autoplay'] = '0';
+          $query['muted'] = '0';
         if (!isset($query['loop'])) { $query['loop'] = '0'; }
         $query['playsinline'] = '1';
         $query['responsive'] = '1';
@@ -337,10 +334,11 @@ if (!function_exists('hpl_embed_host_ok')) {
         $caption = (string)($item['caption'] ?? '');
 
         if (($item['kind'] ?? 'video') === 'embed') {
-            return '<div class="proof-embed">'
+            return '<div class="proof-embed" style="aspect-ratio:16 / 9; height:100%; width:100%;">'
                 . '<iframe data-embed-src="' . h($src) . '"'
                 . ' title="' . h($caption !== '' ? $caption : 'Customer story video') . '"'
                 . ' loading="lazy"'
+                . ' style="border:0; display:block; height:100%; inset:0; position:absolute; width:100%;"'
                 . ' allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"'
                 . ' allowfullscreen="true"'
                 . ' referrerpolicy="strict-origin-when-cross-origin"></iframe>'
@@ -348,7 +346,7 @@ if (!function_exists('hpl_embed_host_ok')) {
         }
 
         return '<video playsinline preload="none" ' . $videoAttrs . ' ' . hpl_poster_attr($src)
-            . '><source src="' . h($src) . '" type="' . h(hpl_media_type($src)) . '"></video>';
+            . ' style="display:block; height:100%; object-fit:cover; width:100%;"><source src="' . h($src) . '" type="' . h(hpl_media_type($src)) . '"></video>';
     }
 }
 function hpl_countries(): array
@@ -568,24 +566,33 @@ function art_block(string $file, string $fallbackClass = ''): string
     .panel-kicker { display:none; }
     .hero-copy { color:#bfc8d8; font-size:15px; line-height:1.5; margin:0 auto 18px; max-width:560px; }
     .button { background:var(--gold); border:0; color:var(--navy-dark); cursor:pointer; display:inline-block; font-size:14px; font-weight:700; letter-spacing:.06em; padding:16px 38px; text-transform:uppercase; }
+    .button, .nav-cta { box-shadow:0 0 24px rgba(244,202,91,.36); }
     .button:hover { background:var(--gold-light); }
+    .button.hero-find-cta { align-items:center; background:var(--gold); border:6px solid #713400; border-radius:999px; box-shadow:0 0 24px rgba(244,202,91,.36); color:var(--navy-dark); display:inline-flex; font-size:17px; font-weight:700; justify-content:center; line-height:1.3; min-height:94px; padding:20px 38px; text-align:center; width:min(460px,100%); }
+    .button.hero-find-cta:hover { background:var(--gold-light); }
     .section { padding:46px 34px; }
     .section.center { text-align:center; }
     .section h2 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:34px; letter-spacing:-.05em; line-height:1.05; margin:0 0 12px; }
     .section p { color:var(--muted); font-size:16px; line-height:1.6; margin:0 auto; max-width:640px; }
     .wash { background:var(--wash); }
-    .proof { text-align:center; }
-    .proof h2 { margin-bottom:20px; }
-    .proof-stage { aspect-ratio:4/5; background:#000; box-shadow:0 14px 28px rgba(9,15,36,.16); margin:0 auto; max-height:52vh; max-width:520px; overflow:hidden; position:relative; width:min(520px,92vw); }
-    .proof-slide { inset:0; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .25s ease, transform .3s ease; }
-    .proof-slide.on { opacity:1; transform:none; z-index:2; }
+    .proof { background:var(--navy); text-align:center; }
+    .proof h2 { color:#fff; margin-bottom:20px; }
+    .proof-stage { background:transparent; display:flex; gap:18px; margin:0 auto; max-width:620px; overflow-x:auto; overflow-y:hidden; padding:8px 10px 16px; scroll-behavior:smooth; scroll-snap-type:x proximity; scrollbar-width:none; -ms-overflow-style:none; width:min(92vw, 620px); }
+    .proof-stage::-webkit-scrollbar { display:none; }
+    .proof-slide { aspect-ratio:16/9 !important; background:#000; border-radius:14px; box-shadow:0 12px 25px rgba(9,15,36,.16); flex:0 0 100%; height:min(42vw, 420px) !important; margin:0; max-height:420px; max-width:100%; opacity:1; overflow:hidden; position:relative; scroll-snap-align:center; transform:none; transition:opacity .25s ease, transform .3s ease; }
+    .proof-slide.on { transform:none; z-index:2; }
+    .proof-slide .proof-embed { aspect-ratio:16/9 !important; height:100% !important; position:relative; width:100% !important; }
+    .proof-slide .proof-embed iframe { border:0; display:block; height:100% !important; inset:0; position:absolute; width:100% !important; }
     .proof-slide video { display:block; height:100%; object-fit:cover; width:100%; }
-    .proof-slide figcaption { background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:14px; font-weight:700; left:0; padding:38px 14px 14px; position:absolute; right:0; text-align:left; }
-    .proof-cue { align-items:center; animation:nudge 1.8s ease-in-out infinite; background:rgba(17,26,56,.85); border:0; border-radius:50%; bottom:16px; color:#fff; cursor:pointer; display:flex; font-size:24px; height:44px; justify-content:center; position:absolute; right:16px; transition:opacity .3s ease; width:44px; z-index:4; }
-    .proof-stage-wrap.moved .proof-cue { opacity:0; pointer-events:none; }
-    .proof-stage-wrap { margin:0 auto; max-width:560px; position:relative; }
+    .proof-slide figcaption { background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:13px; font-weight:700; left:0; padding:28px 12px 10px; position:absolute; right:0; text-align:left; }
+    .proof-cue { align-items:center; animation:nudge 1.8s ease-in-out infinite; background:rgba(17,26,56,.9); border:1px solid rgba(244,202,91,.7); border-radius:999px; bottom:18px; box-shadow:0 10px 20px rgba(9,15,36,.18); color:#fff; cursor:pointer; display:flex; gap:8px; font-size:12px; font-weight:700; justify-content:center; letter-spacing:.08em; padding:8px 14px 8px 12px; position:absolute; right:14px; text-transform:uppercase; transition:opacity .3s ease; z-index:4; }
+    .proof-cue .proof-cue-arrow { font-size:22px; line-height:1; }
+    .proof-cue .proof-cue-text { animation:blink 1.2s ease-in-out infinite; }
+    .proof-stage-wrap.cue-dismissed .proof-cue { opacity:1; pointer-events:auto; }
+    .proof-stage-wrap { margin:0 auto; max-width:620px; position:relative; }
     .proof-stage-wrap .ring-sound-btn { right:16px; top:16px; position:absolute; z-index:10; }
     @keyframes nudge { 0%,100% { transform:translateX(0); } 50% { transform:translateX(6px); } }
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:.35; } }
     .proof-empty { background:var(--navy); color:#fff; font-size:14px; margin:0 auto; max-width:420px; padding:60px 20px; }
     .proof-hint { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:16px 0 0; text-transform:uppercase; }
     .proof-dots { display:flex; gap:8px; justify-content:center; margin:12px 0 0; }
@@ -593,15 +600,13 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-dots button.on { background:var(--gold); transform:scale(1.35); }
     /* circle of videos */
     .ring-wrap { margin:26px auto 0; max-width:100%; position:relative; touch-action:pan-y; }
-    .ring { --ring-w:min(var(--ring-size,300px), 80vw); height:calc(var(--ring-w) / var(--ring-shape,0.5625) * 1.12 + 30px); margin:0 auto; max-width:100%; perspective:calc(var(--ring-r,300px) * 10); position:relative; width:calc(var(--ring-r,300px) * 2 + var(--ring-w) + 40px); }
+    .ring { --ring-w:min(var(--ring-size,760px), 84vw); height:calc(var(--ring-w) / var(--ring-shape,0.5625) * 1.12 + 30px); margin:0 auto; max-width:100%; perspective:calc(var(--ring-r,520px) * 10); position:relative; width:calc(var(--ring-r,520px) * 2 + var(--ring-w) + 40px); }
     .ring-item { background:#0b1226; border-radius:14px; box-shadow:0 12px 30px rgba(9,15,36,.28); cursor:pointer; left:50%; margin:0; overflow:hidden; position:absolute; top:50%; transform:translate(-50%,-50%); transition:transform .3s cubic-bezier(.45,.05,.25,1), opacity .2s ease, filter .2s ease, box-shadow .2s ease; width:var(--ring-w); will-change:transform,opacity; }
     .ring-item video { aspect-ratio:var(--ring-shape,0.5625); display:block; height:auto; object-fit:cover; width:100%; }
-    /* A player embed keeps the same card shape as a native video, so the ring
-       geometry and the coverflow spacing are unchanged. The 16:9 player is
-       centred inside it and letterboxed rather than cropped, because cropping
-       would cut off the top and bottom of someone's field footage. */
-    .proof-embed { align-items:center; aspect-ratio:var(--ring-shape,0.5625); background:#0b1226; display:flex; justify-content:center; overflow:hidden; position:relative; width:100%; }
-    .proof-embed iframe { aspect-ratio:16/9; border:0; display:block; height:auto; max-height:100%; width:100%; }
+    /* Keep Bunny embeds full-bleed inside the card so they feel like native
+       video tiles, while preserving the original ring geometry and motion. */
+    .proof-embed { align-items:center; aspect-ratio:var(--ring-shape,0.5625); background:#0b1226; border-radius:14px; display:flex; height:100%; justify-content:center; overflow:hidden; position:relative; width:100%; }
+    .proof-embed iframe { border:0; display:block; height:100%; inset:0; max-height:100%; max-width:100%; object-fit:cover; position:absolute; transform:scale(1.35); transform-origin:center center; width:100%; }
     .proof-embed iframe:not([data-on]) { visibility:hidden; }
     .ring-item figcaption { background:linear-gradient(to top,rgba(0,0,0,.86),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:12px; font-weight:700; left:0; line-height:1.25; padding:30px 10px 10px; position:absolute; right:0; text-align:left; }
     .ring-item::after { border:2px solid transparent; border-radius:14px; content:''; inset:0; pointer-events:none; position:absolute; transition:border-color .35s ease; }
@@ -728,6 +733,12 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-field-section { background:var(--navy); border-top:1px solid rgba(244,202,91,.28); }
     .proof-field-section h2 { color:var(--gold-light); }
     .proof-field-section > .section-label { color:var(--gold); }
+    .proof-visuals { background:var(--navy-dark); border-top:1px solid rgba(244,202,91,.2); text-align:center; }
+    .proof-visuals h2 { color:#fff; }
+    .proof-visuals > .section-label { color:var(--gold); }
+    .proof-visual-grid { display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:28px auto 0; max-width:1120px; }
+    .proof-visual-grid figure { aspect-ratio:4/5; border:1px solid rgba(244,202,91,.28); border-radius:12px; margin:0; overflow:hidden; }
+    .proof-visual-grid img { display:block; height:100%; object-fit:cover; width:100%; }
     .proof-mix-grid { display:grid; gap:26px; grid-template-columns:1fr; margin:28px auto 0; max-width:1220px; }
     .proof-mix-story-link { color:inherit; display:block; text-decoration:none; }
     .proof-mix-card-link { color:inherit; display:block; height:100%; text-decoration:none; }
@@ -740,9 +751,7 @@ function art_block(string $file, string $fallbackClass = ''): string
       text-decoration:none; transition:transform .25s ease, box-shadow .25s ease; width:100%; animation:proof-story-enter .65s cubic-bezier(.2,.7,.2,1) both;
     }
     .proof-mix-story:nth-child(2) { animation-delay:.1s; }
-    .proof-mix-story:hover,
-    .proof-mix-story:focus-within,
-    .proof-mix-story:hover { box-shadow:0 24px 50px rgba(0,0,0,.32),0 0 0 1px rgba(244,202,91,.28); transform:translateY(-3px); }
+    .proof-mix-story:focus-within { box-shadow:0 24px 50px rgba(0,0,0,.32),0 0 0 1px rgba(244,202,91,.28); }
     @keyframes proof-story-enter { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
     .proof-mix-story-header {
       background:var(--navy); color:#fff; padding:18px 24px 14px;
@@ -855,6 +864,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-fallback { aspect-ratio:4/3; background:var(--navy); display:block; position:relative; width:100%; }
     .proof-fallback .detector { height:275px; left:50%; position:absolute; top:18px; transform:translateX(-45%) rotate(-12deg) scale(.42); width:205px; }
     .proof-caption { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:18px 0 0; text-transform:uppercase; }
+    .proof .proof-caption, .proof .pf-sound-hint, .proof-stage-wrap .ring-sound-btn { display:none !important; }
     .art-img { display:block; height:100%; object-fit:cover; width:100%; }
     .live-pill { background:#c0392b; border-radius:40px; color:#fff; display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:.12em; margin-bottom:20px; padding:9px 18px; text-transform:uppercase; }
     .live-pill i { background:#ff6b6b; border-radius:50%; display:inline-block; height:8px; position:relative; width:8px; }
@@ -1044,6 +1054,10 @@ function art_block(string $file, string $fallbackClass = ''): string
       letter-spacing:.08em;
       text-transform:uppercase;
     }
+    .back-to-top {
+      align-items:center; background:var(--gold); border:1px solid rgba(9,15,36,.28); border-radius:50%; bottom:94px; box-shadow:0 8px 20px rgba(9,15,36,.28); color:var(--navy-dark); cursor:pointer; display:flex; font-size:25px; font-weight:700; height:46px; justify-content:center; line-height:1; padding:0; position:fixed; right:24px; width:46px; z-index:990;
+    }
+    .back-to-top:hover { background:var(--gold-light); }
     @media (max-width:640px) {
   .cookie-banner { padding:16px 14px; }
   .cookie-content { flex-direction:column; align-items:flex-start; gap:12px; }
@@ -1054,6 +1068,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     padding:10px 14px 10px 12px;
     right:14px;
   }
+  .back-to-top { bottom:82px; right:16px; }
   .wa-float-label { letter-spacing:.06em; }
   .topline { font-size:9px; padding:8px 12px; }
   header { padding:16px 16px; }
@@ -1273,10 +1288,7 @@ p.lb-hint,
             $bunnyLibrary = '767583';
             $bunnyVideo   = '62e9fec8-7052-4949-8a03-8104493b3795';
             $bunnySrc     = 'https://player.mediadelivery.net/embed/' . $bunnyLibrary . '/' . $bunnyVideo;
-            /* muted=false is the desired state. The script below steps down to
-               muted only if the browser refuses audible autoplay, then restores
-               sound on the visitor's first interaction. See hpl_promo_player. */
-            $bunnyParams = 'autoplay=true&muted=false&loop=false&preload=true&responsive=true&playsinline=true';
+            $bunnyParams = 'autoplay=false&muted=false&loop=false&preload=true&responsive=true&playsinline=true';
             $bunnyTitle  = (string)($s['hero_h1'] ?? 'HPL Sales promo');
           ?>
           <div class="promo-frame">
@@ -1297,7 +1309,7 @@ p.lb-hint,
           </noscript>
         </div>
         <p class="hero-copy"><?= h($s['hero_caption']) ?></p>
-        <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        <a class="button hero-find-cta" href="#book" aria-disabled="true" data-ready-label="<?= h($s['cta_text']) ?>">WATCH THE VIDEO TO UNLOCK</a>
       </section>
 
       <?php
@@ -1354,11 +1366,33 @@ p.lb-hint,
       </div>
       <?php endif; ?>
 
-      <section data-pf-group="videos" class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide"><?= hpl_proof_media($item, 'loop data-proof-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="Next video">&rsaquo;</button><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button></div><div class="proof-dots" id="proofDots"></div>
+      <section data-pf-group="videos" class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide" style="aspect-ratio:16 / 9; height:min(42vw, 420px); max-height:420px; width:100%;"><?= hpl_proof_media($item, 'loop data-proof-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="More videos"><span class="proof-cue-text">More videos</span><span class="proof-cue-arrow" aria-hidden="true">&rsaquo;</span></button><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button></div><div class="proof-dots" id="proofDots"></div>
 <?php elseif ($layout === 'coverflow'): ?>
 <div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><?= hpl_proof_media($item, 'data-ring-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="cf-audio-btn cf-sound-btn" id="cfSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><div class="cf-dots" id="cfDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><?= hpl_proof_media($item, 'loop data-ring-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
-      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section data-pf-group="photos" class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once uploaded from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= hpl_img_url($item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
+      <?php
+        $proofVisuals = [];
+        foreach ([
+            'proof-1.jpg' => 'Detectorist holding a detector and recovered gold',
+            'proof-2.jpg' => 'Gold detector standing in worked ground',
+            'proof-3.jpg' => 'Gold detector shown across the field terrain',
+        ] as $file => $alt) {
+            if (file_exists(__DIR__ . '/img/' . $file)) { $proofVisuals[] = ['file' => $file, 'alt' => $alt]; }
+        }
+      ?>
+      <?php if ($proofVisuals): ?>
+      <section class="section proof-visuals">
+        <div class="section-label">From the field</div>
+        <h2>Real equipment. Real ground.</h2>
+        <div class="proof-visual-grid">
+          <?php foreach ($proofVisuals as $visual): ?>
+          <figure><img src="<?= hpl_img_url($visual['file']) ?>" alt="<?= h($visual['alt']) ?>" loading="lazy"></figure>
+          <?php endforeach; ?>
+        </div>
+      </section>
+      <?php endif; ?>
+
+      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section data-pf-group="photos" class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once added from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= hpl_img_url($item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
 
       <?php
         $fieldProofImage1 = file_exists(__DIR__ . '/img/field-proof-1.jpg') ? hpl_img_url('field-proof-1.jpg') : hpl_img_url('slide-1.jpg');
@@ -1380,7 +1414,6 @@ p.lb-hint,
                 <p><?= h($s['field_proof_1_text'] ?? '') ?></p>
                 <div class="proof-mix-story-actions">
                   <a class="primary" href="#book"><?= h($s['field_proof_1_cta'] ?? 'Book a call') ?></a>
-                  <a class="secondary" href="proof-story.php?story=detectorist-story">Full story</a>
                 </div>
               </div>
               <div class="proof-mix-story-media">
@@ -1400,7 +1433,6 @@ p.lb-hint,
                 <p><?= h($s['field_proof_2_text'] ?? '') ?></p>
                 <div class="proof-mix-story-actions">
                   <a class="primary" href="#what-you-get"><?= h($s['field_proof_2_cta'] ?? 'See the field kit') ?></a>
-                  <a class="secondary" href="proof-story.php?story=on-ground-proof">Full story</a>
                 </div>
               </div>
               <div class="proof-mix-story-media">
@@ -1656,6 +1688,7 @@ p.lb-hint,
       <span class="wa-float-label"><?= h($quickContactLabel) ?></span>
     </a>
 <?php } ?>
+    <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top" title="Back to top">&uarr;</button>
   </div>
   <script>
     (function () {
@@ -1697,6 +1730,11 @@ p.lb-hint,
         });
       }
 
+      var backToTop = document.getElementById('backToTop');
+      if (backToTop) backToTop.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
       if (denyBtn) {
         denyBtn.addEventListener('click', function() {
           localStorage.setItem('hpl_cookies_accepted', 'false');
@@ -1711,152 +1749,37 @@ p.lb-hint,
         });
       }
 
-/* ---------- Bunny Stream promo: autoplay ladder ----------
-         Desired state is autoplay WITH sound. The embed URL already asks for
-         that (autoplay=true&muted=false), so step 1 is the player trying on
-         its own. This script only handles what the URL cannot decide:
-         whether the browser allowed it.
-
-         1. ready      -> poll getPaused; wait for playback to actually begin.
-         2. if it began -> confirm the state with getMuted. Audible = done.
-         3. if muted, or if it never began within ~3s -> mute()+play(), which
-            muted autoplay always permits, so the visitor sees motion instead of
-            a stopped frame. Then wait for one real interaction and unmute.
-         4. error code 5 -> the browser refused play(). Treat as the same as 3.
-
-         Every step is a plain play()/unmute() the browser is free to refuse.
-         Nothing here works around the autoplay policy. */
+/* ---------- Bunny Stream promo: visitor-started playback ---------- */
       (function () {
         var frame = document.getElementById('promoPlayer');
-        /* Guard on the frame only. playerjs is loaded further down by this
-           same closure, so it is never defined yet at this point. */
         if (!frame) return;
-
-        var GESTURES = ['pointerdown', 'keydown', 'touchstart'];
-        var state = {
-          playing: false,
-          audible: false,
-          fallback: false,  /* we muted it because sound was refused */
-          upgraded: false    /* sound restored on first interaction */
-        };
+        var cta = document.querySelector('.hero-find-cta');
         var player = null;
 
         function track(type, data) { if (window.hplTrack) window.hplTrack(type, data); }
 
-        function supports(name) {
-          return !player.supports || player.supports('method', name);
+        function unlockCta() {
+          if (!cta || cta.getAttribute('aria-disabled') !== 'true') return;
+          cta.textContent = cta.getAttribute('data-ready-label') || "I'M READY TO FIND GOLD";
+          cta.setAttribute('aria-disabled', 'false');
         }
 
-        /* Called once playback is known to be running, to learn whether the
-           sound survived. getMuted is the only honest signal for this: some
-           browsers report a successful play() and still hold the mute. */
-        function confirmSound() {
-          if (!supports('getMuted')) return;
-          player.getMuted(function (muted) {
-            state.audible = !muted;
-            /* getMuted resolves after the play event, so the audio state is
-               reported from here rather than guessed at play time. */
-            track('video_sound', { video: 'promo', on: state.audible });
-            if (muted && state.fallback) armFirstGesture();
+        if (cta) {
+          cta.addEventListener('click', function (event) {
+            if (cta.getAttribute('aria-disabled') === 'true') event.preventDefault();
           });
-        }
-
-        /* Sound was refused. Muted autoplay is always permitted, so this can
-           only improve the outcome. No iframe reload, so playback does not
-           restart from the beginning.
-
-           Deliberately safe to call more than once: the first call can land
-           before the media is ready to start, and a guard that treated
-           "already muted" as "already handled" would strand the player on a
-           stopped frame. mute() and play() are both idempotent. */
-        function stepDownToMuted() {
-          state.fallback = true;
-          if (supports('mute')) player.mute();
-          play();
-          armFirstGesture();
-        }
-
-        function play() {
-          if (!supports('play')) return;
-          var p = player.play();
-          /* Either shape is fine: a promise we swallow, or fire-and-forget
-             where the error event is the only report. A refusal is handled by
-             stepDownToMuted from the error listener and the supervisor below,
-             never from here, to avoid recursing on repeated rejections. */
-          if (p && p.then) p.catch(function () { /* handled elsewhere */ });
-        }
-
-        /* A blocked audible attempt can only be cleared by a real user
-           interaction, because that is what lifts the restriction.
-
-           Armed immediately, not after the fallback: the player can take a
-           few seconds to become ready, and an interaction during that window
-           is exactly the one that unlocks audible autoplay. Once the visitor
-           touches the volume themselves we stop interfering, so this runs at
-           most once per page load. */
-        function armFirstGesture() {
-          if (state.gestureArmed || state.upgraded) return;
-          state.gestureArmed = true;
-          var fire = function () {
-            if (state.upgraded) return;
-            GESTURES.forEach(function (t) { document.removeEventListener(t, fire); });
-            state.gestureArmed = false;
-            state.upgraded = true;
-            if (supports('unmute')) player.unmute();
-            /* Commands sent before the player is ready are dropped, so hold
-               the request and apply it as soon as it reports ready. */
-            if (state.ready) play();
-            else state.pendingGesture = true;
-          };
-          GESTURES.forEach(function (t) {
-            document.addEventListener(t, fire, { passive: true });
-          });
-        }
-
-        /* Supervise rather than trust a single check. A blocked autoplay produces no
-           event at all, so this polls getPaused until playback actually begins,
-           which keeps a slow connection from being mistaken for a block. If
-           nothing has started after ~4s the muted nudge is re-issued
-           periodically: the first one can land before the media is ready. */
-        function verifyAutoplay() {
-          var elapsed = 0;
-          var timer = window.setInterval(function () {
-            elapsed += 500;
-            player.getPaused(function (paused) {
-              if (paused) return;
-              window.clearInterval(timer);
-              state.playing = true;
-              confirmSound();
-            });
-            if (elapsed >= 4000 && elapsed < 14000 && elapsed % 2000 === 0) {
-              stepDownToMuted();
-            }
-          }, 500);
         }
 
         function bind() {
           player = new playerjs.Player(frame);
 
           player.on('ready', function () {
-            state.ready = true;
-            /* A gesture that arrived while the player was still loading. */
-            if (state.pendingGesture) {
-              state.pendingGesture = false;
-              if (supports('unmute')) player.unmute();
-              play();
-            }
-            verifyAutoplay();
+            player.getPaused(function (paused) { if (!paused) unlockCta(); });
           });
 
-player.on('play', function () {
-          state.playing = true;
-          track('video_play', { video: 'promo' });
-        });
-
-          /* Code 5 is the documented signal for a play() the browser refused
-             because autoplay was blocked. */
-          player.on('error', function (data) {
-            if (data && data.code === 5) stepDownToMuted();
+          player.on('play', function () {
+            unlockCta();
+            track('video_play', { video: 'promo' });
           });
         }
 
@@ -1865,13 +1788,9 @@ player.on('play', function () {
         lib.src = 'https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js';
         lib.async = true;
         lib.onload = bind;
-        /* If player.js cannot load, the embed still autoplays on its own via
-           its own parameters, so there is nothing to repair here. */
+          /* If player.js cannot load, Bunny's own controls still play the video. */
         lib.onerror = function () { /* embed is self-sufficient */ };
         document.head.appendChild(lib);
-
-        /* Armed here so an early interaction is never missed. */
-        armFirstGesture();
       })();
 
       var scrollTracked = { 25: false, 50: false, 75: false, 100: false };
@@ -2554,7 +2473,83 @@ form.addEventListener('keydown', function (e) {
       var dotsWrap = document.getElementById('proofDots');
       var wrap = document.getElementById('proofWrap');
       var cue = document.getElementById('proofCue');
+      var proofSection = stage.closest('.proof');
       var idx = 0;
+      var reachedLast = false;
+
+      function proofNearViewport() {
+        if (!proofSection) return false;
+        var rect = proofSection.getBoundingClientRect();
+        return rect.bottom > -300 && rect.top < window.innerHeight + 300;
+      }
+
+      function dismissCue() {
+        if (wrap) wrap.classList.add('cue-dismissed');
+      }
+
+      function updateCueJourney() {
+        if (idx === slides.length - 1) reachedLast = true;
+        if (reachedLast && idx === 0) dismissCue();
+      }
+
+      function setSlideEmbed(slide, on) {
+        var iframe = slide && slide.querySelector('.proof-embed iframe');
+        if (!iframe) return;
+        if (on && !iframe.hasAttribute('data-on')) {
+          iframe.setAttribute('src', iframe.getAttribute('data-embed-src') || '');
+          iframe.setAttribute('data-on', '1');
+        } else if (!on && iframe.hasAttribute('data-on')) {
+          iframe.removeAttribute('src');
+          iframe.removeAttribute('data-on');
+        }
+      }
+
+      function bindProofEmbed(iframe) {
+        var focused = false;
+        var embedUrl = iframe.getAttribute('data-embed-src') || iframe.src;
+        if (!/\.mediadelivery\.net(?:\/|$)/i.test(embedUrl)) return;
+
+        iframe.addEventListener('focus', function () { focused = true; });
+        function bindPlayer() {
+          if (!window.playerjs || !iframe.hasAttribute('src') || iframe.dataset.cuePlayerBound) return;
+          try {
+            var player = new window.playerjs.Player(iframe);
+            player.on('play', function () {
+              if (focused) dismissCue();
+            });
+            iframe.dataset.cuePlayerBound = '1';
+          } catch (e) {}
+        }
+
+        iframe.addEventListener('load', bindPlayer);
+        var playerScript = document.querySelector('script[src*="playerjs-latest.min.js"]');
+        if (window.playerjs) bindPlayer();
+        else if (playerScript) playerScript.addEventListener('load', bindPlayer, { once: true });
+      }
+
+      slides.forEach(function (s) {
+        s.style.aspectRatio = '16 / 9';
+        s.style.height = 'min(42vw, 420px)';
+        s.style.maxHeight = '420px';
+        s.style.width = 'min(68vw, 700px)';
+        var embed = s.querySelector('.proof-embed');
+        if (embed) {
+          embed.style.aspectRatio = '16 / 9';
+          embed.style.height = '100%';
+          embed.style.width = '100%';
+        }
+        var iframe = s.querySelector('.proof-embed iframe');
+        if (iframe) {
+          iframe.style.height = '100%';
+          iframe.style.width = '100%';
+          iframe.style.position = 'absolute';
+          iframe.style.inset = '0';
+        }
+        var video = s.querySelector('video');
+        if (video) video.addEventListener('play', dismissCue);
+        var embedFrame = s.querySelector('.proof-embed iframe');
+        if (embedFrame) bindProofEmbed(embedFrame);
+      });
 
       var dots = slides.map(function (s, i) {
         var d = document.createElement('button');
@@ -2565,23 +2560,47 @@ form.addEventListener('keydown', function (e) {
         return d;
       });
 
+      function syncDots() {
+        dots.forEach(function (d, n) { d.classList.toggle('on', n === idx); });
+      }
+
+      function scrollToIndex(i) {
+        i = Math.max(0, Math.min(slides.length - 1, i));
+        var target = slides[i];
+        if (!target) return;
+        if (i !== idx) setSlideEmbed(slides[idx], false);
+        stage.scrollTo({
+          left: target.offsetLeft - (stage.clientWidth - target.offsetWidth) / 2,
+          behavior: 'smooth'
+        });
+        idx = i;
+        syncDots();
+        updateCueJourney();
+        if (proofNearViewport()) setSlideEmbed(slides[idx], true);
+      }
+
+      window.__hplProofFront = function () { setSlideEmbed(slides[idx], true); };
+      window.__hplProofFront();
+
       function show(i) {
         if (i === idx) return;
         var prev = slides[idx];
-        prev.classList.remove('on');
-        var pv = prev.querySelector('video');
-        if (pv) { pv.pause(); pv.currentTime = 0; }
-        idx = i;
+        if (prev) {
+          prev.classList.remove('on');
+          var pv = prev.querySelector('video');
+          if (pv) { pv.pause(); pv.currentTime = 0; }
+        }
+        scrollToIndex(i);
         var cur = slides[idx];
-        cur.classList.add('on');
-        dots.forEach(function (d, n) { d.classList.toggle('on', n === idx); });
-        if (wrap) wrap.classList.add('moved');
+        if (cur) cur.classList.add('on');
       }
 
       function next() { show((idx + 1) % slides.length); }
       function prev() { show((idx - 1 + slides.length) % slides.length); }
 
-      slides[0].classList.add('on');
+      slides.forEach(function (s, i) {
+        s.classList.toggle('on', i === 0);
+      });
       dots[0].classList.add('on');
 
       if (cue) cue.addEventListener('click', next);
@@ -2610,6 +2629,25 @@ form.addEventListener('keydown', function (e) {
         var dy = e.changedTouches[0].clientY - ty;
         if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
         if (dx < 0) next(); else prev();
+      }, { passive: true });
+
+      stage.addEventListener('scroll', function () {
+        var centre = stage.scrollLeft + stage.clientWidth / 2;
+        var nearest = 0;
+        var nearestDistance = Number.POSITIVE_INFINITY;
+        slides.forEach(function (s, i) {
+          var mid = s.offsetLeft + s.offsetWidth / 2;
+          var distance = Math.abs(mid - centre);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearest = i;
+          }
+        });
+        if (nearest !== idx) {
+          idx = nearest;
+          syncDots();
+          updateCueJourney();
+        }
       }, { passive: true });
 
       document.addEventListener('keydown', function (e) {
