@@ -34,11 +34,58 @@ $leadStep = 1;
 // Read the token before any output so the session cookie leaves with the headers.
 $leadCsrf = hpl_public_csrf_token();
 
-$waNumber = preg_replace('/[^0-9]/', '', (string)($s['wa_number'] ?? ''));
-$waText = str_replace('{name}', 'there', (string)($s['whatsapp_msg'] ?? ''));
-$waUrl = $waNumber !== ''
-    ? 'https://wa.me/' . $waNumber . '?text=' . rawurlencode($waText)
-    : 'https://wa.me/?text=' . rawurlencode($waText);
+/* WhatsApp contact link.
+   An empty or malformed wa_number used to override the default and build
+   "https://wa.me/?text=...", which opens WhatsApp with no recipient, so a
+   visitor tapping it reached nobody. The helper below normalises whatever the
+   admin pasted, falls back to the configured default when the stored value is
+   unusable, and returns '' if even that fails - a dead link is hidden rather
+   than rendered. Defined here rather than only in config.php because
+   config.php is excluded from the deployment archive for its credentials. */
+if (!function_exists('hpl_wa_digits')) {
+    function hpl_wa_digits(string $raw, string $fallbackCc = '260'): string
+    {
+        $digits = preg_replace('/\D+/', '', trim($raw));
+        if ($digits === null || $digits === '') {
+            return '';
+        }
+        if (strpos($digits, '00') === 0) {
+            $digits = substr($digits, 2);
+        }
+        if ($digits !== '' && $digits[0] === '0') {
+            $digits = $fallbackCc . substr($digits, 1);
+        }
+        $len = strlen($digits);
+        if ($len < 7 || $len > 15) {
+            return '';
+        }
+        return $digits;
+    }
+}
+if (!function_exists('hpl_wa_number')) {
+    function hpl_wa_number(array $settings, string $fallbackCc = '260'): array
+    {
+        $digits = hpl_wa_digits((string)($settings['wa_number'] ?? ''), $fallbackCc);
+        if ($digits !== '') {
+            return ['digits' => $digits, 'configured' => true];
+        }
+        $digits = hpl_wa_digits((string)(hpl_defaults()['wa_number'] ?? ''), $fallbackCc);
+        return ['digits' => $digits, 'configured' => $digits !== ''];
+    }
+}
+if (!function_exists('hpl_wa_url')) {
+    function hpl_wa_url(array $settings, string $name = '', string $fallbackCc = '260'): string
+    {
+        $number = hpl_wa_number($settings, $fallbackCc);
+        if ($number['digits'] === '') {
+            return '';
+        }
+        $text = str_replace('{name}', $name !== '' ? $name : 'there', (string)($settings['whatsapp_msg'] ?? ''));
+        return 'https://wa.me/' . $number['digits'] . '?text=' . rawurlencode($text);
+    }
+}
+$waUrl = hpl_wa_url($s, 'there');
+$waNumber = hpl_wa_number($s)['digits'];
 $quickContactUrl = $waUrl;
 $quickContactLabel = 'WhatsApp';
 
@@ -1584,10 +1631,13 @@ p.lb-hint,
         </div>
       </div>
     </div>
+    <?php /* Hidden outright when there is no usable number: an anchor with an empty
+       href is focusable, looks clickable, and goes nowhere. */ if ($quickContactUrl !== '') { ?>
     <a class="wa-float" href="<?= h($quickContactUrl) ?>" target="_blank" rel="noopener" aria-label="<?= h('Message the HPL team on WhatsApp') ?>">
       <span class="wa-float-icon" aria-hidden="true">✆</span>
       <span class="wa-float-label"><?= h($quickContactLabel) ?></span>
     </a>
+<?php } ?>
   </div>
   <script>
     (function () {

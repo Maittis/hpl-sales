@@ -49,14 +49,55 @@ for ($i = 1; $i <= 15; $i++) {
     $tyVideos[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
 }
 
-$waNumber = preg_replace('/\D/', '', (string)($s['wa_number'] ?? ''));
-if (str_starts_with($waNumber, '00')) {
-    $waNumber = substr($waNumber, 2);
+/* Same normalisation and fallback as index.php, guarded so whichever file
+   loads first defines it. Defined locally because config.php ships without the
+   shared helpers. */
+if (!function_exists('hpl_wa_digits')) {
+    function hpl_wa_digits(string $raw, string $fallbackCc = '260'): string
+    {
+        $digits = preg_replace('/\D+/', '', trim($raw));
+        if ($digits === null || $digits === '') {
+            return '';
+        }
+        if (strpos($digits, '00') === 0) {
+            $digits = substr($digits, 2);
+        }
+        if ($digits !== '' && $digits[0] === '0') {
+            $digits = $fallbackCc . substr($digits, 1);
+        }
+        $len = strlen($digits);
+        if ($len < 7 || $len > 15) {
+            return '';
+        }
+        return $digits;
+    }
 }
-if ($waNumber !== '' && $waNumber[0] === '0') {
-    $waNumber = '260' . substr($waNumber, 1);
+if (!function_exists('hpl_wa_number')) {
+    function hpl_wa_number(array $settings, string $fallbackCc = '260'): array
+    {
+        $digits = hpl_wa_digits((string)($settings['wa_number'] ?? ''), $fallbackCc);
+        if ($digits !== '') {
+            return ['digits' => $digits, 'configured' => true];
+        }
+        $digits = hpl_wa_digits((string)(hpl_defaults()['wa_number'] ?? ''), $fallbackCc);
+        return ['digits' => $digits, 'configured' => $digits !== ''];
+    }
 }
-$waUrl = $waNumber !== '' ? 'https://wa.me/' . $waNumber . '?text=' . rawurlencode(str_replace('{name}', $firstName !== '' ? $firstName : 'there', (string)($s['whatsapp_msg'] ?? ''))) : '';
+if (!function_exists('hpl_wa_url')) {
+    function hpl_wa_url(array $settings, string $name = '', string $fallbackCc = '260'): string
+    {
+        $number = hpl_wa_number($settings, $fallbackCc);
+        if ($number['digits'] === '') {
+            return '';
+        }
+        $text = str_replace('{name}', $name !== '' ? $name : 'there', (string)($settings['whatsapp_msg'] ?? ''));
+        return 'https://wa.me/' . $number['digits'] . '?text=' . rawurlencode($text);
+    }
+}
+$waNumber = hpl_wa_number($s)['digits'];
+// Name substituted here rather than inside the helper so this page can greet the
+// lead by their own name instead of the anonymous 'there'.
+$waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
 ?><!doctype html>
 <html lang="en">
 <head>

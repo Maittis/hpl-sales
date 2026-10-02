@@ -1,6 +1,53 @@
 <?php
 require __DIR__ . '/config.php';
 
+/* WhatsApp number normalisation. Guarded and duplicated across the entry points
+   because config.php carries the database credentials and is excluded from the
+   deployment archive, so a helper living only there would be missing in
+   production. Whichever file loads first defines these. */
+if (!function_exists('hpl_wa_digits')) {
+    function hpl_wa_digits(string $raw, string $fallbackCc = '260'): string
+    {
+        $digits = preg_replace('/\D+/', '', trim($raw));
+        if ($digits === null || $digits === '') {
+            return '';
+        }
+        if (strpos($digits, '00') === 0) {
+            $digits = substr($digits, 2);
+        }
+        if ($digits !== '' && $digits[0] === '0') {
+            $digits = $fallbackCc . substr($digits, 1);
+        }
+        $len = strlen($digits);
+        if ($len < 7 || $len > 15) {
+            return '';
+        }
+        return $digits;
+    }
+}
+if (!function_exists('hpl_wa_number')) {
+    function hpl_wa_number(array $settings, string $fallbackCc = '260'): array
+    {
+        $digits = hpl_wa_digits((string)($settings['wa_number'] ?? ''), $fallbackCc);
+        if ($digits !== '') {
+            return ['digits' => $digits, 'configured' => true];
+        }
+        $digits = hpl_wa_digits((string)(hpl_defaults()['wa_number'] ?? ''), $fallbackCc);
+        return ['digits' => $digits, 'configured' => $digits !== ''];
+    }
+}
+if (!function_exists('hpl_wa_url')) {
+    function hpl_wa_url(array $settings, string $name = '', string $fallbackCc = '260'): string
+    {
+        $number = hpl_wa_number($settings, $fallbackCc);
+        if ($number['digits'] === '') {
+            return '';
+        }
+        $text = str_replace('{name}', $name !== '' ? $name : 'there', (string)($settings['whatsapp_msg'] ?? ''));
+        return 'https://wa.me/' . $number['digits'] . '?text=' . rawurlencode($text);
+    }
+}
+
 $fields = [
     ['key' => 'topline',           'label' => 'Top banner text',            'type' => 'text',     'group' => 'Header'],
     ['key' => 'brand_name',        'label' => 'Brand name',                 'type' => 'text',     'group' => 'Header'],
@@ -125,7 +172,8 @@ $fields = [
     ['key' => 'final_sub',         'label' => 'Subtext',                    'type' => 'textarea', 'group' => 'Final CTA'],
     ['key' => 'cta_email',         'label' => 'Contact email (CTA mailto)', 'type' => 'text',     'group' => 'Final CTA'],
     ['key' => 'whatsapp_msg',      'label' => 'WhatsApp message template (use {name} for the lead name)', 'type' => 'textarea', 'group' => 'WhatsApp'],
-    ['key' => 'wa_number',         'label' => 'Company WhatsApp number (with country code)', 'type' => 'text', 'group' => 'WhatsApp'],
+    ['key' => 'wa_number',         'label' => 'Company WhatsApp number (with country code, e.g. +260966499575)', 'type' => 'text', 'group' => 'WhatsApp'],
+    ['key' => 'wa_number_note',    'label' => 'Leave this blank to fall back to the number built into the site config. Spaces, dashes and a leading 00 are fine. A number that cannot be resolved is ignored rather than published, because a WhatsApp link pointing at the wrong contact is worse than none.', 'type' => 'note', 'group' => 'WhatsApp'],
     ['key' => 'footer_brand',      'label' => 'Footer brand',               'type' => 'text',     'group' => 'Footer'],
     ['key' => 'footer_1',          'label' => 'Footer link 1 text',         'type' => 'text',     'group' => 'Footer'],
     ['key' => 'footer_1_url',      'label' => 'Footer link 1 URL',          'type' => 'text',     'group' => 'Footer'],
@@ -553,6 +601,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
     label { display:block; font-size:12px; font-weight:700; margin-bottom:4px; color:var(--text-primary); }
     .field-note { background:#f4f6fb; border-left:3px solid var(--accent,#2c3e6e); color:var(--text-muted,#5a6478); font-size:12px; line-height:1.55; margin:0; padding:10px 12px; }
     .hint { display:block; font-size:11px; color:var(--text-secondary); margin-top:3px; }
+    .link-btn.is-disabled { opacity:.55; cursor:not-allowed; box-shadow:none; }
     input[type=text], input[type=password], textarea { border:1px solid var(--border-color); border-radius:6px; font:15px/1.5 'DM Sans',sans-serif; padding:10px 12px; width:100%; background:var(--bg-secondary); color:var(--text-primary); }
     textarea { min-height:90px; resize:vertical; }
     .btn { background:var(--accent); border:0; border-radius:6px; color:#111a38; cursor:pointer; font-size:13px; font-weight:700; padding:13px 30px; text-transform:uppercase; }
@@ -698,12 +747,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
               <td>
                 <div class="ops">
 <?php
-$waDigits = preg_replace('/[^0-9]/', '', $lead['phone'] ?? '');
-if (str_starts_with($waDigits, '00')) { $waDigits = substr($waDigits, 2); }
-if ($waDigits !== '' && $waDigits[0] === '0') { $waDigits = '234' . substr($waDigits, 1); }
-$waUrl = 'https://wa.me/' . $waDigits . '?text=' . rawurlencode(str_replace('{name}', $lead['name'] ?? '', $settings['whatsapp_msg'] ?? ''));
+/* This one messages the lead, not the company, so it uses the lead's own phone
+   and hpl_wa_url's company-number fallback would be wrong here. hpl_wa_digits
+   is reused purely to strip separators and reject junk. Nigeria stays the
+   assumed country code for these, matching the previous behaviour: leads are
+   captured outside Zambia often enough that assuming 260 silently misdirects
+   a returned call to the wrong country. */
+$waDigits = hpl_wa_digits((string)($lead['phone'] ?? ''), '234');
+$waText = str_replace('{name}', (string)($lead['name'] ?? ''), (string)($settings['whatsapp_msg'] ?? ''));
+$waUrl = $waDigits !== '' ? 'https://wa.me/' . $waDigits . '?text=' . rawurlencode($waText) : '';
 ?>
+<?php if ($waUrl !== '') { ?>
                   <a class="link-btn wa" href="<?= h($waUrl) ?>" target="_blank" rel="noopener">WhatsApp</a>
+<?php } else { ?>
+                  <span class="link-btn wa is-disabled" title="No usable phone number for this lead">No number</span>
+<?php } ?>
                   <form method="post">
                     <?= csrf_field() ?>
                     <input type="hidden" name="tab" value="leads">
