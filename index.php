@@ -653,6 +653,11 @@ function art_block(string $file, string $fallbackClass = ''): string
        cards - those are z-indexed 98..100 by the layout code. */
     .cf-audio { align-items:center; display:flex; gap:10px; position:absolute; right:14px; top:14px; z-index:200; }
     .cf-audio-btn { align-items:center; background:rgba(9,15,36,.82); border:1px solid rgba(244,202,91,.6); border-radius:6px; color:var(--gold-light); cursor:pointer; display:flex; font-size:12px; font-weight:700; gap:7px; letter-spacing:.1em; padding:9px 13px; text-transform:uppercase; transition:background-color .2s ease, border-color .2s ease; }
+    /* These two set display themselves, which outranks the user agent's
+       [hidden] { display:none }, so setting the hidden attribute left both
+       sound buttons visible over a player embed - a control with nothing
+       behind it, since a cross-origin player cannot be unmuted from here. */
+    .cf-audio-btn[hidden], .ring-sound-btn[hidden] { display:none; }
     .cf-sound-btn { right:14px; top:14px; position:absolute; z-index:200; }
     .cf-audio-btn:hover { background:rgba(9,15,36,.95); border-color:var(--gold); }
     .cf-audio-btn:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
