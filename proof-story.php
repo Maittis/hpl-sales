@@ -57,7 +57,7 @@ $storySlug = $story ?? 'detectorist-story';
     :root { --navy:#111a38; --gold:#d4a52c; --gold-light:#f4ca5b; --muted:#c4cad7; --paper:#fff; --wash:#0b122a; }
     * { box-sizing:border-box; }
     body {
-      margin:0; font-family:'DM Sans',sans-serif; background:var(--navy); color:#fff;
+      margin:0; 'Manrope','Plus Jakarta Sans',sans-serif; background:var(--navy); color:#fff;
     }
     .page { min-height:100vh; padding:48px 22px; }
     .story-wrap {
@@ -70,14 +70,14 @@ $storySlug = $story ?? 'detectorist-story';
     .eyebrow {
       display:inline-block; font-size:11px; letter-spacing:.14em; font-weight:700; text-transform:uppercase; color:var(--gold-light); margin-bottom:10px;
     }
-    .story-header h1 {
-      margin:0; font-size:clamp(30px,5vw,52px); line-height:1.04; letter-spacing:-.05em; font-family:'Space Grotesk',sans-serif;
+    .story-header h1 {font-weight:400; 
+      margin:0; font-size:clamp(30px,5vw,52px); line-height:1.04; letter-spacing:0; font-family:'Anton',sans-serif;
     }
     .story-body {
       display:grid; grid-template-columns:1.1fr .9fr; gap:28px; padding:28px;
     }
-    .story-copy h2 {
-      color:#fff; margin:0 0 16px; font-size:clamp(22px,3vw,34px); line-height:1.12; letter-spacing:-.04em; font-family:'Space Grotesk',sans-serif;
+    .story-copy h2 {font-weight:400; 
+      color:#fff; margin:0 0 16px; font-size:clamp(22px,3vw,34px); line-height:1.12; letter-spacing:0; font-family:'Anton',sans-serif;
     }
     .story-copy p {
       margin:0 0 18px; color:var(--muted); font-size:16px; line-height:1.7;

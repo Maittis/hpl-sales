@@ -121,26 +121,26 @@ $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
   <link rel="icon" type="image/png" sizes="192x192" href="img/favicon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root { --navy:#111a38; --navy-dark:#090f24; --gold:#d4a52c; --gold-light:#f4ca5b; --muted:#687083; --wash:#f4f2ed; }
     * { box-sizing:border-box; }
-    body { background:var(--navy); color:#fff; font-family:'DM Sans',sans-serif; margin:0; }
+    body { background:var(--navy); color:#fff; 'Manrope','Plus Jakarta Sans',sans-serif; margin:0; }
     .wrap { margin:0 auto; max-width:920px; padding:0 24px 70px; }
     .ty-hero { padding:56px 0 34px; text-align:center; }
     .badge { background:var(--gold); border-radius:999px; color:var(--navy-dark); display:inline-block; font-size:12px; font-weight:700; letter-spacing:.13em; padding:9px 16px; text-transform:uppercase; }
-    h1 { font-family:'Space Grotesk',sans-serif; font-size:clamp(30px,5vw,46px); letter-spacing:-.03em; line-height:1.08; margin:20px 0 14px; }
+    h1 {font-weight:400;  font-family:'Anton',sans-serif; font-size:clamp(30px,5vw,46px); letter-spacing:0; line-height:1.08; margin:20px 0 14px; }
     .ty-sub { color:rgba(255,255,255,.82); font-size:17px; line-height:1.6; margin:0 auto; max-width:640px; }
     .next { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:14px; margin:34px 0 0; padding:26px; }
-    .next h2 { font-family:'Space Grotesk',sans-serif; font-size:22px; margin:0 0 18px; }
+    .next h2 {font-weight:700;  font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:22px; margin:0 0 18px; }
     .next ol { color:rgba(255,255,255,.85); display:grid; gap:14px; grid-template-columns:repeat(3,1fr); list-style:none; margin:0; padding:0; }
     .next li { font-size:15px; line-height:1.5; }
     .next li b { color:var(--gold-light); display:block; font-size:13px; letter-spacing:.1em; margin-bottom:5px; text-transform:uppercase; }
     .panel { margin-top:44px; }
     .panel-label { color:var(--gold); font-size:12px; font-weight:700; letter-spacing:.13em; margin-bottom:10px; text-transform:uppercase; }
-    .panel h2 { font-family:'Space Grotesk',sans-serif; font-size:clamp(22px,3.4vw,30px); letter-spacing:-.02em; margin:0 0 18px; }
+    .panel h2 {font-weight:400;  font-family:'Anton',sans-serif; font-size:clamp(22px,3.4vw,30px); letter-spacing:0; margin:0 0 18px; }
     .ty-video-block { margin:34px auto 0; max-width:760px; text-align:center; }
-    .ty-video-block h2 { font-family:'Space Grotesk',sans-serif; font-size:clamp(20px,3vw,26px); letter-spacing:-.02em; margin:0 0 16px; }
+    .ty-video-block h2 {font-weight:700;  font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:clamp(20px,3vw,26px); letter-spacing:-.02em; margin:0 0 16px; }
     .ty-video { aspect-ratio:16/9; background:#000; border:1px solid rgba(255,255,255,.16); border-radius:14px; box-shadow:0 18px 50px rgba(0,0,0,.35); overflow:hidden; width:100%; }
     .ty-video video { display:block; height:100%; object-fit:contain; width:100%; }
     .ty-video-empty { align-items:center; background:rgba(255,255,255,.05); border-style:dashed; color:rgba(255,255,255,.65); display:flex; font-size:14.5px; justify-content:center; padding:20px; text-align:center; }

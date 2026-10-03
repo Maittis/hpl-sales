@@ -43,13 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="apple-touch-icon" href="../img/favicon-180.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing:border-box; }
-    body { margin:0; background:#0a0f22; color:#182038; font-family:'DM Sans',sans-serif; display:flex; min-height:100vh; align-items:center; justify-content:center; padding:16px; }
+    body { margin:0; background:#0a0f22; color:#182038; 'Manrope','Plus Jakarta Sans',sans-serif; display:flex; min-height:100vh; align-items:center; justify-content:center; padding:16px; }
     .card { background:#fff; border-radius:10px; max-width:400px; padding:34px; width:100%; }
-    .brand { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; color:#111a38; }
-    h1 { font-family:'Space Grotesk',sans-serif; font-size:24px; margin:8px 0 4px; }
+    .brand { font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:20px; font-weight:700; color:#111a38; }
+    h1 {font-weight:400;  font-family:'Anton',sans-serif; font-size:24px; margin:8px 0 4px; }
     .sub { color:#687083; font-size:14px; margin:0 0 20px; }
     .error { background:#fbeeec; border-left:3px solid #c0392b; color:#7a2c25; font-size:14px; margin-bottom:14px; padding:9px 12px; }
     label { display:block; font-size:13px; font-weight:700; margin:12px 0 4px; }

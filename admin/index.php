@@ -660,7 +660,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
   <link rel="apple-touch-icon" href="../img/favicon-180.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-primary: #eef0f4;
@@ -685,9 +685,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
       --nav-text: #e8eaed;
     }
     * { box-sizing:border-box; }
-    body { margin:0; background:var(--bg-primary); color:var(--text-primary); font-family:'DM Sans',sans-serif; transition:background 0.3s,color 0.3s; }
+    body { margin:0; background:var(--bg-primary); color:var(--text-primary); 'Manrope','Plus Jakarta Sans',sans-serif; transition:background 0.3s,color 0.3s; }
     .topbar { background:var(--nav-bg); color:#fff; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    .topbar .brand { font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; }
+    .topbar .brand { font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:18px; font-weight:700; }
     .topbar a { color:var(--nav-text); font-size:13px; text-decoration:none; margin-left:18px; }
     .topbar a:hover { color:var(--accent-hover); }
     .wrap { margin:0; max-width:none; padding:30px 24px 60px; width:100%; }
@@ -696,10 +696,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
     .stats { display:grid; gap:14px; grid-template-columns:repeat(3,1fr); margin:0 0 22px; }
     .stats.five { grid-template-columns:repeat(5,1fr); }
     .stat { background:var(--bg-secondary); border-radius:10px; box-shadow:0 1px 3px rgba(17,26,56,.08); padding:18px 20px; }
-    .stat .num { color:var(--text-primary); font-family:'Space Grotesk',sans-serif; font-size:30px; font-weight:700; line-height:1; }
+    .stat .num { color:var(--text-primary); font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:30px; font-weight:700; line-height:1; }
     .stat .lbl { color:var(--text-secondary); font-size:12px; font-weight:700; letter-spacing:.05em; margin-top:7px; text-transform:uppercase; }
     .card { background:var(--bg-secondary); border-radius:10px; box-shadow:0 1px 3px rgba(17,26,56,.08); margin-bottom:22px; padding:24px; }
-    .card h2 { font-family:'Space Grotesk',sans-serif; font-size:18px; margin:0 0 16px; color:var(--text-primary); }
+    .card h2 {font-weight:700;  font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:18px; margin:0 0 16px; color:var(--text-primary); }
     .card-head { align-items:center; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
     .card-head h2 { margin:0; }
     .grid { display:grid; gap:14px; grid-template-columns:1fr 1fr; }
@@ -708,7 +708,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
     .field-note { background:#f4f6fb; border-left:3px solid var(--accent,#2c3e6e); color:var(--text-muted,#5a6478); font-size:12px; line-height:1.55; margin:0; padding:10px 12px; }
     .hint { display:block; font-size:11px; color:var(--text-secondary); margin-top:3px; }
     .link-btn.is-disabled { opacity:.55; cursor:not-allowed; box-shadow:none; }
-    input[type=text], input[type=password], textarea { border:1px solid var(--border-color); border-radius:6px; font:15px/1.5 'DM Sans',sans-serif; padding:10px 12px; width:100%; background:var(--bg-secondary); color:var(--text-primary); }
+    input[type=text], input[type=password], textarea { border:1px solid var(--border-color); border-radius:6px; font:15px/1.5 'Manrope','Plus Jakarta Sans',sans-serif; padding:10px 12px; width:100%; background:var(--bg-secondary); color:var(--text-primary); }
     textarea { min-height:90px; resize:vertical; }
     .btn { background:var(--accent); border:0; border-radius:6px; color:#111a38; cursor:pointer; font-size:13px; font-weight:700; padding:13px 30px; text-transform:uppercase; }
     .btn:hover { background:var(--accent-hover); }
@@ -735,7 +735,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
     .lead-name:hover { color:var(--accent); }
     .modal-overlay { background:rgba(17,26,56,0.6); display:none; inset:0; position:fixed; z-index:1000; }
     .modal { background:var(--bg-secondary); border-radius:10px; box-shadow:0 4px 20px rgba(17,26,56,0.2); left:50%; max-height:90vh; max-width:600px; overflow-y:auto; padding:30px; position:fixed; top:50%; transform:translate(-50%,-50%); width:90%; }
-    .modal h2 { font-family:'Space Grotesk',sans-serif; font-size:20px; margin:0 0 20px; color:var(--text-primary); }
+    .modal h2 {font-weight:700;  font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:20px; margin:0 0 20px; color:var(--text-primary); }
     .modal-row { margin-bottom:16px; }
     .modal-label { color:var(--text-primary); font-size:12px; font-weight:700; text-transform:uppercase; }
     .modal-value { color:var(--text-primary); font-size:14px; line-height:1.6; margin-top:4px; word-wrap:break-word; }

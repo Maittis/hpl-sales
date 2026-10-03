@@ -113,12 +113,12 @@ try {
   <title>HPL Setup</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing:border-box; }
-    body { margin:0; background:#0a0f22; color:#182038; font-family:'DM Sans',sans-serif; padding:40px 16px; }
+    body { margin:0; background:#0a0f22; color:#182038; 'Manrope','Plus Jakarta Sans',sans-serif; padding:40px 16px; }
     .card { background:#fff; border-radius:10px; margin:0 auto; max-width:560px; padding:34px; }
-    h1 { font-family:'Space Grotesk',sans-serif; font-size:28px; margin:0 0 6px; }
+    h1 {font-weight:400;  font-family:'Anton',sans-serif; font-size:28px; margin:0 0 6px; }
     .sub { color:#687083; font-size:14px; margin:0 0 22px; }
     .step { background:#f0f7ef; border-left:3px solid #2e8b57; color:#23402f; font-size:14px; margin:4px 0; padding:9px 12px; }
     .error { background:#fbeeec; border-left:3px solid #c0392b; color:#7a2c25; font-size:14px; margin:8px 0; padding:9px 12px; }
