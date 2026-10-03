@@ -745,6 +745,12 @@ function art_block(string $file, string $fallbackClass = ''): string
     .zig-body { color:rgba(255,255,255,.74); font-size:16px; line-height:1.65; margin:0; max-width:44ch; }
     .zig-media { aspect-ratio:16/9; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
     .zig-media img { display:block; height:100%; object-fit:cover; width:100%; }
+    /* Benefit art keeps its own fixed 180px height rather than taking the
+       16/9 crop used by the photo rows. Width stays fluid, as it was when
+       these were three-up grid cards. */
+    .benefit-media { aspect-ratio:auto; height:180px; transition:border-color .3s ease; }
+    .benefit-media:hover { border-color:rgba(244,202,91,.45); }
+    .benefit-media .detector { transform:translateX(-45%) rotate(-12deg) scale(.47); top:-24px; }
     .review-screenshot-grid { align-items:start; display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:36px auto 0; max-width:1220px; }
     .review-screenshot-grid figure { background:var(--navy); border:1px solid rgba(244,202,91,.42); border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.3); margin:0; overflow:hidden; padding:10px; }
     .review-screenshot-grid img { display:block; height:auto; max-height:520px; object-fit:contain; width:100%; }
@@ -888,14 +894,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .torn h2 { color:#fff; font-size:26px; margin:0; }
     .benefits-band { align-items:center; background:url('img/benefit-bg.png') no-repeat center; background-size:100% 100%; color:#fff; display:flex; justify-content:center; min-height:220px; padding:70px 30px; text-align:center; }
     .benefits-band h2 {font-weight:400;  color:#fff; font-family:'Anton',sans-serif; font-size:clamp(28px,4.5vw,44px); letter-spacing:0; line-height:1.15; margin:0; max-width:820px; }
-    .benefits { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:1100px; }
-    .benefit { text-align:center; transition:transform .3s ease; }
-    .benefit:hover { transform:translateY(-5px); }
-    .benefit-art { background:rgba(255,255,255,.05); border:1px solid rgba(244,202,91,.15); border-radius:12px; height:180px; margin-bottom:14px; overflow:hidden; position:relative; transition:border-color .3s ease; }
-    .benefit:hover .benefit-art { border-color:rgba(244,202,91,.3); }
-    .benefit-art .detector { transform:translateX(-45%) rotate(-12deg) scale(.47); top:-24px; }
-    .benefit h3 {font-weight:700;  color:#fff; font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:18px; margin:0 0 8px; }
-    .benefit p { color:rgba(255,255,255,.78); font-size:14px; line-height:1.5; }
+    .benefit-media .detector { transform:translateX(-45%) rotate(-12deg) scale(.47); top:-24px; }
     .spaced-cta { padding:10px 0 46px; text-align:center; }
     /* Trust Indicators Section */
     .trust-section { background:var(--navy); padding:46px 34px; text-align:center; }
@@ -1382,13 +1381,12 @@ function art_block(string $file, string $fallbackClass = ''): string
   .button.hero-find-cta { border-width:5px; font-size:15px; min-height:78px; padding:14px 22px; width:min(400px,90%); }
   .section { padding:34px 18px; }
   .section h2 { font-size:26px; }
-  .benefits-band { min-height:150px; padding:38px 18px; }
-  .benefits-band h2 { font-size:24px; }
+.benefits-band { min-height:150px; padding:38px 18px; }
+    .benefits-band h2 { font-size:24px; }
+  .benefit-media { height:210px; }
+  .benefit-media .detector { transform:translateX(-45%) rotate(-12deg) scale(.59); top:-7px; }
   .slides-frame { aspect-ratio:4/3; max-height:none; }
   .slides-cap { font-size:13px; padding:36px 14px 14px; }
-  .benefits { gap:24px; grid-template-columns:1fr; }
-  .benefit-art { height:210px; }
-  .benefit-art .detector { transform:translateX(-45%) rotate(-12deg) scale(.59); top:-7px; }
   .spaced-cta { padding:6px 0 34px; }
   .final { padding:38px 18px; }
   .lead-form { padding:20px 18px 24px; }
@@ -1860,7 +1858,16 @@ $proofVisuals = [];
         </div>
       </section>
 
-      <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="benefits"><article class="benefit"><div class="benefit-art"><?= art_block('benefit-1.jpg') ?></div><h3><?= h($s['b1_title']) ?></h3><p><?= h($s['b1_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-2.jpg') ?></div><h3><?= h($s['b2_title']) ?></h3><p><?= h($s['b2_desc']) ?></p></article><article class="benefit"><div class="benefit-art"><?= art_block('benefit-3.jpg') ?></div><h3><?= h($s['b3_title']) ?></h3><p><?= h($s['b3_desc']) ?></p></article></div></div></section>
+      <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="zig"><div class="zig-row">
+          <div class="zig-text"><h3 class="zig-title"><?= h($s['b1_title']) ?></h3><p class="zig-body"><?= h($s['b1_desc']) ?></p></div>
+          <div class="zig-media benefit-media"><?= art_block('benefit-1.jpg') ?></div>
+        </div><div class="zig-row">
+          <div class="zig-text"><h3 class="zig-title"><?= h($s['b2_title']) ?></h3><p class="zig-body"><?= h($s['b2_desc']) ?></p></div>
+          <div class="zig-media benefit-media"><?= art_block('benefit-2.jpg') ?></div>
+        </div><div class="zig-row">
+          <div class="zig-text"><h3 class="zig-title"><?= h($s['b3_title']) ?></h3><p class="zig-body"><?= h($s['b3_desc']) ?></p></div>
+          <div class="zig-media benefit-media"><?= art_block('benefit-3.jpg') ?></div>
+        </div></div></div></section>
 
       <div class="spaced-cta"><a class="button ripple" href="#book"><?= h($s['cta_text']) ?></a></div>
 
