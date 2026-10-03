@@ -96,19 +96,13 @@ $fields = [
     ['key' => 'b2_desc',           'label' => 'Benefit #2 text',            'type' => 'textarea', 'group' => 'Benefits'],
     ['key' => 'b3_title',          'label' => 'Benefit #3 title',           'type' => 'text',     'group' => 'Benefits'],
     ['key' => 'b3_desc',           'label' => 'Benefit #3 text',            'type' => 'textarea', 'group' => 'Benefits'],
-    ['key' => 'proof_layout', 'label' => 'Story layout', 'type' => 'select', 'group' => 'Proof videos', 'options' => ['ring' => 'Circle of videos (current)', 'coverflow' => '3D coverflow (cinematic)', 'strip' => 'Single video + scroll (previous)']],
-    ['key' => 'proof_ring_r', 'label' => 'Carousel radius (px) - how far the off-screen players swing back', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_ring_size', 'label' => 'Story player width (px, before perspective). 405 shows as about 450px on screen', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_ring_shape', 'label' => 'Story player shape - how each card frames its video', 'type' => 'select', 'group' => 'Proof videos', 'options' => [
-        '0.5625' => '9:16 vertical - fills the card, best for phone footage shot upright',
-        '1'      => '1:1 square - Instagram-style, mild letterbox above and below',
-        '1.3333' => '4:3 - classic camera framing',
-        '1.78'   => '16:9 wide - player fills the card edge to edge, same as the promo video above',
-    ]],
-    ['key' => 'proof_hint', 'label' => 'Hint text under the videos', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_hint_strip', 'label' => 'Hint text (circle layout off)', 'type' => 'text', 'group' => 'Proof videos'],
-    ['key' => 'proof_embed_note', 'label' => 'Player embeds: paste the whole Bunny / MediaDelivery embed block into any Video slot above. A 16:9 player is letterboxed inside the card, and the sound button hides on those cards because a cross-origin player cannot be unmuted from the page.', 'type' => 'note', 'group' => 'Proof videos'],
-    ['key' => 'proof_video_1', 'label' => 'Video 1 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
+    /* The proof section renders one fixed player now, so the old layout picker
+       and its carousel geometry keys are no longer read by the site. The keys stay
+       in the schema and the rows stay put, but the controls are removed rather than
+       left on screen as settings that silently do nothing. */
+    ['key' => 'proof_single_note', 'label' => 'The Real Results section shows one fixed video: the first filled slot below. Clear slots 2-15 to keep only one testimonial in your library.', 'type' => 'note', 'group' => 'Proof videos'],
+    ['key' => 'proof_embed_note', 'label' => 'Player embeds: paste the whole Bunny / MediaDelivery embed block into Video 1. Only the first slot is published now, and the player carries its own unmute control.', 'type' => 'note', 'group' => 'Proof videos'],
+    ['key' => 'proof_video_1', 'label' => 'Video 1 - this is the one shown (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_1_caption', 'label' => 'Video 1 caption', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_2', 'label' => 'Video 2 (upload below, or paste a Bunny / MediaDelivery embed code, a direct link, or a Drive ID)', 'type' => 'text', 'group' => 'Proof videos'],
     ['key' => 'proof_video_2_caption', 'label' => 'Video 2 caption', 'type' => 'text', 'group' => 'Proof videos'],

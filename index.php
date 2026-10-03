@@ -585,147 +585,26 @@ function art_block(string $file, string $fallbackClass = ''): string
     .wash { background:var(--navy); }
     .proof { background:var(--navy); text-align:center; padding-bottom:24px; }
     .proof h2 { color:#fff; margin-bottom:20px; }
-    .proof-stage { background:transparent; display:flex; gap:18px; margin:0 auto; max-width:620px; overflow-x:auto; overflow-y:hidden; padding:8px 10px 16px; scroll-behavior:smooth; scroll-snap-type:x proximity; scrollbar-width:none; -ms-overflow-style:none; width:min(92vw, 620px); }
-    .proof-stage::-webkit-scrollbar { display:none; }
-    .proof-slide { aspect-ratio:16/9 !important; background:#000; border-radius:14px; box-shadow:0 12px 25px rgba(9,15,36,.16); flex:0 0 100%; height:min(42vw, 420px) !important; margin:0; max-height:420px; max-width:100%; opacity:1; overflow:hidden; position:relative; scroll-snap-align:center; transform:none; transition:opacity .25s ease, transform .3s ease; }
-    .proof-slide.on { transform:none; z-index:2; }
-    .proof-slide .proof-embed { aspect-ratio:16/9 !important; height:100% !important; position:relative; width:100% !important; }
-    .proof-slide .proof-embed iframe { border:0; display:block; height:100% !important; inset:0; position:absolute; width:100% !important; }
-    .proof-slide video { display:block; height:100%; object-fit:cover; width:100%; }
-    .proof-slide figcaption { background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:13px; font-weight:700; left:0; padding:28px 12px 10px; position:absolute; right:0; text-align:left; }
-    .proof-cue { align-items:center; animation:nudge 1.8s ease-in-out infinite; background:rgba(17,26,56,.9); border:1px solid rgba(244,202,91,.7); border-radius:999px; bottom:18px; box-shadow:0 10px 20px rgba(9,15,36,.18); color:#fff; cursor:pointer; display:flex; gap:8px; font-size:12px; font-weight:700; justify-content:center; letter-spacing:.08em; padding:8px 14px 8px 12px; position:absolute; right:14px; text-transform:uppercase; transition:opacity .3s ease; z-index:4; }
-    .proof-cue .proof-cue-arrow { font-size:22px; line-height:1; }
-    .proof-cue .proof-cue-text { animation:blink 1.2s ease-in-out infinite; }
-    .proof-stage-wrap.cue-dismissed .proof-cue { opacity:1; pointer-events:auto; }
-    .proof-stage-wrap { margin:0 auto; max-width:620px; position:relative; }
-    .proof-stage-wrap .ring-sound-btn { right:16px; top:16px; position:absolute; z-index:10; }
-    @keyframes nudge { 0%,100% { transform:translateX(0); } 50% { transform:translateX(6px); } }
-    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:.35; } }
-    .proof-empty { background:var(--navy); color:#fff; font-size:14px; margin:0 auto; max-width:420px; padding:60px 20px; }
-    .proof-hint { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:16px 0 0; text-transform:uppercase; }
-    .proof-dots { display:flex; gap:8px; justify-content:center; margin:12px 0 0; }
-    .proof-dots button { background:#cfd4dc; border:0; border-radius:50%; cursor:pointer; height:9px; padding:0; width:9px; }
-    .proof-dots button.on { background:var(--gold); transform:scale(1.35); }
-    /* circle of videos */
-    .ring-wrap { margin:26px auto 0; max-width:100%; position:relative; touch-action:pan-y; }
-    .ring { --ring-w:min(var(--ring-size,760px), 84vw); height:calc(var(--ring-w) / var(--ring-shape,0.5625) * 1.12 + 30px); margin:0 auto; max-width:100%; perspective:calc(var(--ring-r,520px) * 10); position:relative; width:calc(var(--ring-r,520px) * 2 + var(--ring-w) + 40px); }
-    .ring-item { background:#0b1226; border-radius:14px; box-shadow:0 12px 30px rgba(9,15,36,.28); cursor:pointer; left:50%; margin:0; overflow:hidden; position:absolute; top:50%; transform:translate(-50%,-50%); transition:transform .3s cubic-bezier(.45,.05,.25,1), opacity .2s ease, filter .2s ease, box-shadow .2s ease; width:var(--ring-w); will-change:transform,opacity; }
-    .ring-item video { aspect-ratio:var(--ring-shape,0.5625); display:block; height:auto; object-fit:cover; width:100%; }
-    /* Keep Bunny embeds full-bleed inside the card so they feel like native
-       video tiles, while preserving the original ring geometry and motion. */
-    .proof-embed { align-items:center; aspect-ratio:var(--ring-shape,0.5625); background:#0b1226; border-radius:14px; display:flex; height:100%; justify-content:center; overflow:hidden; position:relative; width:100%; }
-    /* No scale() here on purpose. Magnifying the frame cropped roughly 16% off
-       every edge inside the overflow:hidden card, so a paused player read as a
-       cropped photograph. Bunny's own player letterboxes inside the box, which
-       is what a normal embedded video does. */
+    /* One fixed player.
+       820px is deliberately a little narrower than the promo player above it
+       (1000px), so the testimonial reads as supporting proof rather than a second
+       hero, while still filling the column on desktop. */
+    .proof-single { margin:26px auto 0; max-width:820px; position:relative; width:min(94vw, 820px); }
+    .proof-single .proof-embed { aspect-ratio:16/9; height:100%; width:100%; }
+    .proof-single figcaption { background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:13px; font-weight:700; left:0; padding:28px 14px 12px; position:absolute; right:0; text-align:left; }
+    /* Keep Bunny embeds full-bleed inside the card so they feel like native video
+       tiles. No scale() here on purpose: magnifying the frame cropped roughly 16%
+       off every edge inside the overflow:hidden card, so a paused player read as a
+       cropped photograph. Bunny letterboxes inside the box instead, which is what a
+       normal embedded video does. */
+    .proof-embed { align-items:center; aspect-ratio:16/9; background:#0b1226; border-radius:14px; box-shadow:0 16px 34px rgba(0,0,0,.32); display:flex; height:100%; justify-content:center; overflow:hidden; position:relative; width:100%; }
     .proof-embed iframe { border:0; display:block; height:100%; inset:0; max-height:100%; max-width:100%; object-fit:contain; position:absolute; width:100%; }
+    /* Nothing is fetched until the observer sets src, so hide the empty frame
+       instead of showing a black box that flashes before the player appears. */
     .proof-embed iframe:not([data-on]) { visibility:hidden; }
-    .ring-item figcaption { background:linear-gradient(to top,rgba(0,0,0,.86),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:12px; font-weight:700; left:0; line-height:1.25; padding:30px 10px 10px; position:absolute; right:0; text-align:left; }
-    .ring-item::after { border:2px solid transparent; border-radius:14px; content:''; inset:0; pointer-events:none; position:absolute; transition:border-color .35s ease; }
-    .ring-item.front { box-shadow:0 20px 44px rgba(9,15,36,.4); z-index:5; }
-    .ring-item.front::after { border-color:var(--gold); }
-    .ring-item:not(.front) { filter:saturate(.82) brightness(.82); }
-    .ring-item:hover:not(.front) { filter:none; }
-    .ring-play { align-items:center; background:rgba(17,26,56,.55); border:0; border-radius:50%; color:#fff; cursor:pointer; display:flex; font-size:26px; height:62px; justify-content:center; left:50%; padding:0 0 0 4px; position:absolute; top:50%; transform:translate(-50%,-50%); transition:opacity .3s ease, transform .3s ease; width:62px; z-index:6; }
-    .ring-play:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
-    .ring-wrap.playing .ring-play { opacity:0; pointer-events:none; }
-    .ring-item video { pointer-events:none; }
-    .ring-nav { align-items:center; display:flex; gap:14px; justify-content:center; margin:18px 0 0; }
-    .ring-sound-btn { align-items:center; background:rgba(17,26,56,.75); border:1px solid rgba(244,202,91,.5); border-radius:50%; color:var(--gold-light); cursor:pointer; display:flex; font-size:18px; height:44px; justify-content:center; right:14px; padding:0; position:absolute; top:14px; transition:background-color .2s ease, border-color .2s ease; width:44px; z-index:200; }
-    .ring-sound-btn:hover { background:rgba(17,26,56,.9); border-color:var(--gold); }
-    .ring-sound-btn:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
-    .ring-sound-btn[aria-pressed="true"] { background:var(--gold); border-color:var(--gold); color:var(--navy-dark); }
-    .ring-nav button { align-items:center; background:rgba(17,26,56,.08); border:1px solid rgba(9,15,36,.16); border-radius:50%; color:var(--navy); cursor:pointer; display:flex; font-size:20px; height:40px; justify-content:center; line-height:1; padding:0; width:40px; }
-    .ring-nav button:hover { background:var(--gold); border-color:var(--gold); color:#fff; }
-    .ring-nav button:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
-
-/* 3D coverflow, tuned to the supplied reference: a dominant centre card on a
-   near-black stage, neighbours one step back and softened, never fully hidden. */
-.proof-dark { background:radial-gradient(ellipse 55% 75% at 50% 45%, rgba(55,61,72,.85) 0%, rgba(30,33,39,.65) 30%, rgba(10,10,10,.95) 65%, #060606 100%); min-height:100vh; position:relative; }
-.proof-dark h2, .proof-dark .section-label { color:#fff; }
-.proof-dark .proof-hint, .proof-dark .proof-caption { color:rgba(255,255,255,.55); }
-.proof-coverflow .cf-stage { --cf-gap:30px; --cf-w:260px; height:calc(var(--cf-w) / var(--ring-shape,.5625) * 1.12); overflow:hidden; perspective:1200px; perspective-origin:50% 46%; position:relative; }
-.proof-coverflow .cf-stage::before { background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.10), transparent 45%); content:''; inset:0; pointer-events:none; position:absolute; }
-.proof-coverflow .ring-item { border:1px solid rgba(255,255,255,.12); border-radius:28px; box-shadow:0 14px 34px rgba(0,0,0,.4); transform-style:preserve-3d; transition:transform .4s cubic-bezier(.22,1,.36,1), opacity .4s cubic-bezier(.22,1,.36,1), filter .4s cubic-bezier(.22,1,.36,1); width:var(--cf-w);  }
-.proof-coverflow .ring-item.front { will-change:transform,opacity,filter; }
-.proof-coverflow .ring-item::after { border-radius:28px; }
-.proof-coverflow .ring-item.front { box-shadow:0 20px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.2), 0 0 58px rgba(255,255,255,.09); }
-.proof-coverflow .ring-item { filter:blur(var(--cf-blur,0px)) brightness(var(--cf-bright,1)); }
-.proof-coverflow .ring-item:hover:not(.front) { filter:blur(var(--cf-blur,0px)) brightness(calc(var(--cf-bright,1) + .14)); }
-.proof-coverflow .cf-arrow { align-items:center; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); background:rgba(30,30,30,.42); border:1px solid rgba(255,255,255,.16); border-radius:50%; color:rgba(255,255,255,.86); cursor:pointer; display:flex; font-size:26px; height:46px; justify-content:center; line-height:1; padding:0; position:absolute; top:50%; transform:translateY(-50%); transition:background-color .3s ease, transform .3s ease; width:46px; z-index:6; }
-.proof-coverflow .cf-arrow:hover { background:rgba(30,30,30,.72); transform:translateY(-50%) scale(1.05); }
-.proof-coverflow .cf-arrow:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
-.proof-coverflow .cf-prev { left:8px; }
-.proof-coverflow .cf-next { right:8px; }
-.cf-dots { display:flex; gap:9px; justify-content:center; margin:22px 0 0; }
-.cf-dots button { background:rgba(255,255,255,.3); border:0; border-radius:999px; cursor:pointer; height:8px; padding:0; transition:background-color .4s ease, width .5s cubic-bezier(.22,1,.36,1); width:8px; }
-.cf-dots button:hover { background:rgba(255,255,255,.6); }
-.cf-dots button.on { background:var(--gold); width:24px; }
-.cf-dots button:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
-
-    /* Sound control for the coverflow, overlaid on the top right of the player in
-       the same place and style as the promo's .mute-toggle on the hero panel, so
-       the two read as one control. It sits inside .cf-stage, which is already
-       position:relative and clips its overflow, so it needs a z-index above the
-       cards - those are z-indexed 98..100 by the layout code. */
-    .cf-audio { align-items:center; display:flex; gap:10px; position:absolute; right:14px; top:14px; z-index:200; }
-    .cf-audio-btn { align-items:center; background:rgba(9,15,36,.82); border:1px solid rgba(244,202,91,.6); border-radius:6px; color:var(--gold-light); cursor:pointer; display:flex; font-size:12px; font-weight:700; gap:7px; letter-spacing:.1em; padding:9px 13px; text-transform:uppercase; transition:background-color .2s ease, border-color .2s ease; }
-    /* These two set display themselves, which outranks the user agent's
-       [hidden] { display:none }, so setting the hidden attribute left both
-       sound buttons visible over a player embed - a control with nothing
-       behind it, since a cross-origin player cannot be unmuted from here. */
-    .cf-audio-btn[hidden], .ring-sound-btn[hidden] { display:none; }
-    .cf-sound-btn { right:14px; top:14px; position:absolute; z-index:200; }
-    .cf-audio-btn:hover { background:rgba(9,15,36,.95); border-color:var(--gold); }
-    .cf-audio-btn:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
-    .cf-audio-btn[aria-pressed="true"] { background:var(--gold); border-color:var(--gold); color:var(--navy-dark); }
-    .cf-audio-ico { font-size:15px; line-height:1; }
-    .cf-audio-txt { white-space:nowrap; }
-    .cf-audio-vol { align-items:center; background:rgba(9,15,36,.82); border:1px solid rgba(244,202,91,.35); border-radius:6px; display:flex; gap:7px; padding:7px 11px; }
-    .cf-audio-lbl { color:var(--gold-light); font-size:14px; line-height:1; }
-    .cf-audio-vol input[type="range"] { accent-color:var(--gold); cursor:pointer; height:16px; width:88px; }
-    .cf-audio-vol input[type="range"]:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
-
-    /* On a phone the button text and the slider cannot both sit across the top of
-       a 65vw card, so the label drops and the slider shortens. The speaker icon
-       and the button icon still carry the meaning. */
-    @media (max-width:640px) {
-      .cf-audio { gap:6px; right:8px; top:8px; }
-      .cf-audio-txt { display:none; }
-      .cf-audio-btn { padding:8px 10px; }
-      .cf-audio-vol { padding:5px 8px; }
-      .cf-audio-vol input[type="range"] { width:62px; }
-    }
-
-    /* Tablet and phone cards are nearly as wide as the stage, so a control wide
-       enough to hold a label would sit on top of the video it belongs to. Below
-       this width it becomes a single icon button and the slider only appears on
-       focus, which keeps the video face clear while leaving the control usable
-       from the keyboard. */
-    @media (max-width:900px) {
-      .cf-audio-txt { display:none; }
-      .cf-audio-vol { display:none; }
-      .cf-audio-vol:focus-within { display:flex; }
-      .cf-audio-btn { padding:9px 11px; }
-    }
-    /* At phone widths the stage is exactly as wide as the card, so there is no room
-       beside the video for a control, and .cf-stage clips its overflow, so
-       pushing the control above the stage would hide it. It stays on the video and
-       becomes a single small icon, matching how the promo overlays its own panel.
-       The focused card keeps its face visible because the control sits in the top
-       corner where a testimonial has no text. */
-    @media (max-width:480px) {
-      .cf-audio { gap:5px; right:6px; top:6px; }
-      .cf-audio-btn { padding:7px 8px; }
-      .cf-audio-ico { font-size:14px; }
-    }
-.proof-coverflow .ring-play { backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); background:rgba(30,30,30,.55); height:64px; width:64px; }
-.proof-coverflow .ring-play:hover { transform:translate(-50%,-50%) scale(1.08); }
-.proof-coverflow .ring-nav button { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); color:#fff; }
-    @media (max-width:1024px) { .proof-coverflow .cf-stage { --cf-gap:20px; --cf-w:230px; } }
-    @media (max-width:640px) { .proof-coverflow .cf-stage { --cf-gap:14px; --cf-w:min(58vw, 250px); } .proof-coverflow .ring-item { border-radius:22px; } .proof-coverflow .ring-item::after { border-radius:22px; } .proof-coverflow .cf-arrow { height:40px; width:40px; font-size:21px; } }
-    @media (max-width:640px) { .ring { --ring-r:120px; --ring-size:250px; } .ring-item { border-radius:11px; } .ring-item figcaption { font-size:10px; padding:22px 7px 7px; } .ring-play { font-size:22px; height:50px; width:50px; } }
-    @media (max-width:400px) { .ring { --ring-r:95px; --ring-size:210px; } .ring-item figcaption { font-size:9px; padding:18px 6px 6px; } }
+    .proof-embed video { display:block; height:100%; object-fit:cover; width:100%; }
+    .proof-empty { background:var(--navy); color:#fff; font-size:14px; margin:0 auto; max-width:420px; padding:60px 20px; }
+    @media (max-width:860px) { .proof-single { width:min(96vw, 820px); } }
     .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
     .slides-frame { aspect-ratio:16/9; background:var(--navy); margin:0 auto; max-height:56vh; overflow:hidden; position:relative; }
     .slides-frame img { height:100%; inset:0; object-fit:cover; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .28s ease, transform .7s ease; width:100%; }
@@ -882,7 +761,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-fallback { aspect-ratio:4/3; background:var(--navy); display:block; position:relative; width:100%; }
     .proof-fallback .detector { height:275px; left:50%; position:absolute; top:18px; transform:translateX(-45%) rotate(-12deg) scale(.42); width:205px; }
     .proof-caption { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:18px 0 0; text-transform:uppercase; }
-    .proof .proof-caption, .proof .pf-sound-hint, .proof-stage-wrap .ring-sound-btn { display:none !important; }
+    .proof .proof-caption { display:none !important; }
     .art-img { display:block; height:100%; object-fit:cover; width:100%; }
     .live-pill { background:#c0392b; border-radius:40px; color:#fff; display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:.12em; margin-bottom:20px; padding:9px 18px; text-transform:uppercase; }
     .live-pill i { background:#ff6b6b; border-radius:50%; display:inline-block; height:8px; position:relative; width:8px; }
@@ -1208,14 +1087,10 @@ function art_block(string $file, string $fallbackClass = ''): string
       min-height:44px;
       min-width:44px;
     }
-    .proof-stage,
-    .ring-wrap,
     .slides-stage {
       touch-action:pan-x;
       -webkit-overflow-scrolling:touch;
     }
-    .proof-slide,
-    .ring-item,
     .testimonial-card,
     .trust-badge {
       touch-action:manipulation;
@@ -1410,8 +1285,6 @@ function art_block(string $file, string $fallbackClass = ''): string
   .mobile-nav { display:block; }
   .mobile-nav-item { font-size:10px; gap:3px; padding:6px 8px; }
   .mobile-nav-icon { font-size:20px; }
-  .proof-stage-wrap { margin-bottom:8px; }
-  .ring-wrap { margin-bottom:8px; }
   .swipe-hint { display:flex; }
   .swipe-hint.visible { opacity:1; }
   .button,
@@ -1469,7 +1342,7 @@ function art_block(string $file, string $fallbackClass = ''): string
   /* Visitors who ask for less motion get instant photo changes and no
      drifting scale, rather than a faster version of the same movement. */
   @media (prefers-reduced-motion:reduce) {
-    .slides-frame img, .proof-slide, .ring-item, .slides-cap { transition-duration:.01ms !important; }
+    .slides-frame img, .slides-cap { transition-duration:.01ms !important; }
     .slides-frame img.on { transform:none !important; }
   }
 
@@ -1520,17 +1393,6 @@ p.lb-hint,
     text-transform:uppercase;
   }
   .lb-hint[hidden] { display:none; }
-  /* Sound hint. Hidden by JS the moment the existing toggle reports sound on,
-      so it can never contradict the button state. Needs a specific selector
-      to win against global .section p typography. */
-  p.pf-sound-hint,
-  .pf-sound-hint {
-    align-items:center; color:rgba(255,255,255,.72); display:flex;
-    font-size:11px; font-weight:700; gap:8px; justify-content:center;
-    letter-spacing:.16em; margin:16px 0 0; text-transform:uppercase;
-  }
-  .pf-sound-hint[hidden] { display:none; }
-
   /* ---- lightbox ---- */
   .lb {
     align-items:center; background:rgba(6,8,16,.94);
@@ -1694,8 +1556,10 @@ p.lb-hint,
           if ($src === '') { continue; }
           $proofItems[] = ['kind' => 'video', 'src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
       }
-      $layout = (string)($s['proof_layout'] ?? 'ring');
-      if (!in_array($layout, ['ring', 'strip', 'coverflow'], true)) { $layout = 'ring'; }
+      /* The proof_layout setting is intentionally not read any more. The section
+         renders one fixed player now, so a stored ring/strip/coverflow value must
+         not be able to bring a carousel back. The admin still writes the key, so
+         an existing database row stays valid either way. */
 
       /* Proof content model.
          Categories are declared once here and rendered from data, so a new
@@ -1709,7 +1573,10 @@ p.lb-hint,
          layer from becoming a second source of truth. */
       $proofGroups = [];
       if (!empty($proofItems)) {
-          $proofGroups[] = ['key' => 'videos', 'label' => 'Videos', 'count' => count($proofItems)];
+          /* Only one proof video is rendered, so the tab advertises one item even
+         when several are configured. Reporting the configured count would promise
+         videos the section no longer shows. */
+      $proofGroups[] = ['key' => 'videos', 'label' => 'Videos', 'count' => 1];
       }
       $photoCount = 0;
       for ($i = 1; $i <= 6; $i++) {
@@ -1731,9 +1598,7 @@ p.lb-hint,
       </div>
       <?php endif; ?>
 
-      <section data-pf-group="videos" class="section center <?= $layout === 'coverflow' ? 'proof-dark' : 'wash' ?> proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php elseif ($layout === 'strip'): ?><div class="proof-stage-wrap" id="proofWrap"><div class="proof-stage" id="proofStage"><?php foreach ($proofItems as $item): ?><figure class="proof-slide" style="aspect-ratio:16 / 9; height:min(42vw, 420px); max-height:420px; width:100%;"><?= hpl_proof_media($item, 'loop data-proof-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="proof-cue" id="proofCue" type="button" aria-label="More videos"><span class="proof-cue-text">More videos</span><span class="proof-cue-arrow" aria-hidden="true">&rsaquo;</span></button><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button></div><div class="proof-dots" id="proofDots"></div>
-<?php elseif ($layout === 'coverflow'): ?>
-<div class="ring-wrap proof-coverflow" id="ringWrap" style="--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>;"><div class="cf-stage" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><?= hpl_proof_media($item, 'data-ring-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="cf-arrow cf-prev" id="ringPrev" type="button" aria-label="Previous story"><span aria-hidden="true">&lsaquo;</span></button><button class="cf-arrow cf-next" id="ringNext" type="button" aria-label="Next story"><span aria-hidden="true">&rsaquo;</span></button><button class="cf-audio-btn cf-sound-btn" id="cfSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span class="cf-audio-ico" aria-hidden="true">&#128263;</span><span class="cf-audio-txt">Sound off</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><div class="cf-dots" id="cfDots"></div><?php else: ?><div class="ring-wrap" id="ringWrap" style="--ring-r:<?= h((string)(max(0, (float)($s['proof_ring_r'] ?? 300)))) ?>px;--ring-size:<?= h((string)(max(80, (float)($s['proof_ring_size'] ?? 300)))) ?>px;--ring-shape:<?= h((string)max(0.2, min(4, (float)($s['proof_ring_shape'] ?? 0.5625)))) ?>"><div class="ring" id="ring"><?php foreach ($proofItems as $i => $item): ?><figure class="ring-item" data-ring-item role="button" tabindex="0" aria-label="Show story <?= (int)$i + 1 ?><?= $item['caption'] !== '' ? ': ' . h($item['caption']) : '' ?>"><?= hpl_proof_media($item, 'loop data-ring-video') ?><?php if ($item['caption'] !== ''): ?><figcaption><?= h($item['caption']) ?></figcaption><?php endif; ?></figure><?php endforeach; ?></div><button class="ring-sound-btn" id="ringSound" type="button" aria-label="Turn sound on" aria-pressed="false"><span aria-hidden="true">&#128263;</span></button><button class="ring-play" id="ringPlay" type="button" aria-label="Play this story"><span aria-hidden="true">&#9654;</span></button></div><p class="proof-hint"><?= h($s['proof_hint']) ?></p><div class="ring-nav"><button type="button" id="ringPrev" aria-label="Previous story">&lsaquo;</button><button type="button" id="ringNext" aria-label="Next story">&rsaquo;</button></div><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <?php
         $proofVisuals = [];
@@ -2687,639 +2552,72 @@ form.addEventListener('keydown', function (e) {
       });
     })();
     (function () {
-      var ring = document.getElementById('ring');
-      if (!ring) return;
-      var items = Array.prototype.slice.call(ring.querySelectorAll('[data-ring-item]'));
-      if (!items.length) return;
-      var wrap = document.getElementById('ringWrap');
-      // which layout is live, needed before any of the setup below runs
-      var cf = !!(wrap && wrap.classList.contains('proof-coverflow'));
-      var playBtn = document.getElementById('ringPlay');
-      var toggleBtn = document.getElementById('ringToggle');
-      var soundBtn = document.getElementById('ringSound');
-      var prevBtn = document.getElementById('ringPrev');
-      var nextBtn = document.getElementById('ringNext');
-      var n = items.length;
-      var idx = 0;
-      // The sound hint lives on the section, not on the carousel element, so it
-      // is reached through the nearest .proof ancestor.
-      var proofSec = ring.closest ? ring.closest('.proof') : null;
-      var dotsWrap = document.getElementById('cfDots');
-      var dots = [];
-      if (cf && dotsWrap) {
-        items.forEach(function (el, i) {
-          var d = document.createElement('button');
-          d.type = 'button';
-          d.setAttribute('aria-label', 'Go to story ' + (i + 1));
-          d.addEventListener('click', function () { show(i); });
-          dotsWrap.appendChild(d);
-          dots.push(d);
-        });
-      }
-
-      function syncDots() {
-        for (var di = 0; di < dots.length; di++) dots[di].classList.toggle('on', di === idx);
-      }
-
-      var R = 300, size = 300;
-
-      function readVars() {
-        var cs = getComputedStyle(ring);
-        R = parseFloat(cs.getPropertyValue('--ring-r')) || 300;
-        size = parseFloat(cs.getPropertyValue('--ring-size')) || 300;
-      }
-
-      function frontVideo() { return items[idx].querySelector('video'); }
-
-      function frontIsEmbed() { return !!items[idx].querySelector('.proof-embed iframe'); }
-
-      /* A cross-origin player cannot be paused or muted from the parent page, so
-         the only reliable way to stop one after a handover is to unload it. The
-         src is also what triggers the player, so nothing is fetched until a
-         card actually reaches the front - five players loading at once would
-         cost far more than the one the visitor is looking at. */
-      function setEmbed(item, on) {
-        var f = item.querySelector('.proof-embed iframe');
-        if (!f) return;
-        if (on) {
-          if (!f.hasAttribute('data-on')) {
-            f.setAttribute('src', f.getAttribute('data-embed-src') || '');
-            f.setAttribute('data-on', '1');
-          }
-        } else if (f.hasAttribute('data-on')) {
-          f.removeAttribute('src');
-          f.removeAttribute('data-on');
-        }
-      }
-
-      function layout(animate) {
-        readVars();
-        if (cf) {
-          // Reference values, stepped by distance from the centre. The centre card
-          // sits at the origin; each step outward moves back in Z, turns inwards,
-          // shrinks, dims and blurs a little more.
-          var zs = [0, -80, -150];
-          var scs = [1, 0.9, 0.8];
-          var rys = [0, 8, 14];
-          var ops = [1, 0.8, 0.55];
-          var blurs = [0, 1, 2];
-          var brights = [1, 0.65, 0.45];
-
-          // The reference leaves clear space between the cards instead of letting them
-          // overlap, so each step outward is worked out from the width of the card
-          // beside it plus a gap. Perspective shortens a card the further back it sits,
-          // so the offset is divided by the same factor to land the edge where it
-          // belongs. Whatever runs past the stage is clipped by the stage.
-          var cs = getComputedStyle(ring);
-          var gap = parseFloat(cs.getPropertyValue('--cf-gap')) || 30;
-          var per = parseFloat(cs.perspective) || 1200;
-          // Taken from the laid out card rather than the custom property, which holds
-          // an unresolved min() on small screens and would not parse to a number.
-          var csw = items[idx].offsetWidth || 260;
-
-          var xs = [0, 0, 0];
-          var edge = csw / 2;
-          for (var a = 1; a < 3; a++) {
-            var f = per / (per - zs[a]);
-            var hw = (csw * scs[a] / 2) * f;
-            xs[a] = (edge + gap + hw) / f;
-            edge = xs[a] * f + hw;
-          }
-
-          items.forEach(function (el, i) {
-            var off = i - idx;
-            if (off > n / 2) off -= n;
-            if (off < -n / 2) off += n;
-            var a = Math.min(Math.abs(off), 2);
-            var sgn = off < 0 ? -1 : 1;
-            if (!animate) el.style.transition = 'none';
-            var x = a === 0 ? 0 : xs[a] * sgn;
-            el.style.transform = 'translate(-50%,-50%) translate3d(' + x.toFixed(1) + 'px,0,' + zs[a].toFixed(1) + 'px) rotateY(' + (rys[a] * sgn).toFixed(1) + 'deg) scale(' + scs[a].toFixed(3) + ')';
-            el.style.opacity = String(ops[a]);
-            el.style.setProperty('--cf-blur', blurs[a] + 'px');
-            el.style.setProperty('--cf-bright', String(brights[a]));
-            el.style.zIndex = String(100 - a);
-            el.classList.toggle('front', a === 0);
-            if (!animate) { void el.offsetWidth; el.style.transition = ''; }
-          });
-          return;
-        }
-        items.forEach(function (el, i) {
-          var off = i - idx;
-          if (off > n / 2) off -= n;
-          if (off < -n / 2) off += n;
-          // one player faces the viewer, its neighbours sit edge-on around the cylinder
-          var ang = off * 90;
-          ang = ((ang + 180) % 360 + 360) % 360 - 180;
-          var isFront = off === 0;
-          if (!animate) el.style.transition = 'none';
-          // rotateY spins the player around the ring so it hands over to the next one
-          el.style.transform = 'rotateY(' + ang.toFixed(2) + 'deg) translateZ(' + R.toFixed(1) + 'px) translate(-50%,-50%)';
-          el.style.opacity = Math.abs(ang) >= 88 ? '0' : '1';
-          el.style.zIndex = String(100 - Math.abs(ang));
-          el.classList.toggle('front', isFront);
-          if (!animate) { void el.offsetWidth; el.style.transition = ''; }
-        });
-      }
-
-      function syncBtn() {
-        syncDots();
-        var v = frontVideo();
-        // An embed is already running: the player was asked to autoplay muted
-        // when it loaded. There is no handle on it to pause, so it counts as
-        // playing and the play overlay stays out of the way.
-        var playing = v ? !v.paused : frontIsEmbed();
-        if (wrap) wrap.classList.toggle('playing', !!playing);
-        /* The sound button is the site's own control and it drives <video>
-           elements. With a player embed in front there is nothing for it to
-           reach, so it is hidden rather than left as a control that does
-           nothing - the player's own controls take over. */
-        var embedFront = frontIsEmbed();
-        if (soundBtn) soundBtn.hidden = embedFront;
-        if (cfSound) cfSound.hidden = embedFront;
-        var hint = proofSec ? proofSec.querySelector('.pf-sound-hint') : null;
-        if (hint) hint.hidden = embedFront;
-        if (toggleBtn) {
-          toggleBtn.innerHTML = playing ? '<span aria-hidden="true">&#10073;&#10073;</span>' : '<span aria-hidden="true">&#9654;</span>';
-          toggleBtn.setAttribute('aria-label', playing ? 'Pause videos' : 'Play videos');
-        }
-        if (playBtn) playBtn.style.display = playing ? 'none' : '';
-      }
-
-// Sound stays on by default, but the choice then sticks
-        // across every handover instead of being re-muted on each new story.
-        var soundOn = true;
-        try { soundOn = localStorage.getItem('hpl_story_sound') !== '0'; } catch (e) {}
-  
-        // Volume is remembered separately so a visitor who dialled it down gets the
-        // same level back, and so "sound on" and "audible" stay distinct states: a
-        // slider at zero is silence and has to read as muted in the button.
-        var vol = 0.8;
-        try {
-          var savedVol = parseFloat(localStorage.getItem('hpl_story_vol'));
-          if (!isNaN(savedVol) && savedVol >= 0 && savedVol <= 1) vol = savedVol;
-        } catch (e) {}
-  
-        var cfAudio = document.getElementById('cfAudio');
-        var cfSound = document.getElementById('cfSound');
-        var cfVolume = document.getElementById('cfVolume');
-        var cfAudioTxt = cfSound ? cfSound.querySelector('.cf-audio-txt') : null;
-  
-        function audibleNow() { return soundOn && vol > 0; }
-  
-        function applySound() {
-          // A visitor who has not asked for sound never gets it turned on for them
-          // when the section scrolls past, because browsers block autoplay with
-          // audio anyway - the attempt would fail silently and leave the button
-          // out of step with what is playing.
-          var audible = soundOn && vol > 0;
-          items.forEach(function (el) {
-            var v = el.querySelector('video');
-            if (v) { v.muted = !audible; v.volume = vol; }
-          });
-          if (soundBtn) {
-            soundBtn.innerHTML = soundOn
-              ? '<span aria-hidden="true">&#128266;</span>'
-              : '<span aria-hidden="true">&#128263;</span>';
-            soundBtn.setAttribute('aria-label', soundOn ? 'Turn sound off' : 'Turn sound on');
-            soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
-          }
-          if (cfSound) {
-            var ico = cfSound.querySelector('.cf-audio-ico');
-            if (ico) ico.innerHTML = audible
-              ? '&#128266;'
-              : (soundOn ? '&#128263;' : '&#128263;');
-            cfSound.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
-            cfSound.setAttribute('aria-label', soundOn ? 'Turn sound off' : 'Turn sound on');
-            if (cfAudioTxt) cfAudioTxt.textContent = audible ? 'Sound on' : 'Sound off';
-          }
-          if (cfAudio) cfAudio.setAttribute('data-effective', audible ? 'on' : 'off');
-          if (cfVolume) cfVolume.value = String(Math.round(vol * 100));
-        }
-
-      function toggleSound() {
-        soundOn = !soundOn;
-        try { localStorage.setItem('hpl_story_sound', soundOn ? '1' : '0'); } catch (e) {}
-        applySound();
-      }
-
-      function playFront() {
-        var v = frontVideo();
-        if (!v) return;
-        v.muted = !soundOn;
-        var pr = v.play();
-        if (pr && pr.catch) pr.catch(function () {});
-        syncBtn();
-      }
-
-      function pauseAll() {
-        items.forEach(function (el) {
-          var v = el.querySelector('video');
-          if (v && !v.paused) v.pause();
-        });
-        syncBtn();
-      }
-
-      function show(i, autoplay) {
-        if (i === idx) return;
-        var old = items[idx].querySelector('video');
-        if (old) { old.pause(); old.currentTime = 0; }
-        setEmbed(items[idx], false);
-        idx = ((i % n) + n) % n;
-        setEmbed(items[idx], true);
-        layout(true);
-        syncBtn();
-        if (autoplay === true) playFront();
-        if (wrap) wrap.classList.add('moved');
-      }
-
-      function next() { show(idx + 1, false); }
-      function prev() { show(idx - 1, false); }
-
-      items.forEach(function (el, i) {
-        el.addEventListener('click', function () {
-          if (i === idx) { togglePlay(); } else { show(i, false); }
-        });
-        el.addEventListener('keydown', function (e) {
-          if (e.key !== 'Enter' && e.key !== ' ') return;
-          e.preventDefault();
-          if (i === idx) { togglePlay(); } else { show(i, false); }
-        });
-        var v = el.querySelector('video');
-        if (v) v.addEventListener('play', syncBtn);
-        if (v) v.addEventListener('pause', syncBtn);
-        // coverflow only: once a story has played out, do not autoplay next
-        if (cf && v) v.addEventListener('ended', function () {
-          syncBtn();
-        });
-        if (v) v.addEventListener('playing', function () {
-          var nx = items[(i + 1) % n].querySelector('video');
-          if (nx && nx.preload !== 'auto') { nx.preload = 'auto'; nx.load(); }
-        });
-      });
-
-      function togglePlay() {
-        var v = frontVideo();
-        if (!v) return;
-        if (v.paused) { playFront(); } else { v.pause(); syncBtn(); }
-      }
-
-      if (soundBtn) soundBtn.addEventListener('click', toggleSound);
-        // The new top right control drives the same soundOn flag as the existing
-        // bottom button rather than keeping its own, so the two can never disagree.
-        if (cfSound) {
-          cfSound.addEventListener('click', function () {
-            if (!soundOn && vol <= 0) vol = 0.8;
-            toggleSound();
-          });
-        }
-        if (cfVolume) {
-          cfVolume.addEventListener('input', function () {
-            vol = Math.max(0, Math.min(1, (parseFloat(cfVolume.value) || 0) / 100));
-            try { localStorage.setItem('hpl_story_vol', String(vol)); } catch (e) {}
-            applySound();
-            // Nudging the slider up is the visitor asking to hear it, so make sure
-            // something is actually playing rather than only changing the level.
-            var fv = frontVideo();
-            // volume change does not autoplay
-          });
-        }
-      applySound();
-      if (playBtn) playBtn.addEventListener('click', playFront);
-      if (toggleBtn) toggleBtn.addEventListener('click', togglePlay);
-      if (prevBtn) prevBtn.addEventListener('click', prev);
-      if (nextBtn) nextBtn.addEventListener('click', next);
-
-      var tx = 0, ty = 0;
-      ring.addEventListener('touchstart', function (e) {
-        tx = e.changedTouches[0].clientX; ty = e.changedTouches[0].clientY;
-      }, { passive: true });
-      ring.addEventListener('touchend', function (e) {
-        var dx = e.changedTouches[0].clientX - tx;
-        var dy = e.changedTouches[0].clientY - ty;
-        if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
-        if (dx < 0) next(); else prev();
-      }, { passive: true });
-
-      var wlock = false;
-      window.addEventListener('wheel', function (e) {
-        if (wlock || Math.abs(e.deltaX) < 10) return;
-        var r = ring.getBoundingClientRect();
-        if (r.bottom < 80 || r.top > window.innerHeight - 80) return;
-        e.preventDefault();
-        wlock = true;
-        window.setTimeout(function () { wlock = false; }, 650);
-        if (e.deltaX > 0) next(); else prev();
-      }, { passive: false });
-
-      document.addEventListener('keydown', function (e) {
-        var r = ring.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > window.innerHeight) return;
-        if (e.key === 'ArrowRight') next();
-        if (e.key === 'ArrowLeft') prev();
-      });
-
-      window.addEventListener('resize', function () { layout(false); });
-
-      if (cf) {
-        document.addEventListener('visibilitychange', function () {
-          if (document.hidden) pauseAll();
-        });
-      }
-
-      layout(false);
-      /* The scroll observer below owns when an embed loads: nothing is fetched
-         while the section is off screen, and the observer brings the front one
-         back when it returns. Exposed here because the two pieces of script are
-         otherwise independent. */
-      window.__hplProofFront = function () { setEmbed(items[idx], true); };
-      if (n === 1) {
-        if (wrap) wrap.classList.add('moved');
-        if (prevBtn) prevBtn.style.display = 'none';
-        if (nextBtn) nextBtn.style.display = 'none';
-      }
-      syncBtn();
-    })();
-    (function () {
-      window.__hplInView = true;
+      /* One fixed player for the whole section.
+         The iframe is emitted with data-embed-src and no src, so nothing streams
+         until the section is reached, and it is unloaded again on the way out so
+         a playing video never talks over the page behind it. */
       var sec = document.querySelector('.proof');
-      if (!sec) { return; }
+      if (!sec) return;
+      var frame = sec.querySelector('.proof-embed iframe');
+      if (!frame) return;
+
+      function loadPlayer() {
+        if (frame.hasAttribute('data-on')) return;
+        frame.setAttribute('src', frame.getAttribute('data-embed-src') || '');
+        frame.setAttribute('data-on', '1');
+      }
+      function unloadPlayer() {
+        if (!frame.hasAttribute('data-on')) return;
+        frame.removeAttribute('src');
+        frame.removeAttribute('data-on');
+      }
+
       if (!('IntersectionObserver' in window)) {
-        // Nothing to gate on without the observer, so show the player at once
-        // rather than leaving the card permanently blank.
-        if (typeof window.__hplProofFront === 'function') { window.__hplProofFront(); }
+        loadPlayer();
         return;
       }
       new IntersectionObserver(function (entries) {
-        var vis = entries[0].isIntersecting;
-        window.__hplInView = vis;
-        if (!vis) {
-          sec.querySelectorAll('video').forEach(function (v) { if (v && !v.paused) { v.pause(); } });
-          // A player embed has no pause handle from here, so scrolling away
-          // unloads it rather than leaving it talking over the page behind.
-          sec.querySelectorAll('.proof-embed iframe[data-on]').forEach(function (f) {
-            f.removeAttribute('src');
-            f.removeAttribute('data-on');
-          });
-        } else if (typeof window.__hplProofFront === 'function') {
-          // Coming back into view has to restore the player that was unloaded
-          // on the way out, otherwise the front card stays blank.
-          window.__hplProofFront();
+        if (entries[0].isIntersecting) {
+          loadPlayer();
+          return;
         }
+        sec.querySelectorAll('video').forEach(function (v) { if (v && !v.paused) { v.pause(); } });
+        unloadPlayer();
       }, { rootMargin: '300px 0px' }).observe(sec);
     })();
     (function () {
-      var stage = document.getElementById('proofStage');
-      if (!stage) return;
-      var slides = Array.prototype.slice.call(stage.querySelectorAll('.proof-slide'));
-      if (!slides.length) return;
-      var dotsWrap = document.getElementById('proofDots');
-      var wrap = document.getElementById('proofWrap');
-      var cue = document.getElementById('proofCue');
-      var proofSection = stage.closest('.proof');
-      var idx = 0;
-      var reachedLast = false;
+      /* Pause decorative animation while it is off screen. Infinite animations
+         keep costing the compositor every frame even when the element cannot be
+         seen, so a section only animates while it is near the viewport and the
+         cost of walking past it becomes a single class toggle. */
+      var watched = [];
+      ['.trust-section', '.proof-ticker', '.proof-visuals', '.slides'].forEach(function (sel) {
+        document.querySelectorAll(sel).forEach(function (el) { watched.push(el); });
+      });
+      if (!watched.length) return;
 
-      function proofNearViewport() {
-        if (!proofSection) return false;
-        var rect = proofSection.getBoundingClientRect();
-        return rect.bottom > -300 && rect.top < window.innerHeight + 300;
+      function setState(entries) {
+        entries.forEach(function (entry) {
+          entry.target.classList.toggle('hpl-offscreen', !entry.isIntersecting);
+        });
       }
-
-      function dismissCue() {
-        if (wrap) wrap.classList.add('cue-dismissed');
-      }
-
-      function updateCueJourney() {
-        if (idx === slides.length - 1) reachedLast = true;
-        if (reachedLast && idx === 0) dismissCue();
-      }
-
-      function setSlideEmbed(slide, on) {
-        var iframe = slide && slide.querySelector('.proof-embed iframe');
-        if (!iframe) return;
-        if (on && !iframe.hasAttribute('data-on')) {
-          iframe.setAttribute('src', iframe.getAttribute('data-embed-src') || '');
-          iframe.setAttribute('data-on', '1');
-        } else if (!on && iframe.hasAttribute('data-on')) {
-          iframe.removeAttribute('src');
-          iframe.removeAttribute('data-on');
-        }
-      }
-
-      function bindProofEmbed(iframe) {
-        var focused = false;
-        var embedUrl = iframe.getAttribute('data-embed-src') || iframe.src;
-        if (!/\.mediadelivery\.net(?:\/|$)/i.test(embedUrl)) return;
-
-        iframe.addEventListener('focus', function () { focused = true; });
-        function bindPlayer() {
-          if (!window.playerjs || !iframe.hasAttribute('src') || iframe.dataset.cuePlayerBound) return;
-          try {
-            var player = new window.playerjs.Player(iframe);
-            player.on('play', function () {
-              if (focused) dismissCue();
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(setState, { rootMargin: '120px 0px' });
+        watched.forEach(function (el) { io.observe(el); });
+      } else {
+        var ticking = false;
+        window.addEventListener('scroll', function () {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(function () {
+            ticking = false;
+            watched.forEach(function (el) {
+              var r = el.getBoundingClientRect();
+              el.classList.toggle('hpl-offscreen', r.bottom < -120 || r.top > window.innerHeight + 120);
             });
-            iframe.dataset.cuePlayerBound = '1';
-          } catch (e) {}
-        }
-
-        iframe.addEventListener('load', bindPlayer);
-        var playerScript = document.querySelector('script[src*="playerjs-latest.min.js"]');
-        if (window.playerjs) bindPlayer();
-        else if (playerScript) playerScript.addEventListener('load', bindPlayer, { once: true });
-      }
-
-      slides.forEach(function (s) {
-        s.style.aspectRatio = '16 / 9';
-        s.style.height = 'min(42vw, 420px)';
-        s.style.maxHeight = '420px';
-        s.style.width = 'min(68vw, 700px)';
-        var embed = s.querySelector('.proof-embed');
-        if (embed) {
-          embed.style.aspectRatio = '16 / 9';
-          embed.style.height = '100%';
-          embed.style.width = '100%';
-        }
-        var iframe = s.querySelector('.proof-embed iframe');
-        if (iframe) {
-          iframe.style.height = '100%';
-          iframe.style.width = '100%';
-          iframe.style.position = 'absolute';
-          iframe.style.inset = '0';
-        }
-        var video = s.querySelector('video');
-        if (video) video.addEventListener('play', dismissCue);
-        var embedFrame = s.querySelector('.proof-embed iframe');
-        if (embedFrame) bindProofEmbed(embedFrame);
-      });
-
-      var dots = slides.map(function (s, i) {
-        var d = document.createElement('button');
-        d.type = 'button';
-        d.setAttribute('aria-label', 'Go to video ' + (i + 1));
-        d.addEventListener('click', function () { show(i); });
-        if (dotsWrap) dotsWrap.appendChild(d);
-        return d;
-      });
-
-      function syncDots() {
-        dots.forEach(function (d, n) { d.classList.toggle('on', n === idx); });
-      }
-
-      function scrollToIndex(i) {
-        i = Math.max(0, Math.min(slides.length - 1, i));
-        var target = slides[i];
-        if (!target) return;
-        if (i !== idx) setSlideEmbed(slides[idx], false);
-        stage.scrollTo({
-          left: target.offsetLeft - (stage.clientWidth - target.offsetWidth) / 2,
-          behavior: 'smooth'
-        });
-        idx = i;
-        syncDots();
-        updateCueJourney();
-        if (proofNearViewport()) setSlideEmbed(slides[idx], true);
-      }
-
-      window.__hplProofFront = function () { setSlideEmbed(slides[idx], true); };
-      window.__hplProofFront();
-
-      function show(i) {
-        if (i === idx) return;
-        var prev = slides[idx];
-        if (prev) {
-          prev.classList.remove('on');
-          var pv = prev.querySelector('video');
-          if (pv) { pv.pause(); pv.currentTime = 0; }
-        }
-        scrollToIndex(i);
-        var cur = slides[idx];
-        if (cur) cur.classList.add('on');
-      }
-
-      function next() { show((idx + 1) % slides.length); }
-      function prev() { show((idx - 1 + slides.length) % slides.length); }
-
-      slides.forEach(function (s, i) {
-        s.classList.toggle('on', i === 0);
-      });
-      dots[0].classList.add('on');
-
-      if (cue) cue.addEventListener('click', next);
-
-      var lock = false;
-      window.addEventListener('wheel', function (e) {
-        if (lock || Math.abs(e.deltaY) < 8) return;
-        var r = stage.getBoundingClientRect();
-        var visible = r.bottom > 80 && r.top < window.innerHeight - 80;
-        if (!visible) return;
-        var down = e.deltaY > 0;
-        if (down && idx === slides.length - 1) return;
-        if (!down && idx === 0) return;
-        e.preventDefault();
-        lock = true;
-        window.setTimeout(function () { lock = false; }, 600);
-        if (down) next(); else prev();
-      }, { passive: false });
-
-      var tx = 0, ty = 0;
-      stage.addEventListener('touchstart', function (e) {
-        tx = e.changedTouches[0].clientX; ty = e.changedTouches[0].clientY;
-      }, { passive: true });
-      stage.addEventListener('touchend', function (e) {
-        var dx = e.changedTouches[0].clientX - tx;
-        var dy = e.changedTouches[0].clientY - ty;
-        if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
-        if (dx < 0) next(); else prev();
-      }, { passive: true });
-
-      /* Scroll fires far faster than the screen can paint, and reading
-         offsetLeft/offsetWidth here forces a layout flush every time. Both
-         cost the section hundreds of milliseconds over a single pass, so the
-         work is coalesced into one rAF and the slide centres are measured
-         once rather than on every event.
-
-         This handler also no longer touches the player src. Scrolling is not a
-         navigation gesture, and swapping src here fought the IntersectionObserver
-         300px away, which unloaded and re-fetched the same Bunny embed. Only the
-         observer and explicit navigation now load a player. */
-      var centres = null;
-      function measureCentres() {
-        centres = slides.map(function (s) { return s.offsetLeft + s.offsetWidth / 2; });
-      }
-      measureCentres();
-      window.addEventListener('resize', function () { centres = null; });
-
-      var scrollQueued = false;
-      stage.addEventListener('scroll', function () {
-        if (scrollQueued) return;
-        scrollQueued = true;
-        requestAnimationFrame(function () {
-          scrollQueued = false;
-          if (!centres) measureCentres();
-          var centre = stage.scrollLeft + stage.clientWidth / 2;
-          var nearest = 0;
-          var nearestDistance = Number.POSITIVE_INFINITY;
-          for (var i = 0; i < centres.length; i++) {
-            var distance = Math.abs(centres[i] - centre);
-            if (distance < nearestDistance) {
-              nearestDistance = distance;
-              nearest = i;
-            }
-          }
-          if (nearest !== idx) {
-            idx = nearest;
-            syncDots();
-            updateCueJourney();
-          }
-        });
-      }, { passive: true });
-
-      /* Pause decorative animation while it is off screen. Six infinite
-         animations were running for the whole visit from the moment the page
-         loaded, whether or not the visitor had scrolled near them. The
-         observer only watches section membership, so the cost of walking past
-         a section is a single class toggle rather than constant compositing. */
-      (function () {
-        var sections = ['.trust-section', '.proof-ticker', '.proof-visuals', '.slides'];
-        var watched = [];
-        sections.forEach(function (sel) {
-          document.querySelectorAll(sel).forEach(function (el) { watched.push(el); });
-        });
-        if (!watched.length) return;
-
-        function setState(entries) {
-          entries.forEach(function (entry) {
-            entry.target.classList.toggle('hpl-offscreen', !entry.isIntersecting);
           });
-        }
-        if ('IntersectionObserver' in window) {
-          var io = new IntersectionObserver(setState, { rootMargin: '120px 0px' });
-          watched.forEach(function (el) { io.observe(el); });
-        } else {
-          /* No observer: fall back to a scroll check on the next frame. */
-          var ticking = false;
-          window.addEventListener('scroll', function () {
-            if (ticking) return;
-            ticking = true;
-            requestAnimationFrame(function () {
-              ticking = false;
-              watched.forEach(function (el) {
-                var r = el.getBoundingClientRect();
-                el.classList.toggle('hpl-offscreen', r.bottom < -120 || r.top > window.innerHeight + 120);
-              });
-            });
-          }, { passive: true });
-        }
-      })();
-
-      document.addEventListener('keydown', function (e) {
-        var r = stage.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > window.innerHeight) return;
-        if (e.key === 'ArrowRight') next();
-        if (e.key === 'ArrowLeft') prev();
-      });
+        }, { passive: true });
+      }
     })();
     (function () {
       var frame = document.getElementById('slidesFrame');
@@ -3631,40 +2929,6 @@ form.addEventListener('keydown', function (e) {
       /* Keep the gallery clean: no extra instruction text is needed. */
     })();
 
-    /* ---------- sound affordance ----------
-       The testimonial area already has a working sound toggle with an
-       aria-pressed state. All this does is make the option discoverable while
-       sound is still off, then get out of the way.
-
-       It deliberately never calls play(), mute() or unmute(): browsers only
-       allow audible autoplay after a real interaction, and forcing or
-       re-prompting is exactly what visitors dislike. */
-    (function () {
-      'use strict';
-      var proof = document.querySelector('[data-pf-group="videos"]');
-      if (!proof) return;
-      /* The toggle is named differently per layout; all of them carry the same
-         aria-pressed contract. */
-      var btn = proof.querySelector('#cfSound, #ringSound');
-      if (!btn) return;
-      if (proof.querySelector('.pf-sound-hint')) return;
-
-      var hint = document.createElement('p');
-      hint.className = 'pf-sound-hint';
-      hint.innerHTML = '<span aria-hidden="true">&#128266;</span> Tap to hear the story';
-
-      var anchor = proof.querySelector('.proof-caption') || proof.querySelector('.ring-nav') || proof.querySelector('.ring-wrap');
-      if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(hint, anchor); }
-      else { proof.appendChild(hint); }
-
-      function sync() {
-        var on = btn.getAttribute('aria-pressed') === 'true';
-        hint.hidden = on;
-      }
-      btn.addEventListener('click', function () { window.setTimeout(sync, 0); });
-      sync();
-    })();
-
     // Trust Indicators - Animate stars on scroll (optimized with requestAnimationFrame)
     (function () {
       var stars = document.querySelectorAll('.star');
@@ -3848,21 +3112,10 @@ form.addEventListener('keydown', function (e) {
         }, { passive: true });
       }
 
-      // Add swipe hints to galleries
+      /* Only the slides gallery is still a swipeable strip; the proof section
+         renders a single fixed player, so there is nothing to swipe there. */
       if (isMobile) {
-        var proofStage = document.querySelector('.proof-stage-wrap');
-        var ringWrap = document.querySelector('.ring-wrap');
         var slidesStage = document.querySelector('.slides-stage');
-
-        // Add gallery-swipe class for visual feedback
-        if (proofStage) {
-          proofStage.classList.add('gallery-swipe');
-          addSwipeHint(proofStage);
-        }
-        if (ringWrap) {
-          ringWrap.classList.add('gallery-swipe');
-          addSwipeHint(ringWrap);
-        }
         if (slidesStage) {
           slidesStage.classList.add('gallery-swipe');
           addSwipeHint(slidesStage);
