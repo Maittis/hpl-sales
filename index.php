@@ -751,6 +751,14 @@ function art_block(string $file, string $fallbackClass = ''): string
     .benefit-media { aspect-ratio:auto; height:180px; transition:border-color .3s ease; }
     .benefit-media:hover { border-color:rgba(244,202,91,.45); }
     .benefit-media .detector { transform:translateX(-45%) rotate(-12deg) scale(.47); top:-24px; }
+    /* Customer voice rows keep the platform dot and the post type as a meta
+       line under the heading, and the screenshot fills the standard 16/9 box. */
+    .voice-meta { align-items:center; color:rgba(255,255,255,.62); display:flex; font-size:11px; font-weight:700; gap:8px; letter-spacing:.14em; margin:0 0 14px; text-transform:uppercase; }
+    .voice-meta .proof-social-dot { flex:0 0 auto; }
+    .voice-todo { border-left:2px dashed rgba(244,202,91,.55); font-style:italic; padding-left:14px; }
+    .voice-media .proof-social-screenshot { aspect-ratio:auto; border:0; border-radius:0; height:100%; min-height:0; width:100%; }
+    .voice-media .proof-social-screenshot.has-image { aspect-ratio:auto; max-width:none; }
+    .voice-media .proof-social-screenshot.has-image > img { height:100%; object-fit:cover; width:100%; }
     .review-screenshot-grid { align-items:start; display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:36px auto 0; max-width:1220px; }
     .review-screenshot-grid figure { background:var(--navy); border:1px solid rgba(244,202,91,.42); border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.3); margin:0; overflow:hidden; padding:10px; }
     .review-screenshot-grid img { display:block; height:auto; max-height:520px; object-fit:contain; width:100%; }
@@ -836,14 +844,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     @media (prefers-reduced-motion:reduce) {
       .proof-mix-story { animation:none; transition:none; }
     }
-    .proof-social-wrap { display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:28px auto 0; max-width:1220px; }
-    .proof-social-card { background:#fff; border:1px solid rgba(17,26,56,.08); border-radius:18px; box-shadow:0 18px 45px rgba(17,26,56,.08); overflow:hidden; }
-    .proof-social-top { align-items:center; background:#fff; display:flex; gap:9px; justify-content:space-between; padding:12px 14px; }
-    .proof-social-brand { align-items:center; display:flex; gap:8px; }
     .proof-social-dot { background:linear-gradient(135deg,#2dd4bf,#14b8a6); border-radius:50%; display:block; height:10px; width:10px; }
-    .proof-social-app { color:#111a38; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
-    .proof-social-body { background:linear-gradient(180deg,#f9fafb,#eef2f7); padding:14px; }
-    .proof-social-body p { color:#1f2937; font-size:13px; line-height:1.5; margin:0; }
     .proof-social-screenshot { background:#f3f6fb; border:1px solid rgba(17,26,56,.08); border-radius:12px; min-height:190px; overflow:hidden; position:relative; }
     .proof-social-screenshot.has-image { aspect-ratio:4/5; margin:0 auto; max-width:420px; min-height:0; }
     .proof-social-screenshot.has-image::before { display:none; }
@@ -863,7 +864,6 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-social-screenshot .mock-chip { background:#e7f7ed; border-radius:999px; display:inline-block; height:18px; margin-top:8px; width:84px; }
     @media (max-width:1024px) {
       .proof-mix-grid { grid-template-columns:1fr; }
-      .proof-social-wrap { grid-template-columns:1fr; }
     }
     @media (max-width:640px) {
       .proof-mix-grid { grid-template-columns:1fr; }
@@ -1789,13 +1789,14 @@ $proofVisuals = [];
       <section class="section proof-mix">
         <div class="section-label">Customer voices</div>
         <h2>See what our customers are saying</h2>
-        <div class="proof-social-wrap">
-          <article class="proof-social-card">
-            <div class="proof-social-top">
-              <div class="proof-social-brand"><span class="proof-social-dot"></span><span class="proof-social-app">WhatsApp</span></div>
-              <span class="proof-social-app">Today</span>
+        <div class="zig">
+          <div class="zig-row">
+            <div class="zig-text">
+              <h3 class="zig-title">WhatsApp</h3>
+              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#2dd4bf,#14b8a6);"></span>Today</p>
+              <p class="zig-body voice-todo">TODO &mdash; paste the customer's real WhatsApp Today message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.</p>
             </div>
-            <div class="proof-social-body">
+            <div class="zig-media voice-media">
               <div class="proof-social-screenshot whatsapp<?= file_exists(__DIR__ . '/img/customer-voice-whatsapp.jpg') ? ' has-image' : '' ?>">
                 <?php if (file_exists(__DIR__ . '/img/customer-voice-whatsapp.jpg')): ?>
                 <img src="<?= hpl_img_url("customer-voice-whatsapp.jpg") ?>" alt="WhatsApp message from an HPL customer" loading="lazy">
@@ -1810,14 +1811,14 @@ $proofVisuals = [];
                 <?php endif; ?>
               </div>
             </div>
-          </article>
-
-          <article class="proof-social-card">
-            <div class="proof-social-top">
-              <div class="proof-social-brand"><span class="proof-social-dot" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);"></span><span class="proof-social-app">Facebook</span></div>
-              <span class="proof-social-app">Post</span>
+          </div>
+          <div class="zig-row">
+            <div class="zig-text">
+              <h3 class="zig-title">Facebook</h3>
+              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);"></span>Post</p>
+              <p class="zig-body voice-todo">TODO &mdash; paste the customer's real Facebook Post message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.</p>
             </div>
-            <div class="proof-social-body">
+            <div class="zig-media voice-media">
               <div class="proof-social-screenshot facebook<?= file_exists(__DIR__ . '/img/customer-voice-facebook.jpg') ? ' has-image' : '' ?>">
                 <?php if (file_exists(__DIR__ . '/img/customer-voice-facebook.jpg')): ?>
                 <img src="<?= hpl_img_url("customer-voice-facebook.jpg") ?>" alt="Facebook post from an HPL customer" loading="lazy">
@@ -1832,14 +1833,14 @@ $proofVisuals = [];
                 <?php endif; ?>
               </div>
             </div>
-          </article>
-
-          <article class="proof-social-card">
-            <div class="proof-social-top">
-              <div class="proof-social-brand"><span class="proof-social-dot" style="background:linear-gradient(135deg,#f472b6,#a855f7);"></span><span class="proof-social-app">TikTok</span></div>
-              <span class="proof-social-app">Video</span>
+          </div>
+          <div class="zig-row">
+            <div class="zig-text">
+              <h3 class="zig-title">TikTok</h3>
+              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#f472b6,#a855f7);"></span>Video</p>
+              <p class="zig-body voice-todo">TODO &mdash; paste the customer's real TikTok Video message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.</p>
             </div>
-            <div class="proof-social-body">
+            <div class="zig-media voice-media">
               <div class="proof-social-screenshot tiktok<?= file_exists(__DIR__ . '/img/customer-voice-tiktok.jpg') ? ' has-image' : '' ?>">
                 <?php if (file_exists(__DIR__ . '/img/customer-voice-tiktok.jpg')): ?>
                 <img src="<?= hpl_img_url("customer-voice-tiktok.jpg") ?>" alt="TikTok post featuring an HPL detector" loading="lazy">
@@ -1854,7 +1855,7 @@ $proofVisuals = [];
                 <?php endif; ?>
               </div>
             </div>
-          </article>
+          </div>
         </div>
       </section>
 
