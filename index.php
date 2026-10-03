@@ -508,6 +508,99 @@ function hpl_img_url(string $file): string
     return h('img/' . $file) . ($stamp !== '' ? '?v=' . $stamp : '');
 }
 
+/** True for the map providers we are willing to frame. */
+function hpl_map_host_ok(string $host): bool
+{
+    $host = strtolower($host);
+    $allowed = [
+        'www.openstreetmap.org',
+        'openstreetmap.org',
+        'www.google.com',
+        'maps.google.com',
+        'www.bing.com',
+        'api.mapbox.com',
+    ];
+    foreach ($allowed as $a) {
+        if ($host === $a || substr($host, -strlen('.' . $a)) === '.' . $a) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * src for the "Visit us" map, or '' when nothing usable is configured.
+ *
+ * A pasted snippet is treated exactly like the video embeds above: only the
+ * iframe src is kept, and the tag itself is rebuilt here, so nothing untrusted
+ * is ever echoed. Failing that, plain coordinates build an OpenStreetMap frame,
+ * which needs no API key and no billing account.
+ */
+function hpl_map_embed_url(string $embed, string $lat, string $lon, string $zoom): string
+{
+    $embed = trim($embed);
+    if ($embed !== '') {
+        if (stripos($embed, '<iframe') !== false) {
+            if (!preg_match('~<iframe[^>]+src\s*=\s*["\']([^"\']+)["\']~i', $embed, $m)) {
+                return '';
+            }
+            $embed = html_entity_decode(trim($m[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+        if (!preg_match('~^https?://~i', $embed)) {
+            return '';
+        }
+        $parts = parse_url($embed);
+        if ($parts === false || empty($parts['host']) || !hpl_map_host_ok($parts['host'])) {
+            return '';
+        }
+        /* Force https so a pasted http:// link cannot be downgraded in transit. */
+        return 'https://' . $parts['host'] . (isset($parts['path']) ? $parts['path'] : '/')
+            . (isset($parts['query']) ? '?' . $parts['query'] : '');
+    }
+
+    if (!is_numeric($lat) || !is_numeric($lon)) {
+        return '';
+    }
+    $lat = (float)$lat;
+    $lon = (float)$lon;
+    if ($lat < -90 || $lat > 90 || $lon < -180 || $lon > 180) {
+        return '';
+    }
+
+    $zoom = is_numeric($zoom) ? (int)$zoom : 16;
+    $zoom = max(1, min(19, $zoom));
+
+    /* Roughly the viewport a map at this zoom would show around the marker. */
+    $span = 360 / (2 ** $zoom);
+    $minLat = max(-85.0, $lat - $span * 0.6);
+    $maxLat = min(85.0, $lat + $span * 0.6);
+    $minLon = max(-180.0, $lon - $span);
+    $maxLon = min(180.0, $lon + $span);
+
+    return 'https://www.openstreetmap.org/export/embed.html?bbox='
+        . $minLon . '%2C' . $minLat . '%2C' . $maxLon . '%2C' . $maxLat
+        . '&layer=mapnik&marker=' . $lat . '%2C' . $lon;
+}
+
+/**
+ * "Get directions" target. Uses the coordinates when we have them and falls back
+ * to a plain search for the typed address, so the button works either way.
+ */
+function hpl_map_directions_url(array $s): string
+{
+    $lat = trim((string)($s['visit_map_lat'] ?? ''));
+    $lon = trim((string)($s['visit_map_lon'] ?? ''));
+    if (is_numeric($lat) && is_numeric($lon)) {
+        return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($lat . ',' . $lon);
+    }
+    $address = trim((string)($s['visit_address'] ?? ''));
+    if ($address === '') {
+        return '';
+    }
+    $firstLine = preg_split('/\r\n|\r|\n/', $address)[0];
+    return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode(trim($firstLine));
+}
+
 function art_block(string $file, string $fallbackClass = ''): string
 {
     if (file_exists(__DIR__ . '/img/' . $file)) {
@@ -853,6 +946,33 @@ function art_block(string $file, string $fallbackClass = ''): string
     .testimonial-name { color:#fff; font-size:14px; font-weight:700; }
     .testimonial-location { color:rgba(255,255,255,.5); font-size:12px; }
     .accordions { margin:0 auto; max-width:700px; text-align:left; }
+      .visit-head { margin:0 auto 34px; max-width:720px; }
+      .visit-label { color:var(--gold-light); display:block; font-size:13px; font-weight:700; letter-spacing:.18em; margin:0 0 10px; text-transform:uppercase; }
+      .visit-grid { align-items:start; display:grid; gap:34px; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); margin:0 auto; max-width:1180px; text-align:left; }
+      .visit-card { background:rgba(255,255,255,.04); border:1px solid rgba(244,202,91,.28); border-radius:18px; padding:26px; }
+      .visit-rows { display:grid; gap:20px; margin:0; }
+      .visit-row { display:grid; gap:5px; }
+      .visit-row-label { color:var(--gold-light); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+      .visit-row p { color:rgba(255,255,255,.82); font-size:15px; line-height:1.6; margin:0; max-width:none; }
+      .visit-row a { color:#fff; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+      .visit-cta { display:inline-flex; margin-top:24px; }
+      .visit-media { display:grid; gap:18px; }
+      .visit-gallery { display:grid; gap:14px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .visit-gallery img { aspect-ratio:4/3; border:1px solid rgba(244,202,91,.22); border-radius:12px; display:block; height:100%; object-fit:cover; width:100%; }
+      .visit-gallery .visit-gallery-lead { grid-column:span 3; aspect-ratio:16/9; }
+      .visit-map { border:1px solid rgba(244,202,91,.28); border-radius:16px; overflow:hidden; }
+      .visit-map iframe { border:0; display:block; height:100%; width:100%; }
+      .visit-map-frame { aspect-ratio:16/10; }
+      @media (max-width:900px) {
+        .visit-grid { gap:26px; grid-template-columns:1fr; }
+        .visit-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .visit-gallery .visit-gallery-lead { grid-column:span 2; }
+      }
+      @media (max-width:520px) {
+        .visit-gallery { grid-template-columns:1fr; }
+        .visit-gallery .visit-gallery-lead { grid-column:span 1; }
+        .visit-card { padding:20px; }
+      }
     details { border-bottom:1px solid #d9dce2; }
     summary { align-items:center; background:#7e8292; color:#fff; cursor:pointer; display:flex; font-size:15px; font-weight:700; justify-content:space-between; list-style:none; margin-top:12px; padding:14px 16px; }
     summary::-webkit-details-marker { display:none; }
@@ -1967,6 +2087,99 @@ p.lb-hint,
 <details<?php if ($i === 1) { ?> open<?php } ?>><summary><?= h($s['faq' . $i . '_q']) ?></summary><?php foreach (preg_split('/\r\n|\r|\n/', $s['faq' . $i . '_a']) as $paragraph) { if (trim($paragraph) !== '') { ?><p><?= h($paragraph) ?></p><?php } } ?></details>
 <?php } ?>
       </div></section>
+
+<?php
+  /* Physical address, showroom photos and a map, sitting between the FAQ and
+     the closing button. Nothing is hardcoded: every line comes from the admin,
+     and each block only appears once it has something to show. The section as a
+     whole stays hidden until the shop details are filled in, so a half-finished
+     page never shows an empty shell. */
+  $visitMapSrc = hpl_map_embed_url(
+      (string)($s['visit_map_embed'] ?? ''),
+      (string)($s['visit_map_lat'] ?? ''),
+      (string)($s['visit_map_lon'] ?? ''),
+      (string)($s['visit_map_zoom'] ?? '')
+  );
+  $visitDirections = hpl_map_directions_url($s);
+  $visitAddress = trim((string)($s['visit_address'] ?? ''));
+  $visitPhone = trim((string)($s['visit_phone'] ?? ''));
+  $visitHours = trim((string)($s['visit_hours'] ?? ''));
+  $visitSub = trim((string)($s['visit_sub'] ?? ''));
+  $visitLabel = trim((string)($s['visit_label'] ?? ''));
+  $visitHeading = trim((string)($s['visit_h'] ?? ''));
+  $visitCtaLabel = trim((string)($s['visit_cta_label'] ?? ''));
+  $visitPhotos = [];
+  foreach (['visit-1.jpg', 'visit-2.jpg', 'visit-3.jpg'] as $visitFile) {
+      if (is_file(__DIR__ . '/img/' . $visitFile)) { $visitPhotos[] = $visitFile; }
+  }
+  $visitHasDetails = $visitAddress !== '' || $visitPhone !== '' || $visitHours !== '';
+  if ($visitHasDetails || $visitPhotos || $visitMapSrc !== ''):
+?>
+      <section class="section visit" id="visit">
+        <div class="visit-head">
+<?php if ($visitLabel !== ''): ?>
+          <span class="visit-label"><?= h($visitLabel) ?></span>
+<?php endif; ?>
+<?php if ($visitHeading !== ''): ?>
+          <h2><?= h($visitHeading) ?></h2>
+<?php endif; ?>
+<?php if ($visitSub !== ''): ?>
+          <p><?= h($visitSub) ?></p>
+<?php endif; ?>
+        </div>
+        <div class="visit-grid">
+<?php if ($visitHasDetails): ?>
+          <div class="visit-card">
+            <div class="visit-rows">
+<?php if ($visitAddress !== ''): ?>
+              <div class="visit-row">
+                <span class="visit-row-label">Address</span>
+<?php foreach (preg_split('/\r\n|\r|\n/', $visitAddress) as $visitLine) { if (trim($visitLine) !== '') { ?>
+                <p><?= h(trim($visitLine)) ?></p>
+<?php } } ?>
+              </div>
+<?php endif; ?>
+<?php if ($visitPhone !== ''): ?>
+              <div class="visit-row">
+                <span class="visit-row-label">Phone</span>
+                <p><a href="tel:<?= h(preg_replace('/[^\d+]/', '', $visitPhone)) ?>"><?= h($visitPhone) ?></a></p>
+              </div>
+<?php endif; ?>
+<?php if ($visitHours !== ''): ?>
+              <div class="visit-row">
+                <span class="visit-row-label">Opening hours</span>
+<?php foreach (preg_split('/\r\n|\r|\n/', $visitHours) as $visitLine) { if (trim($visitLine) !== '') { ?>
+                <p><?= h(trim($visitLine)) ?></p>
+<?php } } ?>
+              </div>
+<?php endif; ?>
+            </div>
+<?php if ($visitDirections !== '' && $visitCtaLabel !== ''): ?>
+            <a class="button ripple visit-cta" href="<?= h($visitDirections) ?>" target="_blank" rel="noopener noreferrer"><?= h($visitCtaLabel) ?></a>
+<?php endif; ?>
+          </div>
+<?php endif; ?>
+<?php if ($visitPhotos || $visitMapSrc !== ''): ?>
+          <div class="visit-media">
+<?php if ($visitPhotos): ?>
+            <div class="visit-gallery">
+<?php foreach ($visitPhotos as $visitIndex => $visitFile): ?>
+              <img class="<?= $visitIndex === 0 ? 'visit-gallery-lead' : '' ?>" src="<?= hpl_img_url($visitFile) ?>" alt="<?= h($visitHeading !== '' ? $visitHeading : 'Showroom') . ' — photo ' . ($visitIndex + 1) ?>" loading="lazy">
+<?php endforeach; ?>
+            </div>
+<?php endif; ?>
+<?php if ($visitMapSrc !== ''): ?>
+            <div class="visit-map">
+              <div class="visit-map-frame">
+                <iframe src="<?= h($visitMapSrc) ?>" title="Map showing <?= h($visitHeading !== '' ? $visitHeading : 'our location') ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen="true"></iframe>
+              </div>
+            </div>
+<?php endif; ?>
+          </div>
+<?php endif; ?>
+        </div>
+      </section>
+<?php endif; ?>
 
       <div class="spaced-cta"><a class="button ripple" href="#book"><?= h($s['cta_text']) ?></a></div>
       <section class="final" id="book">
