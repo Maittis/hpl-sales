@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/site-bootstrap.php';
 require_once __DIR__ . '/config.php';
 $s = hpl_settings();
 
@@ -7,12 +8,16 @@ $s = hpl_settings();
    the file's mtime makes a changed image a new resource and leaves unchanged
    ones cached. Kept local to this page so it cannot clash with config.php. */
 if (!function_exists('hpl_img_url')) {
-    function hpl_img_url(string $file): string
-    {
-        $path = __DIR__ . '/img/' . $file;
-        $stamp = is_file($path) ? (string)@filemtime($path) : '';
-        return h('img/' . $file) . ($stamp !== '' ? '?v=' . $stamp : '');
-    }
+function hpl_img_url(string $file): string
+      {
+          /* Collapse the duplicate photo filenames onto one URL, same as the
+             homepage does, so this page does not re-download a picture the
+             visitor already has. */
+          $file = hpl_canonical_photo($file);
+          $path = __DIR__ . '/img/' . $file;
+          $stamp = is_file($path) ? (string)@filemtime($path) : '';
+          return h('img/' . $file) . ($stamp !== '' ? '?v=' . $stamp : '');
+      }
 }
 
 $visitor = trim((string)($_GET['name'] ?? ''));

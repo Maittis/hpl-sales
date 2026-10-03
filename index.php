@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/site-bootstrap.php';
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/video-player.php';
 $s = hpl_settings();
@@ -485,6 +486,10 @@ const DETECTOR_ART = '<div class="detector"><div class="handle"></div><div class
    and an unchanged one still hit the cache. */
 function hpl_img_url(string $file): string
 {
+    /* Several of these filenames are the same photograph stored under more than
+       one name. Serving one URL for each unique image stops the browser fetching
+       the same picture once per section. */
+    $file = hpl_canonical_photo($file);
     $path = __DIR__ . '/img/' . $file;
     $stamp = is_file($path) ? (string)@filemtime($path) : '';
     return h('img/' . $file) . ($stamp !== '' ? '?v=' . $stamp : '');

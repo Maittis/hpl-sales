@@ -21,3 +21,39 @@ Options -Indexes
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
+
+# The homepage is a single large document with all of its CSS and JS inline,
+# so it arrives as one ~198KB payload with no compression at all. Gzip takes
+# that to roughly 20KB. This is the single largest saving available.
+#
+# AddOutputFilterByType is supplied by mod_filter, not mod_deflate, so the guard
+# has to name mod_filter. Guarding on mod_deflate alone lets Apache reject the
+# whole file as an unknown directive and return a 500 for every page.
+<IfModule mod_filter.c>
+  <IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+    AddOutputFilterByType DEFLATE application/json application/xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+  </IfModule>
+</IfModule>
+
+# Compression still has to happen on hosts where the filter runs but an
+# already-compressed type slips through, so name them explicitly as well.
+<IfModule mod_mime.c>
+  AddType text/css .css
+  AddType application/javascript .js
+  AddType image/svg+xml .svg
+</IfModule>
+
+# Long-lived caching for static assets. Revisiting the site then costs only the
+# document, not the images and fonts again.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresDefault "access plus 1 hour"
+</IfModule>
