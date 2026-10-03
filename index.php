@@ -265,8 +265,15 @@ if (!function_exists('hpl_embed_host_ok')) {
      * Pull the player URL out of a pasted embed snippet, or accept a bare
      * player URL on its own. Returns '' when the value is not a recognised
      * embed, which is the signal to fall back to the normal media path.
+     *
+     * $autoplay picks how the player starts. The two proof surfaces want
+     * different behaviour, so it is a parameter rather than a global: the
+     * testimonial plays silently as the visitor reaches it, while the customer
+     * advice clip waits to be started. Both keep Bunny's controls on, because
+     * that is the only way to unmute - a cross-origin player cannot be reached
+     * from the page.
      */
-    function hpl_embed_url(string $value): string
+    function hpl_embed_url(string $value, bool $autoplay = false): string
     {
         $v = trim($value);
         if ($v === '') {
@@ -299,9 +306,18 @@ if (!function_exists('hpl_embed_host_ok')) {
             parse_str($parts['query'], $query);
         }
 
-          /* Let visitors start proof videos themselves and use Bunny's own audio controls. */
-          $query['autoplay'] = '0';
-          $query['muted'] = '0';
+          if ($autoplay) {
+            /* Muted autoplay is the only kind browsers permit without a gesture,
+               and a paused poster frame reads as a still photograph. Sound stays
+               off until the visitor unmutes through Bunny's own controls, because
+               a cross-origin player cannot be unmuted from here. */
+            $query['autoplay'] = '1';
+            $query['muted'] = '1';
+        } else {
+            /* Click to play: the visitor starts it and chooses whether to unmute. */
+            $query['autoplay'] = '0';
+            $query['muted'] = '0';
+        }
         if (!isset($query['loop'])) { $query['loop'] = '0'; }
         $query['playsinline'] = '1';
         $query['responsive'] = '1';
@@ -1548,7 +1564,15 @@ p.lb-hint,
              handing it to hpl_media_url() would produce nothing usable. */
           $embed = hpl_embed_url($raw);
           if ($embed !== '') {
-              $proofItems[] = ['kind' => 'embed', 'src' => $embed, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
+              /* Both playback modes are kept on the item. The Real Results player
+                 autoplays muted, the customer advice clip waits to be started, and
+                 the caller picks which one it needs without rebuilding the URL. */
+              $proofItems[] = [
+                  'kind'     => 'embed',
+                  'src'      => $embed,
+                  'src_auto' => hpl_embed_url($raw, true),
+                  'caption'  => (string)($s['proof_video_' . $i . '_caption'] ?? ''),
+              ];
               continue;
           }
           $src = hpl_media_url($raw);
@@ -1598,7 +1622,7 @@ p.lb-hint,
       </div>
       <?php endif; ?>
 
-      <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; /* This testimonial plays as the visitor reaches it, so use the muted autoplay variant rather than the stored click-to-play URL. */ if (isset($featuredProof['src_auto'])) { $featuredProof['src'] = $featuredProof['src_auto']; } ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <?php
         $proofVisuals = [];
