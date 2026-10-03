@@ -735,16 +735,16 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-visuals { background:var(--navy); border-top:1px solid rgba(244,202,91,.2); text-align:center; }
     .proof-visuals h2 { color:#fff; }
     .proof-visuals > .section-label { color:var(--gold); }
-    .proof-visual-zigzag { display:flex; flex-direction:column; gap:44px; margin:32px auto 0; max-width:1120px; }
-    .proof-visual-row { align-items:center; display:flex; gap:44px; text-align:left; }
+    .zig { display:flex; flex-direction:column; gap:44px; margin:32px auto 0; max-width:1120px; }
+    .zig-row { align-items:center; display:flex; gap:44px; text-align:left; }
     /* Odd rows lead with the text, even rows lead with the photo, so the eye
        zigzags down the section instead of scanning a flat grid. */
-    .proof-visual-row:nth-child(even) { flex-direction:row-reverse; }
-    .proof-visual-text, .proof-visual-media { flex:1 1 0; min-width:0; }
-    .proof-visual-title { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:clamp(21px,2.6vw,31px); font-weight:700; letter-spacing:-.04em; line-height:1.1; margin:0 0 12px; }
-    .proof-visual-body { color:rgba(255,255,255,.74); font-size:16px; line-height:1.65; margin:0; max-width:44ch; }
-    .proof-visual-media { aspect-ratio:16/9; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
-    .proof-visual-media img { display:block; height:100%; object-fit:cover; width:100%; }
+    .zig-row:nth-child(even) { flex-direction:row-reverse; }
+    .zig-text, .zig-media { flex:1 1 0; min-width:0; }
+    .zig-title { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:clamp(21px,2.6vw,31px); font-weight:700; letter-spacing:-.04em; line-height:1.1; margin:0 0 12px; }
+    .zig-body { color:rgba(255,255,255,.74); font-size:16px; line-height:1.65; margin:0; max-width:44ch; }
+    .zig-media { aspect-ratio:16/9; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
+    .zig-media img { display:block; height:100%; object-fit:cover; width:100%; }
     .review-screenshot-grid { align-items:start; display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:36px auto 0; max-width:1220px; }
     .review-screenshot-grid figure { background:var(--navy); border:1px solid rgba(244,202,91,.42); border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.3); margin:0; overflow:hidden; padding:10px; }
     .review-screenshot-grid img { display:block; height:auto; max-height:520px; object-fit:contain; width:100%; }
@@ -863,8 +863,8 @@ function art_block(string $file, string $fallbackClass = ''): string
       .proof-mix-grid { grid-template-columns:1fr; }
       .proof-mix-body h3 { font-size:19px; }
       .review-screenshot-grid { gap:14px; grid-template-columns:1fr; max-width:460px; }
-      .proof-visual-zigzag { gap:26px; max-width:520px; }
-  .proof-visual-row, .proof-visual-row:nth-child(even) { flex-direction:column; gap:16px; }
+      .zig { gap:26px; max-width:520px; }
+  .zig-row, .zig-row:nth-child(even) { flex-direction:column; gap:16px; }
     }
     .proof-gallery { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:860px; padding:6px 0 10px; }
     .proof-item { align-self:start; background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); padding:12px 12px 18px; position:relative; transition:transform .25s ease; }
@@ -901,16 +901,6 @@ function art_block(string $file, string $fallbackClass = ''): string
     .trust-section { background:var(--navy); padding:46px 34px; text-align:center; }
     .trust-section h2 { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:32px; letter-spacing:-.05em; line-height:1.05; margin:0 0 16px; }
     .trust-section p { color:rgba(255,255,255,.78); font-size:16px; line-height:1.6; margin:0 auto 36px; max-width:640px; }
-    .trust-pics { display:grid; gap:20px; grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 auto 40px; max-width:760px; }
-    .trust-pic { background:rgba(255,255,255,.05); border:1px solid rgba(244,202,91,.3); border-radius:16px; overflow:hidden; transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
-    .trust-pic:hover { transform:translateY(-5px); border-color:var(--gold); box-shadow:0 12px 30px rgba(244,202,91,.2); }
-    .trust-pic img { aspect-ratio:12/5; border-bottom:1px solid rgba(244,202,91,.22); display:block; object-fit:cover; width:100%; }
-    .trust-pic-body { padding:14px 16px 15px; text-align:center; }
-    .trust-pic-value { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; letter-spacing:-.03em; line-height:1.05; }
-    .trust-pic-label { color:var(--gold-light); display:block; font-size:11px; font-weight:700; letter-spacing:.08em; margin-top:3px; text-transform:uppercase; }
-    .trust-pic-more { border-top:1px solid rgba(244,202,91,.2); display:flex; gap:8px; justify-content:center; margin-top:10px; padding-top:9px; }
-    .trust-pic-more-item { color:rgba(255,255,255,.72); font-size:11px; }
-    .trust-pic-more-item b { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; letter-spacing:-.01em; margin-right:4px; }
     /* Social Proof Ticker */
     .proof-ticker { background:rgba(244,202,91,.1); border-top:1px solid rgba(244,202,91,.3); border-bottom:1px solid rgba(244,202,91,.3); margin:0 auto 40px; max-width:1000px; overflow:hidden; padding:16px 0; position:relative; }
     .proof-ticker-track { display:flex; animation:scrollTicker 30s linear infinite; will-change:transform; }
@@ -1193,9 +1183,6 @@ function art_block(string $file, string $fallbackClass = ''): string
       -webkit-overflow-scrolling:touch;
     }
 .testimonial-card,
-      .trust-pic {
-        touch-action:manipulation;
-      }
     /* Swipe indicators */
     .swipe-hint {
       align-items:center;
@@ -1245,18 +1232,6 @@ function art_block(string $file, string $fallbackClass = ''): string
       transform:translateY(-3px);
       box-shadow:0 12px 32px rgba(0,0,0,.3);
       border-color:rgba(244,202,91,.4);
-    }
-.trust-pic {
-        background:rgba(255,255,255,.08);
-        border:1px solid rgba(244,202,91,.3);
-        border-radius:16px;
-        transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease, background .3s ease;
-      }
-      .trust-pic:hover {
-        transform:translateY(-5px);
-        border-color:var(--gold);
-        box-shadow:0 12px 30px rgba(244,202,91,.2);
-      background:rgba(255,255,255,.12);
     }
     /* Gradient Borders (simplified for performance) */
     .gradient-border {
@@ -1361,9 +1336,6 @@ function art_block(string $file, string $fallbackClass = ''): string
   .cookie-btn { flex:1; text-align:center; }
   .trust-section { padding:32px 18px; }
   .trust-section h2 { font-size:26px; }
-  .trust-pics { gap:14px; }
-  .trust-pic-value { font-size:23px; }
-  .trust-pic-label { font-size:10px; }
   .proof-ticker { margin:0 auto 28px; }
   .ticker-item { padding:0 20px; }
   .ticker-item-text { font-size:13px; }
@@ -1739,14 +1711,14 @@ $proofVisuals = [];
       <section class="section proof-visuals">
         <div class="section-label">From the field</div>
         <h2>Real equipment. Real ground.</h2>
-        <div class="proof-visual-zigzag">
+        <div class="zig">
           <?php foreach ($proofVisuals as $visual): ?>
-          <div class="proof-visual-row">
-<div class="proof-visual-text">
-                <h3 class="proof-visual-title"><?= h($visual['title']) ?></h3>
-                <p class="proof-visual-body"><?= h($visual['text']) ?></p>
+          <div class="zig-row">
+<div class="zig-text">
+                <h3 class="zig-title"><?= h($visual['title']) ?></h3>
+                <p class="zig-body"><?= h($visual['text']) ?></p>
               </div>
-            <div class="proof-visual-media">
+            <div class="zig-media">
               <img src="<?= hpl_img_url($visual['file']) ?>" alt="<?= h($visual['alt']) ?>" loading="lazy">
             </div>
           </div>
@@ -1898,25 +1870,23 @@ $proofVisuals = [];
         <p>Join hundreds of successful gold prospectors who trust HPL equipment for their discoveries.</p>
 
         <!-- Trust picture cards -->
-        <div class="trust-pics">
-          <div class="trust-pic hover-lift">
-            <img src="<?= hpl_img_url('stat-1.jpg') ?>" alt="HPL customers and detectorists in the field" loading="lazy" width="800" height="500">
-            <div class="trust-pic-body">
-              <span class="trust-pic-value">500+</span>
-              <span class="trust-pic-label">Happy Customers</span>
-              <div class="trust-pic-more">
-                <span class="trust-pic-more-item"><b>12+</b> Countries</span>
-              </div>
+        <div class="zig">
+          <div class="zig-row">
+            <div class="zig-text">
+              <h3 class="zig-title">500+ Happy Customers</h3>
+              <p class="zig-body">Detectorists in 12+ countries have put an HPL machine to work on their own ground. The photos on this page are the proof: real equipment, real recoveries, and owners who come back to tell us where they found it.</p>
+            </div>
+            <div class="zig-media">
+              <img src="<?= hpl_img_url('stat-1.jpg') ?>" alt="HPL customers and detectorists in the field" loading="lazy">
             </div>
           </div>
-          <div class="trust-pic hover-lift">
-            <img src="<?= hpl_img_url('stat-2.jpg') ?>" alt="Gold recovered with HPL gold detectors" loading="lazy" width="800" height="500">
-            <div class="trust-pic-body">
-              <span class="trust-pic-value">2000+</span>
-              <span class="trust-pic-label">Ounces Found</span>
-              <div class="trust-pic-more">
-                <span class="trust-pic-more-item"><b>4.9</b> Average Rating</span>
-              </div>
+          <div class="zig-row">
+            <div class="zig-text">
+              <h3 class="zig-title">2000+ Ounces Found</h3>
+              <p class="zig-body">More than two thousand ounces have come out of the ground with our detectors, and the people who bought them rate them 4.9 out of 5. We would rather earn that number in the field than advertise it.</p>
+            </div>
+            <div class="zig-media">
+              <img src="<?= hpl_img_url('stat-2.jpg') ?>" alt="Gold recovered with HPL gold detectors" loading="lazy">
             </div>
           </div>
         </div>
