@@ -1026,47 +1026,6 @@ function art_block(string $file, string $fallbackClass = ''): string
       letter-spacing:.08em;
       text-transform:uppercase;
     }
-    /* Mobile Bottom Navigation */
-    .mobile-nav {
-      background:var(--navy);
-      border-top:1px solid rgba(244,202,91,.3);
-      bottom:0;
-      display:none;
-      left:0;
-      padding:8px 0 calc(env(safe-area-inset-bottom, 0) + 8px);
-      position:fixed;
-      right:0;
-      z-index:1050;
-    }
-    .mobile-nav-inner {
-      display:flex;
-      justify-content:space-around;
-      max-width:600px;
-      margin:0 auto;
-    }
-    .mobile-nav-item {
-      align-items:center;
-      background:none;
-      border:0;
-      color:rgba(255,255,255,.6);
-      display:flex;
-      flex-direction:column;
-      font-size:10px;
-      font-weight:600;
-      gap:4px;
-      padding:8px 12px;
-      text-decoration:none;
-      transition:color .2s ease;
-    }
-    .mobile-nav-item:hover,
-    .mobile-nav-item:focus-visible,
-    .mobile-nav-item.active {
-      color:var(--gold-light);
-    }
-    .mobile-nav-icon {
-      font-size:22px;
-      line-height:1;
-    }
     /* Pull-to-refresh */
     .pull-refresh {
       align-items:center;
@@ -1297,9 +1256,6 @@ function art_block(string $file, string $fallbackClass = ''): string
   .wa-float-label { display:none; }
   .back-to-top { bottom:130px; right:16px; }
   .topline { font-size:9px; padding:8px 12px; }
-  .mobile-nav { display:block; }
-  .mobile-nav-item { font-size:10px; gap:3px; padding:6px 8px; }
-  .mobile-nav-icon { font-size:20px; }
   .swipe-hint { display:flex; }
   .swipe-hint.visible { opacity:1; }
   .button,
@@ -2157,27 +2113,6 @@ p.lb-hint,
       <p class="disclaimer"><?= h($s['disclaimer']) ?></p>
     </div></footer>
 
-    <!-- Mobile Bottom Navigation -->
-    <nav class="mobile-nav" id="mobileNav" role="navigation" aria-label="Mobile navigation">
-      <div class="mobile-nav-inner">
-        <a href="#" class="mobile-nav-item active" data-section="hero">
-          <span class="mobile-nav-icon">🏠</span>
-          <span>Home</span>
-        </a>
-        <a href="#proof" class="mobile-nav-item" data-section="proof">
-          <span class="mobile-nav-icon">🎬</span>
-          <span>Videos</span>
-        </a>
-        <a href="#book" class="mobile-nav-item" data-section="book">
-          <span class="mobile-nav-icon">📝</span>
-          <span>Enquire</span>
-        </a>
-        <a href="#faq" class="mobile-nav-item" data-section="faq">
-          <span class="mobile-nav-icon">❓</span>
-          <span>FAQ</span>
-        </a>
-      </div>
-    </nav>
 
     <div class="cookie-banner hidden" id="cookieBanner">
       <div class="cookie-content">
@@ -3018,61 +2953,11 @@ form.addEventListener('keydown', function (e) {
     // Mobile Enhancements
     (function () {
       var isMobile = window.innerWidth <= 640;
-      var mobileNav = document.getElementById('mobileNav');
       var pullRefresh = document.getElementById('pullRefresh');
       var startY = 0;
       var pullThreshold = 100;
       var isPulling = false;
 
-      // Mobile Bottom Navigation
-      if (mobileNav) {
-        var navItems = mobileNav.querySelectorAll('.mobile-nav-item');
-        navItems.forEach(function (item) {
-          item.addEventListener('click', function (e) {
-            var target = this.getAttribute('href');
-            if (target && target !== '#') {
-              e.preventDefault();
-              var section = document.querySelector(target);
-              if (section) {
-                section.scrollIntoView({ behavior: 'smooth' });
-              }
-            }
-            // Update active state
-            navItems.forEach(function (nav) { nav.classList.remove('active'); });
-            this.classList.add('active');
-          });
-        });
-
-        // Update active nav item on scroll (debounced)
-        var navTicking = false;
-        function updateActiveNav() {
-          if (navTicking) return;
-          navTicking = true;
-          requestAnimationFrame(function () {
-            var sections = ['hero', 'proof', 'book', 'faq'];
-            var scrollPos = window.scrollY + 100;
-
-            sections.forEach(function (sectionId) {
-              var section = document.getElementById(sectionId);
-              if (section) {
-                var top = section.offsetTop;
-                var height = section.offsetHeight;
-                if (scrollPos >= top && scrollPos < top + height) {
-                  navItems.forEach(function (nav) {
-                    nav.classList.remove('active');
-                    if (nav.getAttribute('data-section') === sectionId) {
-                      nav.classList.add('active');
-                    }
-                  });
-                }
-              }
-            });
-            navTicking = false;
-          });
-        }
-
-        window.addEventListener('scroll', updateActiveNav, { passive: true });
-      }
 
       // Pull-to-refresh
       if (pullRefresh && isMobile) {
