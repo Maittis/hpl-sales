@@ -735,9 +735,15 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-visuals { background:var(--navy); border-top:1px solid rgba(244,202,91,.2); text-align:center; }
     .proof-visuals h2 { color:#fff; }
     .proof-visuals > .section-label { color:var(--gold); }
-    .proof-visual-grid { display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:28px auto 0; max-width:1120px; }
-    .proof-visual-grid figure { background:var(--navy); border:1px solid rgba(244,202,91,.28); border-radius:12px; display:flex; flex-direction:column; margin:0; overflow:hidden; }
-    .proof-visual-grid img { aspect-ratio:4/3; display:block; height:auto; object-fit:cover; width:100%; }
+    .proof-visual-zigzag { display:flex; flex-direction:column; gap:44px; margin:32px auto 0; max-width:1120px; }
+    .proof-visual-row { align-items:center; display:flex; gap:44px; text-align:left; }
+    /* Odd rows lead with the text, even rows lead with the photo, so the eye
+       zigzags down the section instead of scanning a flat grid. */
+    .proof-visual-row:nth-child(even) { flex-direction:row-reverse; }
+    .proof-visual-text, .proof-visual-media { flex:1 1 0; min-width:0; }
+    .proof-visual-text p { color:rgba(255,255,255,.88); font-size:clamp(17px,2.1vw,23px); font-weight:500; letter-spacing:-.02em; line-height:1.4; margin:0; max-width:none; }
+    .proof-visual-media { aspect-ratio:4/3; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
+    .proof-visual-media img { display:block; height:100%; object-fit:cover; width:100%; }
     .review-screenshot-grid { align-items:start; display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:36px auto 0; max-width:1220px; }
     .review-screenshot-grid figure { background:var(--navy); border:1px solid rgba(244,202,91,.42); border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.3); margin:0; overflow:hidden; padding:10px; }
     .review-screenshot-grid img { display:block; height:auto; max-height:520px; object-fit:contain; width:100%; }
@@ -856,7 +862,8 @@ function art_block(string $file, string $fallbackClass = ''): string
       .proof-mix-grid { grid-template-columns:1fr; }
       .proof-mix-body h3 { font-size:19px; }
       .review-screenshot-grid { gap:14px; grid-template-columns:1fr; max-width:460px; }
-      .proof-visual-grid { grid-template-columns:1fr; max-width:460px; }
+      .proof-visual-zigzag { gap:26px; max-width:520px; }
+  .proof-visual-row, .proof-visual-row:nth-child(even) { flex-direction:column; gap:16px; }
     }
     .proof-gallery { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:860px; padding:6px 0 10px; }
     .proof-item { align-self:start; background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); padding:12px 12px 18px; position:relative; transition:transform .25s ease; }
@@ -1702,6 +1709,7 @@ p.lb-hint,
           'proof-1.jpg' => 'Detectorist holding a detector and recovered gold',
           'proof-2.jpg' => 'Gold detector standing in worked ground',
           'proof-3.jpg' => 'Gold detector shown across the field terrain',
+          'proof-4.jpg' => 'Detectorist working a fresh seam',
         ] as $file => $alt) {
           if (file_exists(__DIR__ . '/img/' . $file)) { $proofVisuals[] = ['file' => $file, 'alt' => $alt]; }
         }
@@ -1714,9 +1722,16 @@ p.lb-hint,
       <section class="section proof-visuals">
         <div class="section-label">From the field</div>
         <h2>Real equipment. Real ground.</h2>
-        <div class="proof-visual-grid">
+        <div class="proof-visual-zigzag">
           <?php foreach ($proofVisuals as $visual): ?>
-          <figure><img src="<?= hpl_img_url($visual['file']) ?>" alt="<?= h($visual['alt']) ?>" loading="lazy"></figure>
+          <div class="proof-visual-row">
+            <div class="proof-visual-text">
+              <p><?= h($visual['alt']) ?></p>
+            </div>
+            <div class="proof-visual-media">
+              <img src="<?= hpl_img_url($visual['file']) ?>" alt="<?= h($visual['alt']) ?>" loading="lazy">
+            </div>
+          </div>
           <?php endforeach; ?>
         </div>
         <?php if ($customerReviewFiles): ?>

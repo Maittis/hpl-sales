@@ -207,6 +207,7 @@ $imageSlots = [
     ['key' => 'proof_1',    'file' => 'proof-1.jpg',    'label' => 'Social proof photo 1 (landscape)'],
     ['key' => 'proof_2',    'file' => 'proof-2.jpg',    'label' => 'Social proof photo 2 (landscape)'],
     ['key' => 'proof_3',    'file' => 'proof-3.jpg',    'label' => 'Social proof photo 3 (landscape)'],
+    ['key' => 'proof_4',    'file' => 'proof-4.jpg',    'label' => 'Social proof photo 4 (landscape)'],
     ['key' => 'benefit_1',  'file' => 'benefit-1.jpg',  'label' => 'Benefit card 1 image'],
     ['key' => 'benefit_2',  'file' => 'benefit-2.jpg',  'label' => 'Benefit card 2 image'],
     ['key' => 'benefit_3',  'file' => 'benefit-3.jpg',  'label' => 'Benefit card 3 image'],
