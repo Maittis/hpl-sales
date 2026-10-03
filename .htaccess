@@ -1,8 +1,12 @@
 Options -Indexes
 
 # Never serve the credentials file directly (PHP includes it, the web must not).
-# install.php is intentionally NOT blocked so it can be run once, then deleted.
-<FilesMatch "^(config\.php|config\.php\.example|.*\.sql)$">
+# The schema and installer scripts are development tools. install.php accepts an
+# unauthenticated POST that creates an admin account, and schema-check.php prints
+# the live table layout, so neither may be reachable on the public site once the
+# database exists. They are still available locally, and database.sql carries the
+# schema if the database ever has to be rebuilt.
+<FilesMatch "^(config\.php|config\.php\.example|.*\.sql|install\.php|schema-check\.php)$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
