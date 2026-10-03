@@ -2104,10 +2104,16 @@ p.lb-hint,
   $visitAddress = trim((string)($s['visit_address'] ?? ''));
   $visitPhone = trim((string)($s['visit_phone'] ?? ''));
   $visitHours = trim((string)($s['visit_hours'] ?? ''));
-  $visitSub = trim((string)($s['visit_sub'] ?? ''));
-  $visitLabel = trim((string)($s['visit_label'] ?? ''));
-  $visitHeading = trim((string)($s['visit_h'] ?? ''));
-  $visitCtaLabel = trim((string)($s['visit_cta_label'] ?? ''));
+  /* config.php is deliberately left out of the deploy archive, so a live site
+     can be running a config.php that predates these keys and has no defaults
+     for them. Fall back to the same wording the defaults use, otherwise a
+     half-filled admin would render an empty heading and lose the directions
+     button. Anything set in the admin still wins. */
+  $visitSub = trim((string)($s['visit_sub'] ?? ''))
+      ?: 'Want to hold the machine before you buy? Walk into our showroom, see the detectors running, and talk to the people who tune them.';
+  $visitLabel = trim((string)($s['visit_label'] ?? '')) ?: 'Visit us';
+  $visitHeading = trim((string)($s['visit_h'] ?? '')) ?: 'Come and see us in person';
+  $visitCtaLabel = trim((string)($s['visit_cta_label'] ?? '')) ?: 'Get directions';
   $visitPhotos = [];
   foreach (['visit-1.jpg', 'visit-2.jpg', 'visit-3.jpg'] as $visitFile) {
       if (is_file(__DIR__ . '/img/' . $visitFile)) { $visitPhotos[] = $visitFile; }
