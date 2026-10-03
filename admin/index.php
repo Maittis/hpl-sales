@@ -282,6 +282,22 @@ function hpl_flash(string $type, string $text): void
     $_SESSION['hpl_flash'] = ['type' => $type, 'text' => $text];
 }
 
+/**
+ * URL for an image preview in the admin, with a cache-buster.
+ *
+ * The thumbnails pointed straight at ../img/<file>, but .htaccess serves images
+ * with "access plus 30 days", so the browser held the old picture long after an
+ * upload overwrote the file and the admin looked like the upload had failed. The
+ * public page never hit this because hpl_img_url() appends ?v=<filemtime>; doing
+ * the same here makes a replacement show up straight away.
+ */
+function hpl_admin_img_url(string $file): string
+{
+    $path = __DIR__ . '/../img/' . basename($file);
+    $stamp = is_file($path) ? (string)@filemtime($path) : '';
+    return '../img/' . h(basename($file)) . ($stamp !== '' ? '?v=' . $stamp : '');
+}
+
 function hpl_redirect_after_post(string $tab = ''): void
 {
     if (isset($_SESSION['hpl_flash'])) {
@@ -656,7 +672,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
     .topbar .brand { font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; }
     .topbar a { color:var(--nav-text); font-size:13px; text-decoration:none; margin-left:18px; }
     .topbar a:hover { color:var(--accent-hover); }
-    .wrap { max-width:960px; margin:0 auto; padding:30px 18px 60px; }
+    .wrap { margin:0; max-width:none; padding:30px 24px 60px; width:100%; }
     .notice { background:#eaf5ee; border-left:4px solid #2e8b57; color:#23402f; font-size:14px; margin:0 0 18px; padding:12px 16px; }
     .error { background:#fbeeec; border-left:4px solid #c0392b; color:#7a2c25; font-size:14px; margin:0 0 18px; padding:12px 16px; }
     .stats { display:grid; gap:14px; grid-template-columns:repeat(3,1fr); margin:0 0 22px; }
@@ -987,7 +1003,7 @@ foreach ($groups as $title => $group):
             <div>
               <label for="up_<?= h($slot['key']) ?>"><?= h($slot['label']) ?></label>
 <?php if (file_exists(__DIR__ . '/../img/' . $slot['file'])): ?>
-              <img class="img-thumb" src="../img/<?= h($slot['file']) ?>" alt="<?= h($slot['label']) ?>">
+              <img class="img-thumb" src="<?= hpl_admin_img_url($slot['file']) ?>" alt="<?= h($slot['label']) ?>">
 <?php else: ?>
               <div class="img-empty">No screenshot uploaded yet</div>
 <?php endif; ?>
@@ -1023,7 +1039,7 @@ foreach ($groups as $title => $group):
         <div class="grid">
 <?php foreach ($uploadedCustomerReviews as $reviewFile): $reviewFilename = basename($reviewFile); ?>
           <div>
-            <img class="img-thumb" src="../img/<?= h($reviewFilename) ?>" alt="Uploaded customer review screenshot">
+            <img class="img-thumb" src="<?= hpl_admin_img_url($reviewFilename) ?>" alt="Uploaded customer review screenshot">
             <span><?= h($reviewFilename) ?></span>
             <form method="post" onsubmit="return confirm('Remove this review screenshot?');">
               <?= csrf_field() ?>
@@ -1050,7 +1066,7 @@ foreach ($groups as $title => $group):
             <div>
               <label for="up_<?= h($slot['key']) ?>"><?= h($slot['label']) ?></label>
 <?php if (file_exists(__DIR__ . '/../img/' . $slot['file'])): ?>
-              <img class="img-thumb" src="../img/<?= h($slot['file']) ?>" alt="<?= h($slot['file']) ?>">
+              <img class="img-thumb" src="<?= hpl_admin_img_url($slot['file']) ?>" alt="<?= h($slot['file']) ?>">
 <?php else: ?>
               <div class="img-empty">No image yet — page uses the CSS art fallback</div>
 <?php endif; ?>
