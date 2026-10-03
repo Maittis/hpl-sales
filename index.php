@@ -741,8 +741,9 @@ function art_block(string $file, string $fallbackClass = ''): string
        zigzags down the section instead of scanning a flat grid. */
     .proof-visual-row:nth-child(even) { flex-direction:row-reverse; }
     .proof-visual-text, .proof-visual-media { flex:1 1 0; min-width:0; }
-    .proof-visual-text p { color:rgba(255,255,255,.88); font-size:clamp(17px,2.1vw,23px); font-weight:500; letter-spacing:-.02em; line-height:1.4; margin:0; max-width:none; }
-    .proof-visual-media { aspect-ratio:4/3; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
+    .proof-visual-title { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:clamp(21px,2.6vw,31px); font-weight:700; letter-spacing:-.04em; line-height:1.1; margin:0 0 12px; }
+    .proof-visual-body { color:rgba(255,255,255,.74); font-size:16px; line-height:1.65; margin:0; max-width:44ch; }
+    .proof-visual-media { aspect-ratio:16/9; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
     .proof-visual-media img { display:block; height:100%; object-fit:cover; width:100%; }
     .review-screenshot-grid { align-items:start; display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:36px auto 0; max-width:1220px; }
     .review-screenshot-grid figure { background:var(--navy); border:1px solid rgba(244,202,91,.42); border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.3); margin:0; overflow:hidden; padding:10px; }
@@ -1704,15 +1705,31 @@ p.lb-hint,
       <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; /* This testimonial plays as the visitor reaches it, so use the muted autoplay variant rather than the stored click-to-play URL. */ if (isset($featuredProof['src_auto'])) { $featuredProof['src'] = $featuredProof['src_auto']; } ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
       <?php
-        $proofVisuals = [];
-        foreach ([
-          'proof-1.jpg' => 'Detectorist holding a detector and recovered gold',
-          'proof-2.jpg' => 'Gold detector standing in worked ground',
-          'proof-3.jpg' => 'Gold detector shown across the field terrain',
-          'proof-4.jpg' => 'Detectorist working a fresh seam',
-        ] as $file => $alt) {
-          if (file_exists(__DIR__ . '/img/' . $file)) { $proofVisuals[] = ['file' => $file, 'alt' => $alt]; }
-        }
+$proofVisuals = [];
+          foreach ([
+            'proof-1.jpg' => [
+              'alt' => 'Detectorist holding a detector and recovered gold',
+              'title' => 'The moment it pays off',
+              'text' => 'A clean signal, a measured target, and gold in the hand. This is the whole reason the machine is tuned the way it is: depth you can feel, and discrimination that keeps quiet on everything else.',
+            ],
+            'proof-2.jpg' => [
+              'alt' => 'Gold detector standing in worked ground',
+              'title' => 'Steady on worked ground',
+              'text' => 'Old ground is full of iron, scrap and hot rock that sends cheap machines into a permanent chatter. Ours is set to separate the recoverable signal from the noise, so you spend the afternoon digging targets instead of bottle tops.',
+            ],
+            'proof-3.jpg' => [
+              'alt' => 'Gold detector shown across the field terrain',
+              'title' => 'Ready for real terrain',
+              'text' => 'River banks and washouts, old campsites, relic ground and park sites. Choose the ground you hunt most, switch the preset in seconds, and keep working instead of re-tuning.',
+            ],
+            'proof-4.jpg' => [
+              'alt' => 'Detectorist working a fresh seam',
+              'title' => 'Working a fresh seam',
+              'text' => 'Sweep slowly and read the tone. A fresh seam gives up its reward quickly when the settings are right, which is exactly what the how-where-why playbook walks you through before you ever dig.',
+            ],
+          ] as $file => $visual) {
+            if (file_exists(__DIR__ . '/img/' . $file)) { $proofVisuals[] = $visual + ['file' => $file]; }
+          }
         $customerReviewFiles = array_values(array_filter(glob(__DIR__ . '/img/customer-review-*') ?: [], static function ($file) {
           return (bool)preg_match('/\.(jpe?g|png|webp|gif)$/i', $file);
         }));
@@ -1725,9 +1742,10 @@ p.lb-hint,
         <div class="proof-visual-zigzag">
           <?php foreach ($proofVisuals as $visual): ?>
           <div class="proof-visual-row">
-            <div class="proof-visual-text">
-              <p><?= h($visual['alt']) ?></p>
-            </div>
+<div class="proof-visual-text">
+                <h3 class="proof-visual-title"><?= h($visual['title']) ?></h3>
+                <p class="proof-visual-body"><?= h($visual['text']) ?></p>
+              </div>
             <div class="proof-visual-media">
               <img src="<?= hpl_img_url($visual['file']) ?>" alt="<?= h($visual['alt']) ?>" loading="lazy">
             </div>
