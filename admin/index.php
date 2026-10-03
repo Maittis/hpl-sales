@@ -401,6 +401,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_customer_reviews'])) {
+  if (!csrf_ok()) {
+    $error = 'Invalid form token. Please reload and try again.';
+  } elseif (!isset($_FILES['customer_reviews']['name']) || !is_array($_FILES['customer_reviews']['name'])) {
+    $error = 'Choose one or more review screenshots to upload.';
+  } else {
+    $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
+    $uploaded = 0;
+    $failed = 0;
+    foreach ($_FILES['customer_reviews']['name'] as $i => $name) {
+      $uploadError = (int)($_FILES['customer_reviews']['error'][$i] ?? UPLOAD_ERR_NO_FILE);
+      if ($uploadError === UPLOAD_ERR_NO_FILE) { continue; }
+      if ($uploadError !== UPLOAD_ERR_OK || (int)($_FILES['customer_reviews']['size'][$i] ?? 0) > 8 * 1024 * 1024) {
+        $failed++;
+        continue;
+      }
+
+      $tmp = (string)($_FILES['customer_reviews']['tmp_name'][$i] ?? '');
+      if (!is_uploaded_file($tmp)) {
+        $failed++;
+        continue;
+      }
+      $imageInfo = @getimagesize($tmp);
+      $mime = (string)($imageInfo['mime'] ?? '');
+      if (!isset($extensions[$mime])) {
+        $failed++;
+        continue;
+      }
+
+      $filename = 'customer-review-' . date('Ymd-His') . '-' . bin2hex(random_bytes(6)) . '.' . $extensions[$mime];
+      if (move_uploaded_file($tmp, __DIR__ . '/../img/' . $filename)) {
+        $uploaded++;
+      } else {
+        $failed++;
+      }
+    }
+
+    if ($uploaded > 0) {
+      $message = 'Uploaded ' . $uploaded . ' review screenshot' . ($uploaded === 1 ? '' : 's') . '. They now appear on the landing page.';
+    }
+    if ($failed > 0) {
+      $error = $failed . ' file' . ($failed === 1 ? '' : 's') . ' could not be uploaded. Use JPG, PNG, WebP, or GIF files under 8 MB each.';
+    } elseif ($uploaded === 0) {
+      $error = 'Choose one or more review screenshots to upload.';
+    }
+  }
+}
+
+  if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer_review'])) {
+    if (!csrf_ok()) {
+      $error = 'Invalid form token. Please reload and try again.';
+    } else {
+      $filename = basename((string)($_POST['review_file'] ?? ''));
+      $path = __DIR__ . '/../img/' . $filename;
+      if (!preg_match('/^customer-review-\d{8}-\d{6}-[a-f0-9]{12}\.(jpg|png|webp|gif)$/i', $filename)) {
+        $error = 'Invalid review screenshot.';
+      } elseif (!is_file($path) || !unlink($path)) {
+        $error = 'Could not remove that review screenshot.';
+      } else {
+        $message = 'Review screenshot removed.';
+      }
+    }
+    if ($error !== '') hpl_flash('error', $error);
+    elseif ($message !== '') hpl_flash('success', $message);
+    hpl_redirect_after_post('customer-voices');
+  }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_image'])) {
     if (!csrf_ok()) {
         $error = 'Invalid form token. Please reload and try again.';
@@ -939,6 +1006,42 @@ foreach ($groups as $title => $group):
           </div>
         </div>
       </form>
+      <form method="post" enctype="multipart/form-data">
+        <?= csrf_field() ?>
+        <input type="hidden" name="tab" value="customer-voices">
+        <div class="card">
+          <h2>Additional review screenshots</h2>
+          <p class="hint">Upload multiple genuine customer review screenshots. JPG, PNG, WebP, or GIF; up to 8 MB each. Uploaded screenshots appear below “Real equipment. Real ground.”</p>
+          <label for="customerReviewsUpload">Review screenshots</label>
+          <input type="file" id="customerReviewsUpload" name="customer_reviews[]" accept="image/jpeg,image/png,image/webp,image/gif" multiple required>
+          <div class="btn-row">
+            <button class="btn" type="submit" name="upload_customer_reviews" value="1">Upload review screenshots</button>
+          </div>
+        </div>
+      </form>
+<?php
+  $uploadedCustomerReviews = glob(__DIR__ . '/../img/customer-review-*') ?: [];
+  sort($uploadedCustomerReviews, SORT_NATURAL | SORT_FLAG_CASE);
+?>
+<?php if ($uploadedCustomerReviews): ?>
+      <div class="card">
+        <h2>Uploaded review screenshots</h2>
+        <div class="grid">
+<?php foreach ($uploadedCustomerReviews as $reviewFile): $reviewFilename = basename($reviewFile); ?>
+          <div>
+            <img class="img-thumb" src="../img/<?= h($reviewFilename) ?>" alt="Uploaded customer review screenshot">
+            <span><?= h($reviewFilename) ?></span>
+            <form method="post" onsubmit="return confirm('Remove this review screenshot?');">
+              <?= csrf_field() ?>
+              <input type="hidden" name="tab" value="customer-voices">
+              <input type="hidden" name="review_file" value="<?= h($reviewFilename) ?>">
+              <button class="btn" type="submit" name="delete_customer_review" value="1">Remove</button>
+            </form>
+          </div>
+<?php endforeach; ?>
+        </div>
+      </div>
+<?php endif; ?>
     </div>
 
     <div class="tab-panel <?= $activeTab === 'images' ? 'active' : '' ?>" id="panel-images" role="tabpanel">

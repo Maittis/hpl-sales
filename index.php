@@ -298,9 +298,12 @@ if (!function_exists('hpl_embed_host_ok')) {
             parse_str($parts['query'], $query);
         }
 
-        /* Proof videos begin only when the visitor presses the player controls. */
-        $query['autoplay'] = '0';
-          $query['muted'] = '0';
+        /* Muted autoplay is the only kind browsers permit without a gesture,
+           and a paused poster frame reads as a still photograph. Sound stays
+           off because a cross-origin player cannot be unmuted from here -
+           visitors use Bunny's own controls. */
+        $query['autoplay'] = '1';
+        $query['muted'] = '1';
         if (!isset($query['loop'])) { $query['loop'] = '0'; }
         $query['playsinline'] = '1';
         $query['responsive'] = '1';
@@ -512,12 +515,12 @@ function art_block(string $file, string $fallbackClass = ''): string
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    :root { --navy:#111a38; --navy-dark:#090f24; --gold:#d4a52c; --gold-light:#f4ca5b; --ink:#182038; --muted:#687083; --paper:#fff; --wash:#f4f2ed; }
+    :root { --navy:#111a38; --navy-dark:#090f24; --gold:#d4a52c; --gold-light:#f4ca5b; --ink:#182038; --muted:#687083; --paper:#111a38; --wash:#111a38; }
     * { box-sizing:border-box; }
     html { scroll-behavior:smooth; }
-    body { margin:0; color:var(--ink); background:var(--paper); font-family:'DM Sans',sans-serif; font-size:17px; line-height:1.55; overflow-x:hidden; }
+    body { margin:0; color:#fff; background:var(--navy); font-family:'DM Sans',sans-serif; font-size:17px; line-height:1.55; overflow-x:hidden; }
     a { color:inherit; text-decoration:none; }
-    .page { width:100%; margin:0 auto; background:#fff; }
+    .page { width:100%; margin:0 auto; background:var(--navy); }
     .topline { background:#070b18; color:#fff; font-size:11px; font-weight:700; letter-spacing:.08em; padding:9px 20px; text-align:center; text-transform:uppercase; }
     header { background:var(--navy); color:#fff; padding:20px 34px; }
     .nav { align-items:center; display:flex; justify-content:space-between; }
@@ -570,11 +573,11 @@ function art_block(string $file, string $fallbackClass = ''): string
     .button:hover { background:var(--gold-light); }
     .button.hero-find-cta { align-items:center; background:var(--gold); border:6px solid #713400; border-radius:999px; box-shadow:0 0 24px rgba(244,202,91,.36); color:var(--navy-dark); display:inline-flex; font-size:17px; font-weight:700; justify-content:center; line-height:1.3; min-height:94px; padding:20px 38px; text-align:center; width:min(460px,100%); }
     .button.hero-find-cta:hover { background:var(--gold-light); }
-    .section { padding:46px 34px; }
+    .section { color:#fff; padding:46px 34px; }
     .section.center { text-align:center; }
-    .section h2 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:34px; letter-spacing:-.05em; line-height:1.05; margin:0 0 12px; }
-    .section p { color:var(--muted); font-size:16px; line-height:1.6; margin:0 auto; max-width:640px; }
-    .wash { background:var(--wash); }
+    .section h2 { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:34px; letter-spacing:-.05em; line-height:1.05; margin:0 0 12px; }
+    .section p { color:rgba(255,255,255,.78); font-size:16px; line-height:1.6; margin:0 auto; max-width:640px; }
+    .wash { background:var(--navy); }
     .proof { background:var(--navy); text-align:center; }
     .proof h2 { color:#fff; margin-bottom:20px; }
     .proof-stage { background:transparent; display:flex; gap:18px; margin:0 auto; max-width:620px; overflow-x:auto; overflow-y:hidden; padding:8px 10px 16px; scroll-behavior:smooth; scroll-snap-type:x proximity; scrollbar-width:none; -ms-overflow-style:none; width:min(92vw, 620px); }
@@ -733,16 +736,20 @@ function art_block(string $file, string $fallbackClass = ''): string
     .slides { background:var(--navy); }
     .slides h2 { color:#fff; }
     .slides .section-label { color:var(--gold); }
-    .proof-mix { background:linear-gradient(180deg,#f4f1ea 0%,#f8f5f1 100%); border-top:1px solid rgba(17,26,56,.06); }
+    .proof-mix { background:var(--navy); border-top:1px solid rgba(244,202,91,.16); }
     .proof-field-section { background:var(--navy); border-top:1px solid rgba(244,202,91,.28); }
     .proof-field-section h2 { color:var(--gold-light); }
     .proof-field-section > .section-label { color:var(--gold); }
-    .proof-visuals { background:var(--navy-dark); border-top:1px solid rgba(244,202,91,.2); text-align:center; }
+    .proof-visuals { background:var(--navy); border-top:1px solid rgba(244,202,91,.2); text-align:center; }
     .proof-visuals h2 { color:#fff; }
     .proof-visuals > .section-label { color:var(--gold); }
     .proof-visual-grid { display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:28px auto 0; max-width:1120px; }
-    .proof-visual-grid figure { aspect-ratio:4/5; border:1px solid rgba(244,202,91,.28); border-radius:12px; margin:0; overflow:hidden; }
-    .proof-visual-grid img { display:block; height:100%; object-fit:cover; width:100%; }
+    .proof-visual-grid figure { background:#fff; border:1px solid rgba(244,202,91,.28); border-radius:12px; display:flex; flex-direction:column; margin:0; overflow:hidden; }
+    .proof-visual-grid img { aspect-ratio:4/5; display:block; height:auto; object-fit:cover; width:100%; }
+    .review-screenshot-grid { align-items:start; display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:36px auto 0; max-width:1220px; }
+    .review-screenshot-grid figure { background:#fff; border:1px solid rgba(244,202,91,.42); border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.3); margin:0; overflow:hidden; padding:10px; }
+    .review-screenshot-grid img { display:block; height:auto; max-height:520px; object-fit:contain; width:100%; }
+    .review-screenshot-heading { color:var(--gold-light); font-family:'Space Grotesk',sans-serif; font-size:22px; margin:36px 0 0; }
     .proof-mix-grid { display:grid; gap:26px; grid-template-columns:1fr; margin:28px auto 0; max-width:1220px; }
     .proof-mix-story-link { color:inherit; display:block; text-decoration:none; }
     .proof-mix-card-link { color:inherit; display:block; height:100%; text-decoration:none; }
@@ -856,6 +863,8 @@ function art_block(string $file, string $fallbackClass = ''): string
     @media (max-width:640px) {
       .proof-mix-grid { grid-template-columns:1fr; }
       .proof-mix-body h3 { font-size:19px; }
+      .review-screenshot-grid { gap:14px; grid-template-columns:1fr; max-width:460px; }
+      .proof-visual-grid { grid-template-columns:1fr; max-width:460px; }
     }
     .proof-gallery { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:860px; padding:6px 0 10px; }
     .proof-item { align-self:start; background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); padding:12px 12px 18px; position:relative; transition:transform .25s ease; }
@@ -883,8 +892,8 @@ function art_block(string $file, string $fallbackClass = ''): string
     .benefit { text-align:center; }
     .benefit-art { background:var(--navy); height:180px; margin-bottom:14px; overflow:hidden; position:relative; }
     .benefit-art .detector { transform:translateX(-45%) rotate(-12deg) scale(.47); top:-24px; }
-    .benefit h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:18px; margin:0 0 8px; }
-    .benefit p { color:var(--muted); font-size:14px; line-height:1.5; }
+    .benefit h3 { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:18px; margin:0 0 8px; }
+    .benefit p { color:rgba(255,255,255,.78); font-size:14px; line-height:1.5; }
     .spaced-cta { padding:10px 0 46px; text-align:center; }
     .accordions { margin:0 auto; max-width:700px; text-align:left; }
     details { border-bottom:1px solid #d9dce2; }
@@ -892,7 +901,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     summary::-webkit-details-marker { display:none; }
     summary::after { content:'+'; font-size:20px; font-weight:400; }
     details[open] summary::after { content:'×'; }
-    details p { color:var(--muted); font-size:14px; line-height:1.6; padding:0 16px 10px; }
+    details p { color:rgba(255,255,255,.78); font-size:14px; line-height:1.6; padding:0 16px 10px; }
     .final { background:var(--navy); color:#fff; padding:46px 34px; text-align:center; }
     .final h2 { color:#fff; font-size:32px; }
     .final p { color:#d7dce6; font-size:16px; margin:10px auto 24px; max-width:560px; }
@@ -994,7 +1003,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .thankyou { background:#fff; border-radius:12px; margin:28px auto 0; max-width:560px; padding:34px; }
     .thankyou h3 { color:var(--navy); font-family:'Space Grotesk',sans-serif; font-size:22px; margin:0 0 8px; }
     .thankyou p { color:var(--muted); font-size:15px; margin:0; }
-    footer { background:#1f3564; color:#ffffff; font-size:12px; font-weight:300; line-height:1.3em; padding:35px 10px 25px; }
+    footer { background:var(--navy); color:#ffffff; font-size:12px; font-weight:300; line-height:1.3em; padding:35px 10px 25px; }
     .footer-inner { margin:0 auto; max-width:1170px; padding:0 5px; }
     .footer-top { align-items:center; display:flex; justify-content:space-between; min-height:29px; padding:0 10px 10px; }
 .footer-brand { color:#ffffff; font-family:'Space Grotesk',sans-serif; font-size:19px; font-weight:700; letter-spacing:.01em; }
@@ -1089,6 +1098,7 @@ function art_block(string $file, string $fallbackClass = ''): string
   .mute-toggle { font-size:11px; padding:8px 11px; }
   .hero-copy { font-size:13px; }
   .button { padding:15px 22px; width:100%; }
+  .button.hero-find-cta { border-width:5px; font-size:15px; min-height:78px; padding:14px 22px; width:min(400px,90%); }
   .section { padding:34px 18px; }
   .section h2 { font-size:26px; }
   .benefits-band { min-height:150px; padding:38px 18px; }
@@ -1377,12 +1387,16 @@ p.lb-hint,
       <?php
         $proofVisuals = [];
         foreach ([
-            'proof-1.jpg' => 'Detectorist holding a detector and recovered gold',
-            'proof-2.jpg' => 'Gold detector standing in worked ground',
-            'proof-3.jpg' => 'Gold detector shown across the field terrain',
+          'proof-1.jpg' => 'Detectorist holding a detector and recovered gold',
+          'proof-2.jpg' => 'Gold detector standing in worked ground',
+          'proof-3.jpg' => 'Gold detector shown across the field terrain',
         ] as $file => $alt) {
-            if (file_exists(__DIR__ . '/img/' . $file)) { $proofVisuals[] = ['file' => $file, 'alt' => $alt]; }
+          if (file_exists(__DIR__ . '/img/' . $file)) { $proofVisuals[] = ['file' => $file, 'alt' => $alt]; }
         }
+        $customerReviewFiles = array_values(array_filter(glob(__DIR__ . '/img/customer-review-*') ?: [], static function ($file) {
+          return (bool)preg_match('/\.(jpe?g|png|webp|gif)$/i', $file);
+        }));
+        sort($customerReviewFiles, SORT_NATURAL | SORT_FLAG_CASE);
       ?>
       <?php if ($proofVisuals): ?>
       <section class="section proof-visuals">
@@ -1393,6 +1407,14 @@ p.lb-hint,
           <figure><img src="<?= hpl_img_url($visual['file']) ?>" alt="<?= h($visual['alt']) ?>" loading="lazy"></figure>
           <?php endforeach; ?>
         </div>
+        <?php if ($customerReviewFiles): ?>
+        <h3 class="review-screenshot-heading">Customer reviews</h3>
+        <div class="review-screenshot-grid">
+          <?php foreach ($customerReviewFiles as $reviewFile): ?>
+          <figure><img src="<?= hpl_img_url(basename($reviewFile)) ?>" alt="Customer review screenshot" loading="lazy"></figure>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
       </section>
       <?php endif; ?>
 
