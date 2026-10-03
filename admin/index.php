@@ -213,6 +213,8 @@ $imageSlots = [
     ['key' => 'visit_1',    'file' => 'visit-1.jpg',    'label' => 'Showroom photo 1 (landscape)'],
     ['key' => 'visit_2',    'file' => 'visit-2.jpg',    'label' => 'Showroom photo 2 (landscape)'],
     ['key' => 'visit_3',    'file' => 'visit-3.jpg',    'label' => 'Showroom photo 3 (landscape)'],
+    ['key' => 'stat_1',      'file' => 'stat-1.jpg',      'label' => 'Trust card 1 photo — customers (landscape)'],
+    ['key' => 'stat_2',      'file' => 'stat-2.jpg',      'label' => 'Trust card 2 photo — gold found (landscape)'],
     ['key' => 'logo',       'file' => 'hpllogo.jpeg',   'label' => 'Header / footer logo'],
     ['key' => 'benefit_bg', 'file' => 'benefit-bg.png', 'label' => 'Benefits section background band'],
     ['key' => 'field_proof_1_image', 'file' => 'field-proof-1.jpg', 'label' => 'Field proof story 1 photo'],

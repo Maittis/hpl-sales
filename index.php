@@ -893,17 +893,16 @@ function art_block(string $file, string $fallbackClass = ''): string
     .trust-section { background:var(--navy); padding:46px 34px; text-align:center; }
     .trust-section h2 { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:32px; letter-spacing:-.05em; line-height:1.05; margin:0 0 16px; }
     .trust-section p { color:rgba(255,255,255,.78); font-size:16px; line-height:1.6; margin:0 auto 36px; max-width:640px; }
-    .trust-badges { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin:0 auto 40px; max-width:1000px; }
-    .trust-badge { align-items:center; background:rgba(255,255,255,.05); border:1px solid rgba(244,202,91,.3); border-radius:12px; display:flex; flex-direction:column; gap:12px; padding:24px 20px; transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease; min-width:180px; }
-    .trust-badge:hover { transform:translateY(-5px); border-color:var(--gold); box-shadow:0 12px 30px rgba(244,202,91,.2); }
-    .trust-badge-icon { font-size:36px; animation:badgePulse 2s ease-in-out infinite; will-change:transform; }
-    .trust-badge-icon:nth-child(1) { animation-delay:0s; }
-    .trust-badge-icon:nth-child(2) { animation-delay:0.3s; }
-    .trust-badge-icon:nth-child(3) { animation-delay:0.6s; }
-    .trust-badge-icon:nth-child(4) { animation-delay:0.9s; }
-    @keyframes badgePulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.1); } }
-    .trust-badge-label { color:var(--gold-light); font-size:14px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
-    .trust-badge-value { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:28px; font-weight:700; letter-spacing:-.02em; }
+    .trust-pics { display:grid; gap:24px; grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 auto 40px; max-width:1000px; }
+    .trust-pic { background:rgba(255,255,255,.05); border:1px solid rgba(244,202,91,.3); border-radius:16px; overflow:hidden; transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
+    .trust-pic:hover { transform:translateY(-5px); border-color:var(--gold); box-shadow:0 12px 30px rgba(244,202,91,.2); }
+    .trust-pic img { aspect-ratio:16/10; border-bottom:1px solid rgba(244,202,91,.22); display:block; object-fit:cover; width:100%; }
+    .trust-pic-body { padding:24px 22px 26px; text-align:center; }
+    .trust-pic-value { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:38px; font-weight:700; letter-spacing:-.03em; line-height:1.05; }
+    .trust-pic-label { color:var(--gold-light); display:block; font-size:14px; font-weight:700; letter-spacing:.08em; margin-top:6px; text-transform:uppercase; }
+    .trust-pic-more { border-top:1px solid rgba(244,202,91,.2); display:flex; gap:10px; justify-content:center; margin-top:18px; padding-top:16px; }
+    .trust-pic-more-item { color:rgba(255,255,255,.72); font-size:13px; }
+    .trust-pic-more-item b { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:700; letter-spacing:-.01em; margin-right:5px; }
     /* Social Proof Ticker */
     .proof-ticker { background:rgba(244,202,91,.1); border-top:1px solid rgba(244,202,91,.3); border-bottom:1px solid rgba(244,202,91,.3); margin:0 auto 40px; max-width:1000px; overflow:hidden; padding:16px 0; position:relative; }
     .proof-ticker-track { display:flex; animation:scrollTicker 30s linear infinite; will-change:transform; }
@@ -1185,10 +1184,10 @@ function art_block(string $file, string $fallbackClass = ''): string
       touch-action:pan-x;
       -webkit-overflow-scrolling:touch;
     }
-    .testimonial-card,
-    .trust-badge {
-      touch-action:manipulation;
-    }
+.testimonial-card,
+      .trust-pic {
+        touch-action:manipulation;
+      }
     /* Swipe indicators */
     .swipe-hint {
       align-items:center;
@@ -1239,16 +1238,16 @@ function art_block(string $file, string $fallbackClass = ''): string
       box-shadow:0 12px 32px rgba(0,0,0,.3);
       border-color:rgba(244,202,91,.4);
     }
-    .trust-badge {
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(244,202,91,.3);
-      border-radius:12px;
-      transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease, background .3s ease;
-    }
-    .trust-badge:hover {
-      transform:translateY(-5px);
-      border-color:var(--gold);
-      box-shadow:0 12px 30px rgba(244,202,91,.2);
+.trust-pic {
+        background:rgba(255,255,255,.08);
+        border:1px solid rgba(244,202,91,.3);
+        border-radius:16px;
+        transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease, background .3s ease;
+      }
+      .trust-pic:hover {
+        transform:translateY(-5px);
+        border-color:var(--gold);
+        box-shadow:0 12px 30px rgba(244,202,91,.2);
       background:rgba(255,255,255,.12);
     }
     /* Gradient Borders (simplified for performance) */
@@ -1354,11 +1353,9 @@ function art_block(string $file, string $fallbackClass = ''): string
   .cookie-btn { flex:1; text-align:center; }
   .trust-section { padding:32px 18px; }
   .trust-section h2 { font-size:26px; }
-  .trust-badges { gap:16px; }
-  .trust-badge { min-width:140px; padding:18px 14px; }
-  .trust-badge-icon { font-size:28px; }
-  .trust-badge-value { font-size:22px; }
-  .trust-badge-label { font-size:12px; }
+  .trust-pics { gap:16px; }
+  .trust-pic-value { font-size:30px; }
+  .trust-pic-label { font-size:12px; }
   .proof-ticker { margin:0 auto 28px; }
   .ticker-item { padding:0 20px; }
   .ticker-item-text { font-size:13px; }
@@ -1574,9 +1571,8 @@ p.lb-hint,
   }
   @media (prefers-reduced-motion:reduce) {
     .pf-tab, .lb-btn, .lb-link { transition:none; }
-    .section { opacity:1; transform:none; }
-    .trust-badge-icon { animation:none; }
-    .star { animation:none; }
+.section { opacity:1; transform:none; }
+      .star { animation:none; }
     .proof-ticker-track { animation:none; }
     .gradient-border-animated::before { animation:none; }
     .ripple-effect { animation:none; }
@@ -1868,27 +1864,27 @@ p.lb-hint,
         <h2>Trusted by Detectorists Across Africa</h2>
         <p>Join hundreds of successful gold prospectors who trust HPL equipment for their discoveries.</p>
 
-        <!-- Animated Trust Badges -->
-        <div class="trust-badges">
-          <div class="trust-badge hover-lift">
-            <span class="trust-badge-icon">🏆</span>
-            <span class="trust-badge-value">500+</span>
-            <span class="trust-badge-label">Happy Customers</span>
+        <!-- Trust picture cards -->
+        <div class="trust-pics">
+          <div class="trust-pic hover-lift">
+            <img src="<?= hpl_img_url('stat-1.jpg') ?>" alt="HPL customers and detectorists in the field" loading="lazy" width="800" height="500">
+            <div class="trust-pic-body">
+              <span class="trust-pic-value">500+</span>
+              <span class="trust-pic-label">Happy Customers</span>
+              <div class="trust-pic-more">
+                <span class="trust-pic-more-item"><b>12+</b> Countries</span>
+              </div>
+            </div>
           </div>
-          <div class="trust-badge hover-lift">
-            <span class="trust-badge-icon">⚡</span>
-            <span class="trust-badge-value">2000+</span>
-            <span class="trust-badge-label">Ounces Found</span>
-          </div>
-          <div class="trust-badge hover-lift">
-            <span class="trust-badge-icon">🌍</span>
-            <span class="trust-badge-value">12+</span>
-            <span class="trust-badge-label">Countries</span>
-          </div>
-          <div class="trust-badge hover-lift">
-            <span class="trust-badge-icon">⭐</span>
-            <span class="trust-badge-value">4.9</span>
-            <span class="trust-badge-label">Average Rating</span>
+          <div class="trust-pic hover-lift">
+            <img src="<?= hpl_img_url('stat-2.jpg') ?>" alt="Gold recovered with HPL gold detectors" loading="lazy" width="800" height="500">
+            <div class="trust-pic-body">
+              <span class="trust-pic-value">2000+</span>
+              <span class="trust-pic-label">Ounces Found</span>
+              <div class="trust-pic-more">
+                <span class="trust-pic-more-item"><b>4.9</b> Average Rating</span>
+              </div>
+            </div>
           </div>
         </div>
 
