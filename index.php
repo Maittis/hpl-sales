@@ -904,6 +904,9 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-ticker { background:rgba(244,202,91,.1); border-top:1px solid rgba(244,202,91,.3); border-bottom:1px solid rgba(244,202,91,.3); margin:0 auto 40px; max-width:1000px; overflow:hidden; padding:16px 0; position:relative; }
     .proof-ticker-track { display:flex; animation:scrollTicker 30s linear infinite; will-change:transform; }
     .proof-ticker:hover .proof-ticker-track { animation-play-state:paused; }
+    /* Sits directly under the filter bar, so it is pulled up to read as part
+       of the same control block rather than a floating band. */
+    .proof-ticker.after-filter { margin:24px auto 34px; }
     /* An infinite animation still costs the compositor on every frame while it
        runs, even when the element is off screen. These decorations used to
        animate for the whole visit whether or not anyone could see them, so the
@@ -1671,6 +1674,73 @@ p.lb-hint,
         <?php endforeach; ?>
       </div>
       <?php endif; ?>
+
+      <!-- Social Proof Ticker: Zambia -->
+      <div class="proof-ticker after-filter">
+        <div class="proof-ticker-track">
+            <div class="ticker-item">
+              <span class="ticker-item-icon">✨</span>
+              <span class="ticker-item-text"><strong>Chileshe M.</strong> found 2.1oz gold in Lusaka</span>
+              <span class="ticker-item-time">3h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">🎯</span>
+              <span class="ticker-item-text"><strong>Mutinta K.</strong> purchased MAGNETAR 5000</span>
+              <span class="ticker-item-time">5h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">💎</span>
+              <span class="ticker-item-text"><strong>Mwamba B.</strong> shipped to Kitwe</span>
+              <span class="ticker-item-time">7h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">🚀</span>
+              <span class="ticker-item-text"><strong>Kabaso N.</strong> found 1.6oz in Livingstone</span>
+              <span class="ticker-item-time">11h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">⭐</span>
+              <span class="ticker-item-text"><strong>Chimwemwe S.</strong> left a 5-star review</span>
+              <span class="ticker-item-time">14h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">🏅</span>
+              <span class="ticker-item-text"><strong>Sakala T.</strong> discovered a nugget near Chiluba</span>
+              <span class="ticker-item-time">19h ago</span>
+            </div>
+          <!-- Duplicate for seamless scroll -->
+            <div class="ticker-item">
+              <span class="ticker-item-icon">✨</span>
+              <span class="ticker-item-text"><strong>Chileshe M.</strong> found 2.1oz gold in Lusaka</span>
+              <span class="ticker-item-time">3h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">🎯</span>
+              <span class="ticker-item-text"><strong>Mutinta K.</strong> purchased MAGNETAR 5000</span>
+              <span class="ticker-item-time">5h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">💎</span>
+              <span class="ticker-item-text"><strong>Mwamba B.</strong> shipped to Kitwe</span>
+              <span class="ticker-item-time">7h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">🚀</span>
+              <span class="ticker-item-text"><strong>Kabaso N.</strong> found 1.6oz in Livingstone</span>
+              <span class="ticker-item-time">11h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">⭐</span>
+              <span class="ticker-item-text"><strong>Chimwemwe S.</strong> left a 5-star review</span>
+              <span class="ticker-item-time">14h ago</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-item-icon">🏅</span>
+              <span class="ticker-item-text"><strong>Sakala T.</strong> discovered a nugget near Chiluba</span>
+              <span class="ticker-item-time">19h ago</span>
+            </div>
+        </div>
+      </div>
 
       <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; /* This testimonial plays as the visitor reaches it, so use the muted autoplay variant rather than the stored click-to-play URL. */ if (isset($featuredProof['src_auto'])) { $featuredProof['src'] = $featuredProof['src_auto']; } ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
 
