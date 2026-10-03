@@ -904,7 +904,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .trust-badges { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin:0 auto 40px; max-width:1000px; }
     .trust-badge { align-items:center; background:rgba(255,255,255,.05); border:1px solid rgba(244,202,91,.3); border-radius:12px; display:flex; flex-direction:column; gap:12px; padding:24px 20px; transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease; min-width:180px; }
     .trust-badge:hover { transform:translateY(-5px); border-color:var(--gold); box-shadow:0 12px 30px rgba(244,202,91,.2); }
-    .trust-badge-icon { font-size:36px; animation:badgePulse 2s ease-in-out infinite; }
+    .trust-badge-icon { font-size:36px; animation:badgePulse 2s ease-in-out infinite; will-change:transform; }
     .trust-badge-icon:nth-child(1) { animation-delay:0s; }
     .trust-badge-icon:nth-child(2) { animation-delay:0.3s; }
     .trust-badge-icon:nth-child(3) { animation-delay:0.6s; }
@@ -914,8 +914,13 @@ function art_block(string $file, string $fallbackClass = ''): string
     .trust-badge-value { color:#fff; font-family:'Space Grotesk',sans-serif; font-size:28px; font-weight:700; letter-spacing:-.02em; }
     /* Social Proof Ticker */
     .proof-ticker { background:rgba(244,202,91,.1); border-top:1px solid rgba(244,202,91,.3); border-bottom:1px solid rgba(244,202,91,.3); margin:0 auto 40px; max-width:1000px; overflow:hidden; padding:16px 0; position:relative; }
-    .proof-ticker-track { display:flex; animation:scrollTicker 30s linear infinite; }
+    .proof-ticker-track { display:flex; animation:scrollTicker 30s linear infinite; will-change:transform; }
     .proof-ticker:hover .proof-ticker-track { animation-play-state:paused; }
+    /* An infinite animation still costs the compositor on every frame while it
+       runs, even when the element is off screen. These decorations used to
+       animate for the whole visit whether or not anyone could see them, so the
+       script below pauses them whenever the section leaves the viewport. */
+    .hpl-offscreen, .hpl-offscreen * { animation-play-state:paused !important; }
     @keyframes scrollTicker { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
     .ticker-item { align-items:center; display:flex; gap:10px; padding:0 30px; white-space:nowrap; }
     .ticker-item-icon { color:var(--gold); font-size:20px; }
@@ -3224,24 +3229,85 @@ form.addEventListener('keydown', function (e) {
         if (dx < 0) next(); else prev();
       }, { passive: true });
 
+      /* Scroll fires far faster than the screen can paint, and reading
+         offsetLeft/offsetWidth here forces a layout flush every time. Both
+         cost the section hundreds of milliseconds over a single pass, so the
+         work is coalesced into one rAF and the slide centres are measured
+         once rather than on every event.
+
+         This handler also no longer touches the player src. Scrolling is not a
+         navigation gesture, and swapping src here fought the IntersectionObserver
+         300px away, which unloaded and re-fetched the same Bunny embed. Only the
+         observer and explicit navigation now load a player. */
+      var centres = null;
+      function measureCentres() {
+        centres = slides.map(function (s) { return s.offsetLeft + s.offsetWidth / 2; });
+      }
+      measureCentres();
+      window.addEventListener('resize', function () { centres = null; });
+
+      var scrollQueued = false;
       stage.addEventListener('scroll', function () {
-        var centre = stage.scrollLeft + stage.clientWidth / 2;
-        var nearest = 0;
-        var nearestDistance = Number.POSITIVE_INFINITY;
-        slides.forEach(function (s, i) {
-          var mid = s.offsetLeft + s.offsetWidth / 2;
-          var distance = Math.abs(mid - centre);
-          if (distance < nearestDistance) {
-            nearestDistance = distance;
-            nearest = i;
+        if (scrollQueued) return;
+        scrollQueued = true;
+        requestAnimationFrame(function () {
+          scrollQueued = false;
+          if (!centres) measureCentres();
+          var centre = stage.scrollLeft + stage.clientWidth / 2;
+          var nearest = 0;
+          var nearestDistance = Number.POSITIVE_INFINITY;
+          for (var i = 0; i < centres.length; i++) {
+            var distance = Math.abs(centres[i] - centre);
+            if (distance < nearestDistance) {
+              nearestDistance = distance;
+              nearest = i;
+            }
+          }
+          if (nearest !== idx) {
+            idx = nearest;
+            syncDots();
+            updateCueJourney();
           }
         });
-        if (nearest !== idx) {
-          idx = nearest;
-          syncDots();
-          updateCueJourney();
-        }
       }, { passive: true });
+
+      /* Pause decorative animation while it is off screen. Six infinite
+         animations were running for the whole visit from the moment the page
+         loaded, whether or not the visitor had scrolled near them. The
+         observer only watches section membership, so the cost of walking past
+         a section is a single class toggle rather than constant compositing. */
+      (function () {
+        var sections = ['.trust-section', '.proof-ticker', '.proof-visuals', '.slides'];
+        var watched = [];
+        sections.forEach(function (sel) {
+          document.querySelectorAll(sel).forEach(function (el) { watched.push(el); });
+        });
+        if (!watched.length) return;
+
+        function setState(entries) {
+          entries.forEach(function (entry) {
+            entry.target.classList.toggle('hpl-offscreen', !entry.isIntersecting);
+          });
+        }
+        if ('IntersectionObserver' in window) {
+          var io = new IntersectionObserver(setState, { rootMargin: '120px 0px' });
+          watched.forEach(function (el) { io.observe(el); });
+        } else {
+          /* No observer: fall back to a scroll check on the next frame. */
+          var ticking = false;
+          window.addEventListener('scroll', function () {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () {
+              ticking = false;
+              watched.forEach(function (el) {
+                var r = el.getBoundingClientRect();
+                el.classList.toggle('hpl-offscreen', r.bottom < -120 || r.top > window.innerHeight + 120);
+              });
+            });
+          }, { passive: true });
+        }
+      })();
 
       document.addEventListener('keydown', function (e) {
         var r = stage.getBoundingClientRect();
