@@ -299,12 +299,9 @@ if (!function_exists('hpl_embed_host_ok')) {
             parse_str($parts['query'], $query);
         }
 
-        /* Muted autoplay is the only kind browsers permit without a gesture,
-           and a paused poster frame reads as a still photograph. Sound stays
-           off because a cross-origin player cannot be unmuted from here -
-           visitors use Bunny's own controls. */
-        $query['autoplay'] = '1';
-        $query['muted'] = '1';
+          /* Let visitors start proof videos themselves and use Bunny's own audio controls. */
+          $query['autoplay'] = '0';
+          $query['muted'] = '0';
         if (!isset($query['loop'])) { $query['loop'] = '0'; }
         $query['playsinline'] = '1';
         $query['responsive'] = '1';
@@ -566,6 +563,8 @@ function art_block(string $file, string $fallbackClass = ''): string
       top:0;
       width:100%;
     }
+    .customer-advice-section { background:var(--navy); color:#fff; text-align:center; }
+    .customer-advice-player { margin:24px auto 0; max-width:900px; }
     .promo-frame-fallback { padding:60px 20px; text-align:center; }
     .promo-frame-fallback a { color:var(--gold); font-weight:700; }
     .mute-toggle { background:rgba(9,15,36,.82); border:1px solid rgba(244,202,91,.6); color:var(--gold-light); cursor:pointer; font-size:12px; font-weight:700; letter-spacing:.1em; padding:9px 13px; position:absolute; right:14px; text-transform:uppercase; top:14px; z-index:3; }
@@ -1556,6 +1555,7 @@ p.lb-hint,
           if ($src === '') { continue; }
           $proofItems[] = ['kind' => 'video', 'src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
       }
+          $customerAdviceItem = $proofItems[1] ?? null;
       /* The proof_layout setting is intentionally not read any more. The section
          renders one fixed player now, so a stored ring/strip/coverflow value must
          not be able to bring a carousel back. The admin still writes the key, so
@@ -1966,6 +1966,21 @@ p.lb-hint,
           </div>
         </div>
       </section>
+
+<?php if ($customerAdviceItem): ?>
+      <section class="section customer-advice-section">
+        <h2>Customer advice to you</h2>
+        <figure class="promo-frame customer-advice-player">
+<?php if (($customerAdviceItem['kind'] ?? '') === 'embed'): ?>
+          <iframe class="promo-frame-el" src="<?= h($customerAdviceItem['src']) ?>" title="Customer advice to you" loading="lazy" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="true"></iframe>
+<?php else: ?>
+          <video class="promo-frame-el" controls playsinline preload="metadata">
+            <source src="<?= h($customerAdviceItem['src']) ?>" type="<?= h(hpl_media_type($customerAdviceItem['src'])) ?>">
+          </video>
+<?php endif; ?>
+        </figure>
+      </section>
+<?php endif; ?>
 
       <section class="section" id="faq"><div class="accordions">
 <?php for ($i = 1; $i <= 4; $i++) { ?>
