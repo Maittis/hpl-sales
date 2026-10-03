@@ -606,7 +606,11 @@ function art_block(string $file, string $fallbackClass = ''): string
     /* Keep Bunny embeds full-bleed inside the card so they feel like native
        video tiles, while preserving the original ring geometry and motion. */
     .proof-embed { align-items:center; aspect-ratio:var(--ring-shape,0.5625); background:#0b1226; border-radius:14px; display:flex; height:100%; justify-content:center; overflow:hidden; position:relative; width:100%; }
-    .proof-embed iframe { border:0; display:block; height:100%; inset:0; max-height:100%; max-width:100%; object-fit:cover; position:absolute; transform:scale(1.35); transform-origin:center center; width:100%; }
+    /* No scale() here on purpose. Magnifying the frame cropped roughly 16% off
+       every edge inside the overflow:hidden card, so a paused player read as a
+       cropped photograph. Bunny's own player letterboxes inside the box, which
+       is what a normal embedded video does. */
+    .proof-embed iframe { border:0; display:block; height:100%; inset:0; max-height:100%; max-width:100%; object-fit:contain; position:absolute; width:100%; }
     .proof-embed iframe:not([data-on]) { visibility:hidden; }
     .ring-item figcaption { background:linear-gradient(to top,rgba(0,0,0,.86),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:12px; font-weight:700; left:0; line-height:1.25; padding:30px 10px 10px; position:absolute; right:0; text-align:left; }
     .ring-item::after { border:2px solid transparent; border-radius:14px; content:''; inset:0; pointer-events:none; position:absolute; transition:border-color .35s ease; }
