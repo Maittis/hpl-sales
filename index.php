@@ -629,7 +629,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     :root { --navy:#111a38; --navy-dark:#090f24; --gold:#d4a52c; --gold-light:#f4ca5b; --ink:#182038; --muted:#687083; --paper:#111a38; --wash:#111a38; }
     * { box-sizing:border-box; }
     html { scroll-behavior:smooth; }
-    body { margin:0; color:#fff; background:var(--navy); 'Manrope','Plus Jakarta Sans',sans-serif; font-size:17px; line-height:1.55; overflow-x:hidden; }
+    body { margin:0; color:#fff; background:var(--navy); 'Manrope','Plus Jakarta Sans',sans-serif; font-size:17px; line-height:1.55; overflow-wrap:break-word; overflow-x:hidden; }
     a { color:inherit; text-decoration:none; }
     .page { width:100%; margin:0 auto; background:var(--navy); }
     .topline { background:#070b18; color:#fff; font-size:11px; font-weight:700; letter-spacing:.08em; padding:9px 20px; text-align:center; text-transform:uppercase; }
@@ -928,7 +928,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     /* Customer Ratings */
     .ratings-section { background:rgba(255,255,255,.03); border-radius:16px; margin:0 auto; max-width:800px; padding:32px 28px; }
     .ratings-header { align-items:center; display:flex; justify-content:center; gap:16px; margin-bottom:24px; }
-    .ratings-overall { color:#fff; font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:48px; font-weight:700; letter-spacing:-.03em; line-height:1; }
+    .ratings-overall { color:var(--gold); font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:48px; font-weight:700; letter-spacing:-.03em; line-height:1; }
     .ratings-stars { display:flex; gap:4px; }
     .star { color:var(--gold); font-size:28px; position:relative; }
     .star.filled { animation:starPop 0.5s ease-out forwards; }
@@ -970,11 +970,12 @@ function art_block(string $file, string $fallbackClass = ''): string
     .trust-story:nth-child(even) { flex-direction:row-reverse; }
     .trust-story-body, .trust-story-media { flex:1 1 0; min-width:0; }
     .trust-story-quote { color:rgba(255,255,255,.82); font-size:17px; line-height:1.65; margin:0 0 18px; }
-    .trust-story-quote::before { content:"\201C"; }
-    .trust-story-quote::after { content:"\201D"; }
+    .trust-story-quote::before { color:var(--gold); content:"\201C"; }
+    .trust-story-quote::after { color:var(--gold); content:"\201D"; }
     .trust-story-author { align-items:center; display:flex; gap:11px; }
     .trust-story-avatar { align-items:center; background:linear-gradient(135deg,var(--gold),var(--gold-light)); border-radius:50%; color:var(--navy-dark); display:flex; font-size:14px; font-weight:800; height:36px; justify-content:center; width:36px; }
     .trust-story-meta { display:flex; flex-direction:column; }
+    .trust-story-name { color:var(--gold-light); font-size:15px; font-weight:700; }
     .trust-story-media { aspect-ratio:4/3; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
     .trust-story-media img { display:block; height:100%; object-fit:cover; width:100%; }
     .accordions { margin:0 auto; max-width:700px; text-align:left; }
@@ -1441,6 +1442,9 @@ function art_block(string $file, string $fallbackClass = ''): string
   .final .lead-success { padding:34px 20px; }
   .final .lead-success h3 { font-size:26px; }
     .field-row { grid-template-columns:1fr; }
+  /* iOS Safari zooms the whole viewport when a field under 16px is focused,
+     which leaves the visitor zoomed in and stranded on the booking form. */
+  .lead-form input[type=text], .lead-form input[type=tel], .lead-form input[type=email], .lead-form textarea, .lead-form select { font-size:16px; }
     .form-title { font-size:22px; }
   .torn { margin:0; padding:20px 16px; }
   footer { padding-left:10px; padding-right:10px; }
