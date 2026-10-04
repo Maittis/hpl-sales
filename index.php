@@ -4,6 +4,56 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/video-player.php';
 $s = hpl_settings();
 
+/* ---------------------------------------------------------------------------
+ * Typography: admin-selectable families and sizes.
+ *
+ * The family list is the closed catalog in site-bootstrap.php rather than free
+ * text. The stylesheet link below is assembled from those entries, so the
+ * request can never contain anything outside the whitelist and a mistyped name
+ * cannot silently break it. Every value falls back to the current design when
+ * unset or out of range, which keeps a live database that predates these
+ * settings rendering exactly as it did before.
+ * ------------------------------------------------------------------------ */
+$hplFontCatalog = hpl_font_catalog();
+
+/* An unset, unknown or deleted value falls back rather than producing an empty
+   family stack, so the page keeps its original typography by default. */
+$hplHeadingFont = (string)($s['font_heading'] ?? '');
+if (!isset($hplFontCatalog[$hplHeadingFont])) { $hplHeadingFont = 'Anton'; }
+$hplBodyFont = (string)($s['font_body'] ?? '');
+if (!isset($hplFontCatalog[$hplBodyFont])) { $hplBodyFont = 'Manrope'; }
+
+$hplHeadingStack = $hplFontCatalog[$hplHeadingFont]['stack'];
+$hplBodyStack    = $hplFontCatalog[$hplBodyFont]['stack'];
+
+/* The same family may be picked for both roles. Requesting it twice is rejected
+   by the Google Fonts API, so the query is de-duplicated by value. */
+$hplFontQuery = [];
+foreach ([$hplHeadingFont, $hplBodyFont] as $hplFontKey) {
+    $hplFontParam = 'family=' . rawurlencode($hplFontKey . ':wght@' . $hplFontCatalog[$hplFontKey]['weights']);
+    if (!in_array($hplFontParam, $hplFontQuery, true)) { $hplFontQuery[] = $hplFontParam; }
+}
+$hplFontsHref = 'https://fonts.googleapis.com/css2?' . implode('&', $hplFontQuery) . '&display=swap';
+
+/* Per-role sizes. Bounds are wide enough to be useful and tight enough that a
+   stray zero or a runaway number cannot collapse the layout. */
+$hplSizeRoles = ['hero' => [62, 24, 120], 'h2' => [34, 16, 80], 'body' => [17, 11, 30], 'small' => [13, 8, 24]];
+$hplSizes = [];
+foreach ($hplSizeRoles as $hplRole => $hplBounds) {
+    $hplValue = (int)trim((string)($s['size_' . $hplRole] ?? ''));
+    $hplSizes[$hplRole] = ($hplValue >= $hplBounds[1] && $hplValue <= $hplBounds[2]) ? $hplValue : $hplBounds[0];
+}
+
+/* Reads a copy setting, treating a blank row the same as a missing one. Settings
+   that default to an empty string in config.php, and any field the owner clears
+   in the admin, then fall back to the wording below instead of emptying the
+   page. The default is supplied at each call site so the markup still shows the
+   original text when the database has never held this key. */
+$hplCopy = static function (string $key, string $fallback) use ($s): string {
+    $value = trim((string)($s[$key] ?? ''));
+    return $value !== '' ? $value : $fallback;
+};
+
 require_once __DIR__ . '/lead-handler.php';
 
 /**
@@ -631,25 +681,42 @@ function art_block(string $file, string $fallbackClass = ''): string
   <link rel="apple-touch-icon" href="img/favicon-180.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="<?= h($hplFontsHref) ?>" rel="stylesheet">
   <style>
     :root { --navy:#111a38; --navy-dark:#090f24; --gold:#d4a52c; --gold-light:#f4ca5b; --ink:#182038; --muted:#687083; --paper:#111a38; --wash:#111a38; }
+    /* Typography, admin-controlled. These five custom properties are the single
+       source of truth for family and the four size roles; every rule below
+       references them instead of naming a font or a size directly.
+
+       Values are printed without HTML escaping on purpose: the contents of a
+       <style> element are raw text, so an entity like &#039; would reach the
+       parser literally and corrupt the family name. They are safe regardless,
+       because the stacks come from the whitelisted catalog above and the sizes
+       are cast to int. */
+    :root {
+      --font-heading: <?= $hplHeadingStack ?>;
+      --font-body: <?= $hplBodyStack ?>;
+      --size-hero: <?= (int)$hplSizes['hero'] ?>px;
+      --size-h2: <?= (int)$hplSizes['h2'] ?>px;
+      --size-body: <?= (int)$hplSizes['body'] ?>px;
+      --size-small: <?= (int)$hplSizes['small'] ?>px;
+    }
     * { box-sizing:border-box; }
     html { scroll-behavior:smooth; }
-    body { margin:0; color:#fff; background:var(--navy); 'Manrope','Plus Jakarta Sans',sans-serif; font-size:17px; line-height:1.55; overflow-wrap:break-word; overflow-x:hidden; }
+    body { margin:0; color:#fff; background:var(--navy); font-family:var(--font-body); font-size:var(--size-body); line-height:1.55; overflow-wrap:break-word; overflow-x:hidden; }
     a { color:inherit; text-decoration:none; }
     .page { width:100%; margin:0 auto; background:var(--navy); }
     .topline { background:#070b18; color:#fff; font-size:11px; font-weight:700; letter-spacing:.08em; padding:9px 20px; text-align:center; text-transform:uppercase; }
     header { background:var(--navy); color:#fff; padding:20px 34px; }
     .nav { align-items:center; display:flex; justify-content:space-between; }
-    .brand { align-items:center; display:flex; font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:20px; font-weight:700; gap:10px; }
+    .brand { align-items:center; display:flex; font-family:var(--font-body); font-size:20px; font-weight:700; gap:10px; }
     .brand-mark { align-items:center; border:2px solid var(--gold-light); border-radius:50%; color:var(--gold-light); display:flex; font-size:12px; height:32px; justify-content:center; width:32px; }
     .logo-chip { background:#fff; border-radius:8px; line-height:0; padding:6px 9px; }
     .header-logo { display:block; height:44px; width:auto; }
     .nav-links { color:#d9deea; display:flex; font-size:15px; gap:26px; }
     .nav-cta { background:var(--gold); color:var(--navy-dark); font-size:12px; font-weight:700; padding:12px 18px; text-transform:uppercase; }
     .hero { background:var(--navy); color:#fff; padding:24px 34px 44px; text-align:center; }
-    .hero h1 {font-weight:400;  font-family:'Anton',sans-serif; font-size:clamp(38px,7vw,62px); letter-spacing:0; line-height:.98; margin:0 auto 20px; max-width:640px; }
+    .hero h1 {font-weight:400;  font-family:var(--font-heading); font-size:clamp(38px,7vw,var(--size-hero)); letter-spacing:0; line-height:.98; margin:0 auto 20px; max-width:640px; }
     .hero h1 span { color:var(--gold-light); }
     .hero-sub { color:var(--gold-light); font-size:18px; font-weight:700; letter-spacing:.01em; line-height:1.35; margin:-6px auto 18px; max-width:620px; }
     .hero-intro { color:#e3e6ed; font-size:19px; line-height:1.45; margin:0 auto 30px; max-width:640px; }
@@ -699,7 +766,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .button.hero-find-cta:hover { background:var(--gold-light); box-shadow:0 0 40px rgba(244,202,91,.5); transform:scale(1.02); }
     .section { color:#fff; padding:46px 34px; }
     .section.center { text-align:center; }
-    .section h2 {font-weight:400;  color:#fff; font-family:'Anton',sans-serif; font-size:34px; letter-spacing:0; line-height:1.05; margin:0 0 12px; text-transform:uppercase; }
+    .section h2 {font-weight:400;  color:#fff; font-family:var(--font-heading); font-size:var(--size-h2); letter-spacing:0; line-height:1.05; margin:0 0 12px; text-transform:uppercase; }
     .section p { color:rgba(255,255,255,.78); font-size:16px; line-height:1.6; margin:0 auto; max-width:640px; }
     .wash { background:var(--navy); }
     .proof { background:var(--navy); text-align:center; padding-bottom:24px; }
@@ -759,7 +826,7 @@ function art_block(string $file, string $fallbackClass = ''): string
        zigzags down the section instead of scanning a flat grid. */
     .zig-row:nth-child(even) { flex-direction:row-reverse; }
     .zig-text, .zig-media { flex:1 1 0; min-width:0; }
-    .zig-title { color:#fff; font-family:'Anton',sans-serif; font-size:clamp(21px,2.6vw,31px); font-weight:400; letter-spacing:0; line-height:1.1; margin:0 0 12px; }
+    .zig-title { color:#fff; font-family:var(--font-heading); font-size:clamp(21px,2.6vw,31px); font-weight:400; letter-spacing:0; line-height:1.1; margin:0 0 12px; }
     .zig-body { color:rgba(255,255,255,.74); font-size:16px; line-height:1.65; margin:0; max-width:44ch; }
     .zig-media { aspect-ratio:16/9; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
     .zig-media img { display:block; height:100%; object-fit:cover; width:100%; }
@@ -783,7 +850,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .review-screenshot-grid { align-items:start; display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:36px auto 0; max-width:1220px; }
     .review-screenshot-grid figure { background:var(--navy); border:1px solid rgba(244,202,91,.42); border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.3); margin:0; overflow:hidden; padding:10px; }
     .review-screenshot-grid img { display:block; height:auto; max-height:520px; object-fit:contain; width:100%; }
-    .review-screenshot-heading {font-weight:700;  color:var(--gold-light); font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:22px; margin:36px 0 0; }
+    .review-screenshot-heading {font-weight:700;  color:var(--gold-light); font-family:var(--font-body); font-size:22px; margin:36px 0 0; }
     .proof-mix-grid { display:grid; gap:26px; grid-template-columns:1fr; margin:28px auto 0; max-width:1220px; }
     .proof-mix-story-link { color:inherit; display:block; text-decoration:none; }
     .proof-mix-card-link { color:inherit; display:block; height:100%; text-decoration:none; }
@@ -805,7 +872,7 @@ function art_block(string $file, string $fallbackClass = ''): string
       color:var(--gold-light); display:inline-block; font-size:11px; font-weight:700; letter-spacing:.14em; margin:0 0 8px; text-transform:uppercase;
     }
     .proof-mix-story-header h3 {font-weight:400; 
-      color:#fff; font-family:'Anton',sans-serif; font-size:clamp(28px,4vw,42px); letter-spacing:0; line-height:1.08; margin:0;
+      color:#fff; font-family:var(--font-heading); font-size:clamp(28px,4vw,42px); letter-spacing:0; line-height:1.08; margin:0;
     }
     .proof-mix-story-body {
       align-items:stretch; display:grid; gap:28px; grid-template-columns:minmax(260px,.9fr) minmax(0,1.1fr); padding:26px;
@@ -815,7 +882,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     }
     .proof-mix-story:nth-child(2) .proof-mix-story-copy { grid-column:1; }
     .proof-mix-story-copy h4 {font-weight:400; 
-      color:var(--gold-light); font-family:'Anton',sans-serif; font-size:clamp(22px,3vw,32px); letter-spacing:0; line-height:1.15; margin:0 0 14px;
+      color:var(--gold-light); font-family:var(--font-heading); font-size:clamp(22px,3vw,32px); letter-spacing:0; line-height:1.15; margin:0 0 14px;
     }
     .proof-mix-story-copy p {
       color:rgba(255,255,255,.78); font-size:15px; line-height:1.65; margin:0;
@@ -847,7 +914,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-mix-media::after { background:linear-gradient(to top, rgba(9,15,36,.72), rgba(9,15,36,0) 46%); content:''; inset:0; position:absolute; }
     .proof-mix-type { background:rgba(17,26,56,.82); border:1px solid rgba(244,202,91,.5); border-radius:999px; color:#f7d56b; font-size:10px; font-weight:700; inset:14px auto auto 14px; letter-spacing:.12em; padding:7px 10px; position:absolute; text-transform:uppercase; z-index:1; }
     .proof-mix-body { display:flex; flex:1; flex-direction:column; gap:8px; padding:18px 18px 20px; }
-    .proof-mix-body h3 {font-weight:700;  color:var(--navy); font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:22px; letter-spacing:-.04em; line-height:1.1; margin:0; }
+    .proof-mix-body h3 {font-weight:700;  color:var(--navy); font-family:var(--font-body); font-size:22px; letter-spacing:-.04em; line-height:1.1; margin:0; }
     .proof-mix-body p { color:var(--muted); font-size:14px; line-height:1.55; margin:0; max-width:none; }
     .proof-mix-ghost { align-items:center; background:linear-gradient(130deg,#f3d67a,#d9b654 40%,#8b6d26); color:#111a38; display:flex; font-size:18px; font-weight:700; height:100%; justify-content:center; letter-spacing:.08em; text-align:center; text-transform:uppercase; }
     .proof-mix-story-media.proof-mix-ghost { min-height:100px; }
@@ -916,16 +983,16 @@ function art_block(string $file, string $fallbackClass = ''): string
     .live-pill i { background:#ff6b6b; border-radius:50%; display:inline-block; height:8px; position:relative; width:8px; }
     .live-pill i::after { animation:pulse 1.6s infinite; background:#ff6b6b; border-radius:50%; content:''; height:8px; left:0; position:absolute; top:0; width:8px; }
     @keyframes pulse { 0% { opacity:.8; transform:scale(1); } 100% { opacity:0; transform:scale(3.2); } }
-    .section-label { color:var(--gold); font-size:13px; font-weight:700; letter-spacing:.13em; margin-bottom:11px; text-transform:uppercase; }
+    .section-label { color:var(--gold); font-size:var(--size-small); font-weight:700; letter-spacing:.13em; margin-bottom:11px; text-transform:uppercase; }
     .torn { background:var(--navy-dark); color:#fff; margin:0 12px; padding:24px; text-align:center; }
     .torn h2 { color:#fff; font-size:26px; margin:0; }
     .benefits-band { align-items:center; background:url('img/benefit-bg.png') no-repeat center; background-size:100% 100%; color:#fff; display:flex; justify-content:center; min-height:220px; padding:70px 30px; text-align:center; }
-    .benefits-band h2 {font-weight:400;  color:#fff; font-family:'Anton',sans-serif; font-size:clamp(28px,4.5vw,44px); letter-spacing:0; line-height:1.15; margin:0; max-width:820px; }
+    .benefits-band h2 {font-weight:400;  color:#fff; font-family:var(--font-heading); font-size:clamp(28px,4.5vw,44px); letter-spacing:0; line-height:1.15; margin:0; max-width:820px; }
     .benefit-media .detector { transform:translateX(-45%) rotate(-12deg) scale(.47); top:-24px; }
     .spaced-cta { padding:10px 0 46px; text-align:center; }
     /* Trust Indicators Section */
     .trust-section { background:var(--navy); padding:46px 34px; text-align:center; }
-    .trust-section h2 {font-weight:400;  color:#fff; font-family:'Anton',sans-serif; font-size:32px; letter-spacing:0; line-height:1.05; margin:0 0 16px; }
+    .trust-section h2 {font-weight:400;  color:#fff; font-family:var(--font-heading); font-size:32px; letter-spacing:0; line-height:1.05; margin:0 0 16px; }
     .trust-section p { color:rgba(255,255,255,.78); font-size:16px; line-height:1.6; margin:0 auto 36px; max-width:640px; }
     /* Social Proof Ticker */
     .proof-ticker { background:rgba(244,202,91,.1); border-top:1px solid rgba(244,202,91,.3); border-bottom:1px solid rgba(244,202,91,.3); margin:0 auto 40px; max-width:1000px; overflow:hidden; padding:16px 0; position:relative; }
@@ -948,7 +1015,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     /* Customer Ratings */
     .ratings-section { background:rgba(255,255,255,.03); border-radius:16px; margin:0 auto; max-width:800px; padding:32px 28px; }
     .ratings-header { align-items:center; display:flex; justify-content:center; gap:16px; margin-bottom:24px; }
-    .ratings-overall { color:var(--gold); font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:48px; font-weight:700; letter-spacing:-.03em; line-height:1; }
+    .ratings-overall { color:var(--gold); font-family:var(--font-body); font-size:48px; font-weight:700; letter-spacing:-.03em; line-height:1; }
     .ratings-stars { display:flex; gap:4px; }
     .star { color:var(--gold); font-size:28px; position:relative; }
     .star.filled { animation:starPop 0.5s ease-out forwards; }
@@ -964,12 +1031,12 @@ function art_block(string $file, string $fallbackClass = ''): string
     /* Customer stories live inside the ratings container, so they keep to its
        800px measure: eyebrow, title, paragraph, then the photo underneath. */
     .ratings-stories { margin-top:20px; }
-    .ratings-stories-heading { color:#fff; font-family:'Anton',sans-serif; font-size:22px; font-weight:400; letter-spacing:0; margin:0 0 20px; text-align:center; }
+    .ratings-stories-heading { color:#fff; font-family:var(--font-heading); font-size:22px; font-weight:400; letter-spacing:0; margin:0 0 20px; text-align:center; }
     .ratings-story-grid { align-items:start; display:grid; gap:20px; grid-template-columns:repeat(3,1fr); }
     .ratings-story { background:rgba(255,255,255,.04); border:1px solid rgba(244,202,91,.22); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
     .ratings-story-body { display:flex; flex:1 1 auto; flex-direction:column; padding:16px 16px 14px; }
     .ratings-story-eyebrow { color:var(--gold); font-size:10px; font-weight:700; letter-spacing:.14em; margin:0 0 8px; text-transform:uppercase; }
-    .ratings-story-title { color:#fff; font-family:'Anton',sans-serif; font-size:17px; font-weight:400; letter-spacing:0; line-height:1.18; margin:0 0 9px; }
+    .ratings-story-title { color:#fff; font-family:var(--font-heading); font-size:17px; font-weight:400; letter-spacing:0; line-height:1.18; margin:0 0 9px; }
     .ratings-story-text { color:rgba(255,255,255,.72); font-size:13px; line-height:1.6; margin:0; }
     .ratings-story img { border-top:1px solid rgba(255,255,255,.09); display:block; height:auto; width:100%; }
     .testimonial-cards { display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); margin-top:32px; }
@@ -1090,7 +1157,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .form-progress-fill { background:linear-gradient(90deg,var(--gold),var(--gold-light)); border-radius:40px; display:block; height:100%; transition:width .35s ease; width:50%; }
     .form-progress-text { color:var(--muted); display:block; font-size:11.5px; font-weight:700; letter-spacing:.11em; margin-top:9px; text-transform:uppercase; }
     .form-step-head { border-bottom:1px solid rgba(244,202,91,.28); margin:0 0 4px; padding-bottom:15px; }
-    .form-step-head h3 {font-weight:700;  color:#fff; font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:21px; letter-spacing:-.01em; line-height:1.2; margin:0 0 5px; }
+    .form-step-head h3 {font-weight:700;  color:#fff; font-family:var(--font-body); font-size:21px; letter-spacing:-.01em; line-height:1.2; margin:0 0 5px; }
     .form-step-head p { color:var(--muted); font-size:13.5px; line-height:1.5; margin:0; }
     .lead-form .req { color:#c0392b; }
     .lead-form .field { margin-top:16px; }
@@ -1122,7 +1189,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .lead-success:focus { outline:none; }
     .lead-success-mark { align-items:center; background:linear-gradient(140deg,var(--gold),var(--gold-light)); border-radius:50%; color:var(--navy-dark); display:inline-flex; height:66px; justify-content:center; margin-bottom:18px; width:66px; }
     .lead-success-mark svg { height:34px; width:34px; }
-    .final .lead-success h3 {font-weight:400;  color:var(--navy); font-family:'Anton',sans-serif; font-size:30px; letter-spacing:0; margin:0 0 10px; }
+    .final .lead-success h3 {font-weight:400;  color:var(--navy); font-family:var(--font-heading); font-size:30px; letter-spacing:0; margin:0 0 10px; }
     .final .lead-success p { color:var(--muted); font-size:15px; line-height:1.6; margin:0 auto; max-width:400px; }
     .final .lead-success p.lead-success-note { border-top:1px solid #e6e9ee; color:var(--navy); font-size:13px; font-weight:700; margin-top:24px; padding-top:16px; }
     .lead-success-actions { display:flex; gap:12px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
@@ -1133,12 +1200,12 @@ function art_block(string $file, string $fallbackClass = ''): string
     .lead-success-btn-secondary:hover { background:var(--navy); color:#fff; }
     .form-error { background:#fbeeec; border-radius:8px; color:#7a2c25; font-size:14px; margin:0 auto 6px; max-width:520px; padding:11px 14px; }
     .thankyou { background:#fff; border-radius:12px; margin:28px auto 0; max-width:560px; padding:34px; }
-    .thankyou h3 {font-weight:700;  color:var(--navy); font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:22px; margin:0 0 8px; }
+    .thankyou h3 {font-weight:700;  color:var(--navy); font-family:var(--font-body); font-size:22px; margin:0 0 8px; }
     .thankyou p { color:var(--muted); font-size:15px; margin:0; }
     footer { background:var(--navy); color:#ffffff; font-size:12px; font-weight:300; line-height:1.3em; padding:35px 10px 25px; }
     .footer-inner { margin:0 auto; max-width:1170px; padding:0 5px; }
     .footer-top { align-items:center; display:flex; justify-content:space-between; min-height:29px; padding:0 10px 10px; }
-.footer-brand { color:#ffffff; font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:19px; font-weight:700; letter-spacing:.01em; }
+.footer-brand { color:#ffffff; font-family:var(--font-body); font-size:19px; font-weight:700; letter-spacing:.01em; }
     .footer-logo { display:block; height:30px; width:auto; }
     .footer-menu-btn { background:none; border:0; color:#ffffff; cursor:pointer; display:none; padding:0; }
     .footer-nav { display:none; }
@@ -1729,19 +1796,19 @@ p.lb-hint,
           /* Only one proof video is rendered, so the tab advertises one item even
          when several are configured. Reporting the configured count would promise
          videos the section no longer shows. */
-      $proofGroups[] = ['key' => 'videos', 'label' => 'Videos', 'count' => 1];
+      $proofGroups[] = ['key' => 'videos', 'label' => $hplCopy('proof_label_videos', 'Videos'), 'count' => 1];
       }
       $photoCount = 0;
       for ($i = 1; $i <= 6; $i++) {
           if (file_exists(__DIR__ . '/img/slide-' . $i . '.jpg')) { $photoCount++; }
       }
       if ($photoCount > 0) {
-          $proofGroups[] = ['key' => 'photos', 'label' => 'Field Photos', 'count' => $photoCount];
+          $proofGroups[] = ['key' => 'photos', 'label' => $hplCopy('proof_label_photos', 'Field Photos'), 'count' => $photoCount];
       }
       ?>
       <?php if (count($proofGroups) > 0): ?>
       <div class="pf-bar" id="pfBar" role="group" aria-label="Filter customer proof">
-        <button type="button" class="pf-tab is-on" data-pf="all" aria-pressed="true">All</button>
+        <button type="button" class="pf-tab is-on" data-pf="all" aria-pressed="true"><?= h($hplCopy('pf_filter_all', 'All')) ?></button>
         <?php foreach ($proofGroups as $g): ?>
         <button type="button" class="pf-tab" data-pf="<?= h($g['key']) ?>" aria-pressed="false"
                 aria-label="<?= h($g['label'] . ', ' . (int)$g['count'] . ' items') ?>">
@@ -1851,7 +1918,7 @@ $proofVisuals = [];
       <?php if ($proofVisuals): ?>
       <section class="section proof-visuals">
         <div class="section-label">From the field</div>
-        <h2>Real equipment. Real ground.</h2>
+        <h2><?= h($hplCopy('field_photos_heading', 'Real equipment. Real ground.')) ?></h2>
         <div class="zig">
           <?php foreach ($proofVisuals as $visual): ?>
           <div class="zig-row">
@@ -1926,7 +1993,7 @@ $proofVisuals = [];
               $fieldStories[] = [
                   'kind'  => 'video',
                   'item'  => $clip,
-                  'title' => $clip['caption'] !== '' ? $clip['caption'] : 'Field clip ' . $videoNo,
+                  'title' => $clip['caption'] !== '' ? $clip['caption'] : $hplCopy('field_clip_fallback', 'Field clip') . ' ' . $videoNo,
                   'body'  => $fieldClipBodies[$videoNo] ?? '',
               ];
               $videoIndex++;
@@ -2019,7 +2086,7 @@ $proofVisuals = [];
       <?php endif; ?>
 
       <section class="section proof-mix">
-        <div class="section-label">Customer voices</div>
+        <div class="section-label"><?= h($hplCopy('voices_label', 'Customer voices')) ?></div>
         <h2>See what our customers are saying</h2>
         <div class="zig">
           <div class="zig-row">
@@ -2169,7 +2236,7 @@ $proofVisuals = [];
 
       <!-- Trust Indicators Section -->
       <section class="trust-section">
-        <h2>Trusted by Detectorists Across Africa</h2>
+        <h2><?= h($hplCopy('ratings_heading', 'Trusted by Detectorists Across Africa')) ?></h2>
         <p>Join hundreds of successful gold prospectors who trust HPL equipment for their discoveries.</p>
 
         <!-- Trust picture cards -->
@@ -2185,7 +2252,7 @@ $proofVisuals = [];
           </div>
           <div class="zig-row">
             <div class="zig-text">
-              <h3 class="zig-title">2000+ Ounces Found</h3>
+              <h3 class="zig-title"><?= h($hplCopy('trust_zig_title', '2000+ Ounces Found')) ?></h3>
               <p class="zig-body">More than two thousand ounces have come out of the ground with our detectors, and the people who bought them rate them 4.9 out of 5. We would rather earn that number in the field than advertise it.</p>
             </div>
             <div class="zig-media">
@@ -2272,40 +2339,40 @@ $proofVisuals = [];
               <span class="star filled">★</span>
               <span class="star half">★</span>
             </div>
-            <span class="ratings-count">Based on 127 reviews</span>
+            <span class="ratings-count"><?= h($hplCopy('ratings_count_text', 'Based on 127 reviews')) ?></span>
           </div>
 
           <div class="ratings-breakdown">
             <div class="rating-bar">
-              <span class="rating-bar-label">5 star</span>
+              <span class="rating-bar-label"><?= h($hplCopy('rating_label_5', '5 star')) ?></span>
               <div class="rating-bar-track">
                 <div class="rating-bar-fill" style="width: 85%"></div>
               </div>
               <span class="rating-bar-value">85%</span>
             </div>
             <div class="rating-bar">
-              <span class="rating-bar-label">4 star</span>
+              <span class="rating-bar-label"><?= h($hplCopy('rating_label_4', '4 star')) ?></span>
               <div class="rating-bar-track">
                 <div class="rating-bar-fill" style="width: 10%"></div>
               </div>
               <span class="rating-bar-value">10%</span>
             </div>
             <div class="rating-bar">
-              <span class="rating-bar-label">3 star</span>
+              <span class="rating-bar-label"><?= h($hplCopy('rating_label_3', '3 star')) ?></span>
               <div class="rating-bar-track">
                 <div class="rating-bar-fill" style="width: 3%"></div>
               </div>
               <span class="rating-bar-value">3%</span>
             </div>
             <div class="rating-bar">
-              <span class="rating-bar-label">2 star</span>
+              <span class="rating-bar-label"><?= h($hplCopy('rating_label_2', '2 star')) ?></span>
               <div class="rating-bar-track">
                 <div class="rating-bar-fill" style="width: 1%"></div>
               </div>
               <span class="rating-bar-value">1%</span>
             </div>
             <div class="rating-bar">
-              <span class="rating-bar-label">1 star</span>
+              <span class="rating-bar-label"><?= h($hplCopy('rating_label_1', '1 star')) ?></span>
               <div class="rating-bar-track">
                 <div class="rating-bar-fill" style="width: 1%"></div>
               </div>
@@ -2416,7 +2483,7 @@ $proofVisuals = [];
           ];
           ?>
           <div class="ratings-stories">
-            <h3 class="ratings-stories-heading">Stories from Zambia</h3>
+            <h3 class="ratings-stories-heading"><?= h($hplCopy('ratings_stories_heading', 'Stories from Zambia')) ?></h3>
             <div class="ratings-story-grid">
               <?php foreach ($ratingsStories as $story): ?>
               <article class="ratings-story">
@@ -2440,7 +2507,7 @@ $proofVisuals = [];
 
 <?php if ($customerAdviceItem): ?>
       <section class="section customer-advice-section">
-        <h2>Customer advice to you</h2>
+        <h2><?= h($hplCopy('customer_advice_heading', 'Customer advice to you')) ?></h2>
         <figure class="promo-frame customer-advice-player">
 <?php if (($customerAdviceItem['kind'] ?? '') === 'embed'): ?>
           <iframe class="promo-frame-el" src="<?= h($customerAdviceItem['src']) ?>" title="Customer advice to you" loading="lazy" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="true"></iframe>
@@ -2708,10 +2775,10 @@ $proofVisuals = [];
 
     <div class="cookie-banner hidden" id="cookieBanner">
       <div class="cookie-content">
-        <div class="cookie-text">We use cookies to improve your experience and analyze site traffic. <a href="#faq">Learn more</a></div>
+        <div class="cookie-text"><?= h($hplCopy('cookie_text', 'We use cookies to improve your experience and analyze site traffic.')) ?> <a href="#faq"><?= h($hplCopy('cookie_learn_more', 'Learn more')) ?></a></div>
         <div class="cookie-buttons">
-          <button class="cookie-btn accept" id="acceptCookies">Accept</button>
-          <button class="cookie-btn deny" id="denyCookies">Deny</button>
+          <button class="cookie-btn accept" id="acceptCookies"><?= h($hplCopy('cookie_accept', 'Accept')) ?></button>
+          <button class="cookie-btn deny" id="denyCookies"><?= h($hplCopy('cookie_deny', 'Deny')) ?></button>
         </div>
       </div>
     </div>

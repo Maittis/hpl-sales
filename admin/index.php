@@ -1,5 +1,10 @@
 <?php
 require __DIR__ . '/config.php';
+/* Shared helpers, which is where the selectable font catalog lives. Required
+   rather than duplicated so the dropdowns offered here can never drift from the
+   families the front page is able to request. site-bootstrap.php is a tracked
+   file, so unlike config.php it ships in the deployment archive. */
+require_once __DIR__ . '/../site-bootstrap.php';
 
 /* WhatsApp number normalisation. Guarded and duplicated across the entry points
    because config.php carries the database credentials and is excluded from the
@@ -201,7 +206,42 @@ $fields = [
     ['key' => 'footer_4',          'label' => 'Footer link 4 text',         'type' => 'text',     'group' => 'Footer'],
     ['key' => 'footer_4_url',      'label' => 'Footer link 4 URL',          'type' => 'text',     'group' => 'Footer'],
     ['key' => 'disclaimer',        'label' => 'Legal disclaimer',           'type' => 'textarea', 'group' => 'Footer'],
+
+    ['key' => 'pf_filter_all',        'label' => '"All" filter tab',            'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'proof_label_videos',   'label' => 'Videos tab label',            'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'proof_label_photos',   'label' => 'Field photos tab label',      'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'field_clip_fallback',  'label' => 'Uncaptioned clip title',      'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'field_photos_heading', 'label' => 'Field photos heading',        'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'voices_label',         'label' => 'Customer voices label',       'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'ratings_heading',      'label' => 'Ratings heading',             'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'ratings_count_text',   'label' => 'Ratings review count line',   'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'ratings_stories_heading', 'label' => 'Ratings stories heading',   'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'rating_label_5',       'label' => 'Rating bar label (5 star)',  'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'rating_label_4',       'label' => 'Rating bar label (4 star)',  'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'rating_label_3',       'label' => 'Rating bar label (3 star)',  'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'rating_label_2',       'label' => 'Rating bar label (2 star)',  'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'rating_label_1',       'label' => 'Rating bar label (1 star)',  'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'customer_advice_heading', 'label' => 'Customer advice heading',   'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'trust_zig_title',      'label' => 'Trust panel title',           'type' => 'text', 'group' => 'Section labels'],
+    ['key' => 'cookie_text',          'label' => 'Cookie notice text',          'type' => 'textarea', 'group' => 'Cookie notice'],
+    ['key' => 'cookie_learn_more',    'label' => 'Cookie notice link text',     'type' => 'text', 'group' => 'Cookie notice'],
+    ['key' => 'cookie_accept',        'label' => 'Cookie accept button',        'type' => 'text', 'group' => 'Cookie notice'],
+    ['key' => 'cookie_deny',          'label' => 'Cookie decline button',       'type' => 'text', 'group' => 'Cookie notice'],
 ];
+
+/* Font dropdowns are generated from the shared catalog rather than listed here,
+   so the choices offered in the admin can never drift from the families the
+   front page is able to request. */
+$hplFontOptions = [];
+foreach (hpl_font_catalog() as $hplFamily => $hplFontSpec) {
+    $hplFontOptions[$hplFamily] = $hplFamily;
+}
+$fields[] = ['key' => 'font_heading', 'label' => 'Heading font',  'type' => 'select', 'group' => 'Typography', 'options' => $hplFontOptions];
+$fields[] = ['key' => 'font_body',    'label' => 'Body font',     'type' => 'select', 'group' => 'Typography', 'options' => $hplFontOptions];
+$fields[] = ['key' => 'size_hero',    'label' => 'Hero heading size (px)',   'type' => 'number', 'group' => 'Typography', 'min' => 24, 'max' => 120];
+$fields[] = ['key' => 'size_h2',      'label' => 'Section heading size (px)', 'type' => 'number', 'group' => 'Typography', 'min' => 16, 'max' => 80];
+$fields[] = ['key' => 'size_body',    'label' => 'Body text size (px)',      'type' => 'number', 'group' => 'Typography', 'min' => 11, 'max' => 30];
+$fields[] = ['key' => 'size_small',   'label' => 'Small label size (px)',    'type' => 'number', 'group' => 'Typography', 'min' => 8,  'max' => 24];
 
 /* Each slot carries the page section it belongs to, so the Images tab can list
    them grouped by section instead of one long alphabetical-ish run. The order
@@ -409,6 +449,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_content'])) {
                row that the site then reads as a real value. */
             if (($field['type'] ?? '') === 'note') { continue; }
             $value = (string)($_POST[$field['key']] ?? '');
+
+            /* Select and number inputs are constrained to what the form actually
+               offered. A hand-crafted POST could otherwise store a font name or
+               a size the control has no way to show again, which leaves the admin
+               displaying nothing selected. Rejecting keeps the stored value in
+               step with the choices on screen. */
+            if (($field['type'] ?? '') === 'select') {
+                if (!array_key_exists($value, $field['options'] ?? [])) { continue; }
+            } elseif (($field['type'] ?? '') === 'number') {
+                $value = trim($value);
+                if ($value === '' || !is_numeric($value)) {
+                    $value = '';
+                } else {
+                    $number = (int)$value;
+                    $min = (int)($field['min'] ?? 0);
+                    $max = (int)($field['max'] ?? 9999);
+                    /* Out of range is stored blank, which the front end reads as
+                       "use the built-in default" rather than rendering it. */
+                    $value = ($number >= $min && $number <= $max) ? (string)$number : '';
+                }
+            }
+
             $upsert->bind_param('ss', $field['key'], $value);
             $upsert->execute();
             $saved++;
@@ -981,6 +1043,12 @@ foreach ($groups as $title => $group):
             <!-- guidance only: rendered above, no control -->
 <?php elseif ($field['type'] === 'textarea'): ?>
             <textarea id="f_<?= h($field['key']) ?>" name="<?= h($field['key']) ?>"><?= h($settings[$field['key']]) ?></textarea>
+<?php elseif ($field['type'] === 'number'): ?>
+            <input type="number" id="f_<?= h($field['key']) ?>" name="<?= h($field['key']) ?>"
+                   value="<?= h($settings[$field['key']]) ?>"
+                   min="<?= h((string)($field['min'] ?? 0)) ?>"
+                   max="<?= h((string)($field['max'] ?? 9999)) ?>" step="1"
+                   inputmode="numeric">
 <?php elseif ($field['type'] === 'select'): ?>
             <select id="f_<?= h($field['key']) ?>" name="<?= h($field['key']) ?>">
 <?php foreach (($field['options'] ?? []) as $ov => $ol): ?>

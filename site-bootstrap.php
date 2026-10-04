@@ -103,6 +103,47 @@ if (!function_exists('hpl_canonical_photo')) {
             return $file;
         }
 
-        return $alias['file'];
+return $alias['file'];
+      }
+  }
+
+/**
+ * Selectable font families.
+ *
+ * A fixed catalog rather than free text, because the front page builds its
+ * Google Fonts request from these entries: keeping the list closed means the
+ * URL can never carry anything unexpected and a bad value falls back rather
+ * than silently dropping the webfont. Weights are the ones actually referenced
+ * by the stylesheet, so the request stays small.
+ *
+ * Lives here rather than in config.php because the admin panel needs the same
+ * list to build its dropdowns and config.php is excluded from deployment.
+ *
+ * @return array<string, array{weights: string, stack: string}>
+ */
+if (!function_exists('hpl_font_catalog')) {
+    function hpl_font_catalog(): array
+    {
+        return [
+            'Anton'            => ['weights' => '400',                 'stack' => "'Anton',sans-serif"],
+            'Bebas Neue'       => ['weights' => '400',                 'stack' => "'Bebas Neue',sans-serif"],
+            'Archivo Black'    => ['weights' => '400',                 'stack' => "'Archivo Black',sans-serif"],
+            'Oswald'           => ['weights' => '400;500;600;700',     'stack' => "'Oswald',sans-serif"],
+            'Barlow Condensed' => ['weights' => '400;500;600;700',     'stack' => "'Barlow Condensed',sans-serif"],
+            'Montserrat'       => ['weights' => '400;500;600;700;800', 'stack' => "'Montserrat',sans-serif"],
+            'Poppins'          => ['weights' => '400;500;600;700;800', 'stack' => "'Poppins',sans-serif"],
+            'Raleway'          => ['weights' => '400;500;600;700;800', 'stack' => "'Raleway',sans-serif"],
+            'Playfair Display' => ['weights' => '400;500;600;700;800', 'stack' => "'Playfair Display',serif"],
+            'Lobster'          => ['weights' => '400',                 'stack' => "'Lobster',cursive"],
+            'Manrope'          => ['weights' => '400;500;600;700;800', 'stack' => "'Manrope','Plus Jakarta Sans',sans-serif"],
+            'Inter'            => ['weights' => '400;500;600;700;800', 'stack' => "'Inter',sans-serif"],
+            'DM Sans'          => ['weights' => '400;500;700',         'stack' => "'DM Sans',sans-serif"],
+            'Work Sans'        => ['weights' => '400;500;600;700',     'stack' => "'Work Sans',sans-serif"],
+            'Source Sans 3'    => ['weights' => '400;500;600;700',     'stack' => "'Source Sans 3',sans-serif"],
+            'Nunito'           => ['weights' => '400;600;700;800',     'stack' => "'Nunito',sans-serif"],
+            'Karla'            => ['weights' => '400;500;700;800',     'stack' => "'Karla',sans-serif"],
+            'Rubik'            => ['weights' => '400;500;600;700',     'stack' => "'Rubik',sans-serif"],
+            'Lato'             => ['weights' => '400;700',             'stack' => "'Lato',sans-serif"],
+        ];
     }
 }
