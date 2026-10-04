@@ -1366,6 +1366,11 @@ function art_block(string $file, string $fallbackClass = ''): string
     }
     .back-to-top:hover { background:var(--gold-light); }
     @media (max-width:640px) {
+  /* Phones: trim the reading size a step and stop anything forcing the page
+     wider than the screen, so nothing slides left or right under the thumb. */
+  body { font-size:16px; }
+  img, iframe, video, embed, object { max-width:100%; }
+  .section p, .zig-body, .trust-section p, .final p, .hero-intro { font-size:15px; }
   .cookie-banner { padding:16px 14px; }
   .cookie-content { flex-direction:column; align-items:flex-start; gap:12px; }
   .cookie-buttons { width:100%; justify-content:space-between; }
@@ -3638,10 +3643,21 @@ form.addEventListener('keydown', function (e) {
         var sections = document.querySelectorAll('.section');
         if (sections.length === 0) return;
 
+        /* threshold 0, not a fraction: a section taller than roughly ten times
+           the viewport can never be 10% visible at once, so on a phone the long
+           sections stayed at opacity 0 for good and took their videos and photos
+           with them. Any pixel showing is enough to reveal. */
         var observerOptions = {
-          threshold: 0.1,
+          threshold: 0,
           rootMargin: '0px 0px -50px 0px'
         };
+
+        if (!('IntersectionObserver' in window)) {
+          /* No observer means .visible is never added, and every section would
+             stay invisible. Show them all instead. */
+          sections.forEach(function (section) { section.classList.add('visible'); });
+          return;
+        }
 
         var observer = new IntersectionObserver(function (entries) {
           entries.forEach(function (entry) {
