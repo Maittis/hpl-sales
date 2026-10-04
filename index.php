@@ -1366,11 +1366,10 @@ function art_block(string $file, string $fallbackClass = ''): string
     }
     .back-to-top:hover { background:var(--gold-light); }
     @media (max-width:640px) {
-  /* Phones: trim the reading size a step and stop anything forcing the page
-     wider than the screen, so nothing slides left or right under the thumb. */
-  body { font-size:16px; }
+  /* Keep media inside the viewport so nothing slides left or right under the
+     thumb. Text is deliberately left at the desktop reading size - trimming it
+     here was too small on real phones. */
   img, iframe, video, embed, object { max-width:100%; }
-  .section p, .zig-body, .trust-section p, .final p, .hero-intro { font-size:15px; }
   .cookie-banner { padding:16px 14px; }
   .cookie-content { flex-direction:column; align-items:flex-start; gap:12px; }
   .cookie-buttons { width:100%; justify-content:space-between; }
