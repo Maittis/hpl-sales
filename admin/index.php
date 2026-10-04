@@ -203,36 +203,46 @@ $fields = [
     ['key' => 'disclaimer',        'label' => 'Legal disclaimer',           'type' => 'textarea', 'group' => 'Footer'],
 ];
 
+/* Each slot carries the page section it belongs to, so the Images tab can list
+   them grouped by section instead of one long alphabetical-ish run. The order
+   below is the order the sections appear on the page, top to bottom. The key,
+   file and label are what the upload handler matches on, so they are unchanged. */
 $imageSlots = [
-    ['key' => 'proof_1',    'file' => 'proof-1.jpg',    'label' => 'Social proof photo 1 (landscape)'],
-    ['key' => 'proof_2',    'file' => 'proof-2.jpg',    'label' => 'Social proof photo 2 (landscape)'],
-    ['key' => 'proof_3',    'file' => 'proof-3.jpg',    'label' => 'Social proof photo 3 (landscape)'],
-    ['key' => 'proof_4',    'file' => 'proof-4.jpg',    'label' => 'Social proof photo 4 (landscape)'],
-    ['key' => 'benefit_1',  'file' => 'benefit-1.jpg',  'label' => 'Benefit card 1 image'],
-    ['key' => 'benefit_2',  'file' => 'benefit-2.jpg',  'label' => 'Benefit card 2 image'],
-    ['key' => 'benefit_3',  'file' => 'benefit-3.jpg',  'label' => 'Benefit card 3 image'],
-    ['key' => 'visit_1',    'file' => 'visit-1.jpg',    'label' => 'Showroom photo 1 (landscape)'],
-    ['key' => 'visit_2',    'file' => 'visit-2.jpg',    'label' => 'Showroom photo 2 (landscape)'],
-    ['key' => 'visit_3',    'file' => 'visit-3.jpg',    'label' => 'Showroom photo 3 (landscape)'],
-    ['key' => 'stat_1',      'file' => 'stat-1.jpg',      'label' => 'Trust card 1 photo — customers (landscape)'],
-    ['key' => 'stat_2',      'file' => 'stat-2.jpg',      'label' => 'Trust card 2 photo — gold found (landscape)'],
-    ['key' => 'logo',       'file' => 'hpllogo.jpeg',   'label' => 'Header / footer logo'],
-    ['key' => 'benefit_bg', 'file' => 'benefit-bg.png', 'label' => 'Benefits section background band'],
-    ['key' => 'field_proof_1_image', 'file' => 'field-proof-1.jpg', 'label' => 'Field proof story 1 photo'],
-    ['key' => 'field_proof_2_image', 'file' => 'field-proof-2.jpg', 'label' => 'Field proof story 2 photo'],
-    ['key' => 'slide_1',    'file' => 'slide-1.jpg',    'label' => 'Auto-slide testimonial 1 (landscape)'],
-    ['key' => 'slide_2',    'file' => 'slide-2.jpg',    'label' => 'Auto-slide testimonial 2 (landscape)'],
-    ['key' => 'slide_3',    'file' => 'slide-3.jpg',    'label' => 'Auto-slide testimonial 3 (landscape)'],
-    ['key' => 'slide_4',    'file' => 'slide-4.jpg',    'label' => 'Auto-slide testimonial 4 (landscape)'],
-    ['key' => 'slide_5',    'file' => 'slide-5.jpg',    'label' => 'Auto-slide testimonial 5 (landscape)'],
-    ['key' => 'slide_6',    'file' => 'slide-6.jpg',    'label' => 'Auto-slide testimonial 6 (landscape)'],
-    ['key' => 'ty_1',       'file' => 'ty-1.jpg',       'label' => 'Thank-you photo 1 (landscape)'],
-    ['key' => 'ty_2',       'file' => 'ty-2.jpg',       'label' => 'Thank-you photo 2 (landscape)'],
-    ['key' => 'ty_3',       'file' => 'ty-3.jpg',       'label' => 'Thank-you photo 3 (landscape)'],
-    ['key' => 'ty_4',       'file' => 'ty-4.jpg',       'label' => 'Thank-you photo 4 (landscape)'],
-    ['key' => 'ty_5',       'file' => 'ty-5.jpg',       'label' => 'Thank-you photo 5 (landscape)'],
-    ['key' => 'ty_6',       'file' => 'ty-6.jpg',       'label' => 'Thank-you photo 6 (landscape)'],
+    ['key' => 'logo',       'file' => 'hpllogo.jpeg',   'label' => 'Header / footer logo', 'section' => 'Header and footer'],
+    ['key' => 'benefit_bg', 'file' => 'benefit-bg.png', 'label' => 'Benefits section background band', 'section' => 'Benefits section'],
+    ['key' => 'benefit_1',  'file' => 'benefit-1.jpg',  'label' => 'Benefit card 1 image', 'section' => 'Benefits section'],
+    ['key' => 'benefit_2',  'file' => 'benefit-2.jpg',  'label' => 'Benefit card 2 image', 'section' => 'Benefits section'],
+    ['key' => 'benefit_3',  'file' => 'benefit-3.jpg',  'label' => 'Benefit card 3 image', 'section' => 'Benefits section'],
+    ['key' => 'proof_1',    'file' => 'proof-1.jpg',    'label' => 'Social proof photo 1 (landscape)', 'section' => 'Social proof photos'],
+    ['key' => 'proof_2',    'file' => 'proof-2.jpg',    'label' => 'Social proof photo 2 (landscape)', 'section' => 'Social proof photos'],
+    ['key' => 'proof_3',    'file' => 'proof-3.jpg',    'label' => 'Social proof photo 3 (landscape)', 'section' => 'Social proof photos'],
+    ['key' => 'proof_4',    'file' => 'proof-4.jpg',    'label' => 'Social proof photo 4 (landscape)', 'section' => 'Social proof photos'],
+    ['key' => 'field_proof_1_image', 'file' => 'field-proof-1.jpg', 'label' => 'Field proof story 1 photo', 'section' => 'Field proof stories'],
+    ['key' => 'field_proof_2_image', 'file' => 'field-proof-2.jpg', 'label' => 'Field proof story 2 photo', 'section' => 'Field proof stories'],
+    ['key' => 'stat_1',      'file' => 'stat-1.jpg',      'label' => 'Trust card 1 photo — customers (landscape)', 'section' => 'Trust stories'],
+    ['key' => 'stat_2',      'file' => 'stat-2.jpg',      'label' => 'Trust card 2 photo — gold found (landscape)', 'section' => 'Trust stories'],
+    ['key' => 'slide_1',    'file' => 'slide-1.jpg',    'label' => 'Auto-slide testimonial 1 (landscape)', 'section' => 'Auto-slide testimonials'],
+    ['key' => 'slide_2',    'file' => 'slide-2.jpg',    'label' => 'Auto-slide testimonial 2 (landscape)', 'section' => 'Auto-slide testimonials'],
+    ['key' => 'slide_3',    'file' => 'slide-3.jpg',    'label' => 'Auto-slide testimonial 3 (landscape)', 'section' => 'Auto-slide testimonials'],
+    ['key' => 'slide_4',    'file' => 'slide-4.jpg',    'label' => 'Auto-slide testimonial 4 (landscape)', 'section' => 'Auto-slide testimonials'],
+    ['key' => 'slide_5',    'file' => 'slide-5.jpg',    'label' => 'Auto-slide testimonial 5 (landscape)', 'section' => 'Auto-slide testimonials'],
+    ['key' => 'slide_6',    'file' => 'slide-6.jpg',    'label' => 'Auto-slide testimonial 6 (landscape)', 'section' => 'Auto-slide testimonials'],
+    ['key' => 'visit_1',    'file' => 'visit-1.jpg',    'label' => 'Showroom photo 1 (landscape)', 'section' => 'Visit us - showroom gallery'],
+    ['key' => 'visit_2',    'file' => 'visit-2.jpg',    'label' => 'Showroom photo 2 (landscape)', 'section' => 'Visit us - showroom gallery'],
+    ['key' => 'visit_3',    'file' => 'visit-3.jpg',    'label' => 'Showroom photo 3 (landscape)', 'section' => 'Visit us - showroom gallery'],
+    ['key' => 'ty_1',       'file' => 'ty-1.jpg',       'label' => 'Thank-you photo 1 (landscape)', 'section' => 'Thank-you page'],
+    ['key' => 'ty_2',       'file' => 'ty-2.jpg',       'label' => 'Thank-you photo 2 (landscape)', 'section' => 'Thank-you page'],
+    ['key' => 'ty_3',       'file' => 'ty-3.jpg',       'label' => 'Thank-you photo 3 (landscape)', 'section' => 'Thank-you page'],
+    ['key' => 'ty_4',       'file' => 'ty-4.jpg',       'label' => 'Thank-you photo 4 (landscape)', 'section' => 'Thank-you page'],
+    ['key' => 'ty_5',       'file' => 'ty-5.jpg',       'label' => 'Thank-you photo 5 (landscape)', 'section' => 'Thank-you page'],
+    ['key' => 'ty_6',       'file' => 'ty-6.jpg',       'label' => 'Thank-you photo 6 (landscape)', 'section' => 'Thank-you page'],
 ];
+
+/* Bucket the slots by section, keeping the order the sections were declared in. */
+$imageSlotsBySection = [];
+foreach ($imageSlots as $slot) {
+    $imageSlotsBySection[$slot['section']][] = $slot;
+}
 
   $customerVoiceImageSlots = [
     ['key' => 'customer_voice_whatsapp', 'file' => 'customer-voice-whatsapp.jpg', 'label' => 'WhatsApp screenshot'],
@@ -704,6 +714,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($message !== '' || $error !== ''))
     .card-head h2 { margin:0; }
     .grid { display:grid; gap:14px; grid-template-columns:1fr 1fr; }
     .grid .full { grid-column:1/-1; }
+    /* Section headings inside the Images card, so upload slots are grouped by
+       the part of the page the photo belongs to. */
+    .img-section { align-items:center; border-bottom:1px solid var(--border-color); color:var(--text-primary); display:flex; font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; gap:8px; letter-spacing:.04em; margin:26px 0 14px; padding-bottom:8px; text-transform:uppercase; }
+    .img-section:first-of-type { margin-top:0; }
+    .img-section-count { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:999px; color:var(--text-secondary); font-size:10px; font-weight:700; letter-spacing:0; padding:2px 8px; text-transform:none; }
     label { display:block; font-size:12px; font-weight:700; margin-bottom:4px; color:var(--text-primary); }
     .field-note { background:#f4f6fb; border-left:3px solid var(--accent,#2c3e6e); color:var(--text-muted,#5a6478); font-size:12px; line-height:1.55; margin:0; padding:10px 12px; }
     .hint { display:block; font-size:11px; color:var(--text-secondary); margin-top:3px; }
@@ -1078,23 +1093,26 @@ foreach ($groups as $title => $group):
         <input type="hidden" name="tab" value="images">
         <div class="card">
           <h2>Images</h2>
-          <p class="hint">Upload a JPG, PNG, WebP, or GIF for each slot. Photos are stored directly in <b>img/</b> and the page updates automatically.</p>
-          <div class="grid">
-<?php foreach ($imageSlots as $slot): ?>
-            <div>
-              <label for="up_<?= h($slot['key']) ?>"><?= h($slot['label']) ?></label>
+          <p class="hint">Upload a JPG, PNG, WebP, or GIF for each slot. Photos are stored directly in <b>img/</b> and the page updates automatically. Slots are grouped by the section of the page each photo appears in.</p>
+<?php foreach ($imageSlotsBySection as $sectionName => $sectionSlots): ?>
+            <h3 class="img-section"><?= h($sectionName) ?> <span class="img-section-count"><?= count($sectionSlots) ?> slot<?= count($sectionSlots) === 1 ? '' : 's' ?></span></h3>
+            <div class="grid">
+<?php foreach ($sectionSlots as $slot): ?>
+              <div>
+                <label for="up_<?= h($slot['key']) ?>"><?= h($slot['label']) ?></label>
 <?php if (file_exists(__DIR__ . '/../img/' . $slot['file'])): ?>
-              <img class="img-thumb" src="<?= hpl_admin_img_url($slot['file']) ?>" alt="<?= h($slot['file']) ?>">
+                <img class="img-thumb" src="<?= hpl_admin_img_url($slot['file']) ?>" alt="<?= h($slot['file']) ?>">
 <?php else: ?>
-              <div class="img-empty">No image yet — page uses the CSS art fallback</div>
+                <div class="img-empty">No image yet — page uses the CSS art fallback</div>
 <?php endif; ?>
-              <input type="file" id="up_<?= h($slot['key']) ?>" name="<?= h($slot['key']) ?>" accept=".jpg,.jpeg,.png,.webp,.gif">
-              <div class="btn-row">
-                <button class="btn" type="submit" name="upload_image" value="<?= h($slot['key']) ?>">Upload <?= h($slot['file']) ?></button>
+                <input type="file" id="up_<?= h($slot['key']) ?>" name="<?= h($slot['key']) ?>" accept=".jpg,.jpeg,.png,.webp,.gif">
+                <div class="btn-row">
+                  <button class="btn" type="submit" name="upload_image" value="<?= h($slot['key']) ?>">Upload <?= h($slot['file']) ?></button>
+                </div>
               </div>
+<?php endforeach; ?>
             </div>
 <?php endforeach; ?>
-          </div>
         </div>
         <div class="card">
           <h2>Videos</h2>
