@@ -2351,9 +2351,6 @@ $proofVisuals = [];
 <?php endif; ?>
         </figure>
       
-        <div class="cta-reminder">
-          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
-        </div>
       </section>
 <?php endif; ?>
 
@@ -2362,9 +2359,6 @@ $proofVisuals = [];
 <details<?php if ($i === 1) { ?> open<?php } ?>><summary><?= h($s['faq' . $i . '_q']) ?></summary><?php foreach (preg_split('/\r\n|\r|\n/', $s['faq' . $i . '_a']) as $paragraph) { if (trim($paragraph) !== '') { ?><p><?= h($paragraph) ?></p><?php } } ?></details>
 <?php } ?>
       </div>
-        <div class="cta-reminder">
-          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
-        </div>
       </section>
 
 <?php
