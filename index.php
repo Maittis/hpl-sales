@@ -1764,9 +1764,6 @@ p.lb-hint,
       </div>
 
       <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; /* This testimonial plays as the visitor reaches it, so use the muted autoplay variant rather than the stored click-to-play URL. */ if (isset($featuredProof['src_auto'])) { $featuredProof['src'] = $featuredProof['src_auto']; } ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p>
-        <div class="cta-reminder">
-          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
-        </div>
       </section>
 
       <?php
