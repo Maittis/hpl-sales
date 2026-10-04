@@ -800,7 +800,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     @media (max-width:860px) { .proof-single { width:100%; } }
     .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
     .slides-frame { aspect-ratio:16/9; background:var(--navy); margin:0 auto; max-height:56vh; overflow:hidden; position:relative; }
-    .slides-frame img { height:100%; inset:0; object-fit:cover; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .28s ease, transform .7s ease; width:100%; }
+    .slides-frame img { height:100%; inset:0; object-fit:contain; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .28s ease, transform .7s ease; width:100%; }
     .slides-frame img.on { opacity:1; transform:none; z-index:2; }
     .slides-cap { background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:15px; font-weight:700; left:0; opacity:0; padding:44px 20px 18px; position:absolute; right:0; text-align:left; transition:opacity .3s ease; z-index:3; }
     .slides-cap.on { opacity:1; }
@@ -829,7 +829,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .zig-title { color:#fff; font-family:var(--font-heading); font-size:clamp(21px,2.6vw,31px); font-weight:400; letter-spacing:0; line-height:1.1; margin:0 0 12px; }
     .zig-body { color:rgba(255,255,255,.74); font-size:16px; line-height:1.65; margin:0; max-width:44ch; }
     .zig-media { aspect-ratio:16/9; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
-    .zig-media img { display:block; height:100%; object-fit:cover; width:100%; }
+    .zig-media img { display:block; height:100%; object-fit:contain; width:100%; }
     /* A clip in a row needs to be the containing block for its own player: the
        embed positions its iframe absolutely, and .zig-media is not positioned. */
     .zig-media.story-media { position:relative; }
@@ -846,7 +846,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .voice-todo { border-left:2px dashed rgba(244,202,91,.55); font-style:italic; padding-left:14px; }
     .voice-media .proof-social-screenshot { aspect-ratio:auto; border:0; border-radius:0; height:100%; min-height:0; width:100%; }
     .voice-media .proof-social-screenshot.has-image { aspect-ratio:auto; max-width:none; }
-    .voice-media .proof-social-screenshot.has-image > img { height:100%; object-fit:cover; width:100%; }
+    .voice-media .proof-social-screenshot.has-image > img { height:100%; object-fit:contain; width:100%; }
     .review-screenshot-grid { align-items:start; display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); margin:36px auto 0; max-width:1220px; }
     .review-screenshot-grid figure { background:var(--navy); border:1px solid rgba(244,202,91,.42); border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.3); margin:0; overflow:hidden; padding:10px; }
     .review-screenshot-grid img { display:block; height:auto; max-height:520px; object-fit:contain; width:100%; }
@@ -907,9 +907,9 @@ function art_block(string $file, string $fallbackClass = ''): string
     }
     .proof-mix-story:nth-child(2) .proof-mix-story-media { grid-column:2; }
     .proof-mix-story-media img {
-      display:block; height:100%; object-fit:cover; width:100%;
+      display:block; height:100%; object-fit:contain; width:100%;
     }
-    .proof-mix-media img,
+    .proof-mix-media img { display:block; height:100%; object-fit:contain; width:100%; }
     .proof-mix-media video { display:block; height:100%; object-fit:cover; width:100%; }
     .proof-mix-media::after { background:linear-gradient(to top, rgba(9,15,36,.72), rgba(9,15,36,0) 46%); content:''; inset:0; position:absolute; }
     .proof-mix-type { background:rgba(17,26,56,.82); border:1px solid rgba(244,202,91,.5); border-radius:999px; color:#f7d56b; font-size:10px; font-weight:700; inset:14px auto auto 14px; letter-spacing:.12em; padding:7px 10px; position:absolute; text-transform:uppercase; z-index:1; }
@@ -973,12 +973,12 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-item:hover { transform:rotate(0deg) scale(1.04); z-index:2; }
     .proof-item::before { background:rgba(244,202,91,.5); box-shadow:0 1px 3px rgba(0,0,0,.12); content:''; height:22px; left:50%; position:absolute; top:-9px; transform:translateX(-50%) rotate(-3deg); width:96px; }
     .proof-item::after { background:var(--gold-light); border-radius:50%; box-shadow:0 0 0 1px rgba(212,165,44,.4); content:''; display:block; height:9px; margin:14px auto 0; width:9px; }
-    .proof-item .art-img { aspect-ratio:4/3; display:block; height:auto; object-fit:cover; width:100%; }
+    .proof-item .art-img { aspect-ratio:4/3; display:block; height:auto; object-fit:contain; width:100%; }
     .proof-fallback { aspect-ratio:4/3; background:var(--navy); display:block; position:relative; width:100%; }
     .proof-fallback .detector { height:275px; left:50%; position:absolute; top:18px; transform:translateX(-45%) rotate(-12deg) scale(.42); width:205px; }
     .proof-caption { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.08em; margin:18px 0 0; text-transform:uppercase; }
     .proof .proof-caption { display:none !important; }
-    .art-img { display:block; height:100%; object-fit:cover; width:100%; }
+    .art-img { display:block; height:100%; object-fit:contain; width:100%; }
     .live-pill { background:#c0392b; border-radius:40px; color:#fff; display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:.12em; margin-bottom:20px; padding:9px 18px; text-transform:uppercase; }
     .live-pill i { background:#ff6b6b; border-radius:50%; display:inline-block; height:8px; position:relative; width:8px; }
     .live-pill i::after { animation:pulse 1.6s infinite; background:#ff6b6b; border-radius:50%; content:''; height:8px; left:0; position:absolute; top:0; width:8px; }
@@ -1064,7 +1064,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .trust-story-meta { display:flex; flex-direction:column; }
     .trust-story-name { color:var(--gold-light); font-size:15px; font-weight:700; }
     .trust-story-media { aspect-ratio:4/3; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
-    .trust-story-media img { display:block; height:100%; object-fit:cover; width:100%; }
+    .trust-story-media img { display:block; height:100%; object-fit:contain; width:100%; }
     .accordions { margin:0 auto; max-width:700px; text-align:left; }
       .visit-head { margin:0 auto 34px; max-width:720px; }
       .visit-label { color:var(--gold-light); display:block; font-size:13px; font-weight:700; letter-spacing:.18em; margin:0 0 10px; text-transform:uppercase; }
@@ -1078,7 +1078,7 @@ function art_block(string $file, string $fallbackClass = ''): string
       .visit-cta { display:inline-flex; margin-top:24px; }
       .visit-media { display:grid; gap:18px; }
       .visit-gallery { display:grid; gap:14px; grid-template-columns:repeat(3,minmax(0,1fr)); }
-      .visit-gallery img { aspect-ratio:4/3; border:1px solid rgba(244,202,91,.22); border-radius:12px; display:block; height:100%; object-fit:cover; width:100%; }
+      .visit-gallery img { aspect-ratio:4/3; border:1px solid rgba(244,202,91,.22); border-radius:12px; display:block; height:100%; object-fit:contain; width:100%; }
       .visit-gallery .visit-gallery-lead { grid-column:span 3; aspect-ratio:16/9; }
       .visit-map { border:1px solid rgba(244,202,91,.28); border-radius:16px; overflow:hidden; }
       .visit-map iframe { border:0; display:block; height:100%; width:100%; }
