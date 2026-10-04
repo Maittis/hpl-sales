@@ -1156,36 +1156,50 @@ foreach ($groups as $title => $group):
     </div>
 
     <div class="tab-panel <?= $activeTab === 'images' ? 'active' : '' ?>" id="panel-images" role="tabpanel">
-      <form method="post" enctype="multipart/form-data">
-        <?= csrf_field() ?>
-        <input type="hidden" name="tab" value="images">
-        <div class="card">
-          <h2>Images</h2>
-          <p class="hint">Upload a JPG, PNG, WebP, or GIF for each slot. Photos are stored directly in <b>img/</b> and the page updates automatically. Slots are grouped by the section of the page each photo appears in.</p>
+      <div class="card">
+        <h2>Images</h2>
+        <p class="hint">Upload a JPG, PNG, WebP, or GIF for each slot. Photos are stored directly in <b>img/</b> and the page updates automatically. Slots are grouped by the section of the page each photo appears in.</p>
+<?php /* Each section is posted as its own form rather than all sharing one.
+       PHP only accepts max_file_uploads file parts in a single request, which
+       is 20 on a default install, and this tab holds 28 image inputs plus 16
+       video inputs. Under one form the parts past the limit were dropped
+       before any handler ran, so those uploads silently did nothing. The
+       largest section is 6 inputs, well inside the limit. */ ?>
 <?php foreach ($imageSlotsBySection as $sectionName => $sectionSlots): ?>
-            <h3 class="img-section"><?= h($sectionName) ?> <span class="img-section-count"><?= count($sectionSlots) ?> slot<?= count($sectionSlots) === 1 ? '' : 's' ?></span></h3>
-            <div class="grid">
+        <form method="post" enctype="multipart/form-data">
+          <?= csrf_field() ?>
+          <input type="hidden" name="tab" value="images">
+          <h3 class="img-section"><?= h($sectionName) ?> <span class="img-section-count"><?= count($sectionSlots) ?> slot<?= count($sectionSlots) === 1 ? '' : 's' ?></span></h3>
+          <div class="grid">
 <?php foreach ($sectionSlots as $slot): ?>
-              <div>
-                <label for="up_<?= h($slot['key']) ?>"><?= h($slot['label']) ?></label>
+            <div>
+              <label for="up_<?= h($slot['key']) ?>"><?= h($slot['label']) ?></label>
 <?php if (file_exists(__DIR__ . '/../img/' . $slot['file'])): ?>
-                <img class="img-thumb" src="<?= hpl_admin_img_url($slot['file']) ?>" alt="<?= h($slot['file']) ?>">
+              <img class="img-thumb" src="<?= hpl_admin_img_url($slot['file']) ?>" alt="<?= h($slot['file']) ?>">
 <?php else: ?>
-                <div class="img-empty">No image yet — page uses the CSS art fallback</div>
+              <div class="img-empty">No image yet — page uses the CSS art fallback</div>
 <?php endif; ?>
-                <input type="file" id="up_<?= h($slot['key']) ?>" name="<?= h($slot['key']) ?>" accept=".jpg,.jpeg,.png,.webp,.gif">
-                <div class="btn-row">
-                  <button class="btn" type="submit" name="upload_image" value="<?= h($slot['key']) ?>">Upload <?= h($slot['file']) ?></button>
-                </div>
+              <input type="file" id="up_<?= h($slot['key']) ?>" name="<?= h($slot['key']) ?>" accept=".jpg,.jpeg,.png,.webp,.gif">
+              <div class="btn-row">
+                <button class="btn" type="submit" name="upload_image" value="<?= h($slot['key']) ?>">Upload <?= h($slot['file']) ?></button>
               </div>
-<?php endforeach; ?>
             </div>
 <?php endforeach; ?>
-        </div>
-        <div class="card">
-          <h2>Videos</h2>
-          <p class="hint">Upload an <b>MP4</b>, <b>M4V</b> or <b>WebM</b> for each player (up to 190 MB). The story videos are stored in <b>uploads/proof/</b> and the page switches over automatically. Compressing 9:16 phone video to 720x1280 keeps it sharp and small enough for visitors on mobile data.</p>
-<?php foreach ($videoSlots as $slot): ?>
+          </div>
+        </form>
+<?php endforeach; ?>
+      </div>
+      <div class="card">
+        <h2>Videos</h2>
+        <p class="hint">Upload an <b>MP4</b>, <b>M4V</b> or <b>WebM</b> for each player (up to 190 MB). The story videos are stored in <b>uploads/proof/</b> and the page switches over automatically. Compressing 9:16 phone video to 720x1280 keeps it sharp and small enough for visitors on mobile data.</p>
+<?php /* Chunked for the same reason as the images above. Eight per form keeps
+       clear of the limit even on a host that lowers it below the 16 these
+       slots would otherwise occupy in a single request. */ ?>
+<?php foreach (array_chunk($videoSlots, 8) as $videoChunk): ?>
+        <form method="post" enctype="multipart/form-data">
+          <?= csrf_field() ?>
+          <input type="hidden" name="tab" value="images">
+<?php foreach ($videoChunk as $slot): ?>
           <label for="upv_<?= h($slot['key']) ?>"><?= h($slot['label']) ?></label>
 <?php $vpath = __DIR__ . '/../' . $slot['dir'] . $slot['file']; if (file_exists($vpath)): ?>
           <p class="hint" style="margin:6px 0 10px">Video uploaded: <?= h($slot['file']) ?> (<?= number_format(filesize($vpath) / 1048576, 1) ?> MB)</p>
@@ -1197,8 +1211,9 @@ foreach ($groups as $title => $group):
             <button class="btn" type="submit" name="upload_video" value="<?= h($slot['key']) ?>">Upload video</button>
           </div>
 <?php endforeach; ?>
-      </form>
-    </div>
+        </form>
+<?php endforeach; ?>
+      </div>
   </div>
 
   <script>
