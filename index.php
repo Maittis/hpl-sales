@@ -1820,6 +1820,24 @@ $proofVisuals = [];
               $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')];
           }
       }
+      /* Body copy for the rows below. Keyed by number because the admin has no
+         field for it yet: photo N takes key N of the first list, clip N takes key
+         N of the second. */
+      $fieldPhotoBodies = [
+          1 => 'A worked mine dump is the most honest test there is. Iron litter, slag and old cuttings on every swing, and the target still came through clean and repeatable instead of dissolving into the iron.',
+          2 => 'Two weeks from a first outing to a first piece, on ground that had already been worked by others. The learning is mostly in the swing - slow, wide, close to the soil - and once that settles the machine does its half.',
+          3 => 'Three days of wet sand before the win, on the one ground that punishes a machine for talking over iron. The target held its shape at the edge of coverage, which is exactly where cheap detectors give up.',
+          4 => 'Relics sit in the shallows beside old camps, in iron ground that hides everything else. What you need here is patience and a target you can still trust at the limit of your sweep.',
+          5 => 'A fresh washout is good odds while it lasts. Work the seam as it opens and it pays; wait a day and the water has filled it back in. The whole game is getting there while the ground is open.',
+          6 => 'Twenty minutes on a worked patch and a cluster of coins. Finds this quick are the ones that keep people out on weekends - fast, and they prove the setup before you commit to a full dig.',
+      ];
+      $fieldClipBodies = [
+          1 => 'The find on video, from the first signal to the piece in the hand. Worth watching if you would rather see how the machine behaves on a live target than read about it.',
+          2 => 'The full dig, filmed where it happened. It is the quickest way to judge a detector honestly, because the swing and the call are both still visible instead of edited out.',
+          3 => 'Another ground, another target, same discipline. These clips are here because detector performance is easy to claim and easy to film, so we filmed it instead.',
+          4 => 'A short one from a relic hunt, kept short because the interesting part is the sweep and the decision to dig, not the walk in.',
+          5 => 'The last clip for now. Same ground, same settings - and the point still stands that the machine only helps if you work it properly.',
+      ];
       $fieldStories = [];
       $photoNo = 0;
       $videoNo = 0;
@@ -1832,6 +1850,7 @@ $proofVisuals = [];
               'file'  => $slide['file'],
               'cap'   => $slide['caption'],
               'title' => $slide['caption'] !== '' ? $slide['caption'] : 'Field photo ' . $photoNo,
+              'body'  => $fieldPhotoBodies[$photoNo] ?? '',
           ];
           /* A clip goes in the gap after each photo while clips remain, so the
              section alternates photo / clip instead of sitting as two blocks of
@@ -1843,6 +1862,7 @@ $proofVisuals = [];
                   'kind'  => 'video',
                   'item'  => $clip,
                   'title' => $clip['caption'] !== '' ? $clip['caption'] : 'Field clip ' . $videoNo,
+                  'body'  => $fieldClipBodies[$videoNo] ?? '',
               ];
               $videoIndex++;
           }
@@ -1859,6 +1879,9 @@ $proofVisuals = [];
           <div class="zig-row">
             <div class="zig-text">
               <h3 class="zig-title"><?= h($story['title']) ?></h3>
+              <?php if ($story['body'] !== ''): ?>
+              <p class="zig-body"><?= h($story['body']) ?></p>
+              <?php endif; ?>
             </div>
             <?php if ($story['kind'] === 'video'): ?>
             <div class="zig-media story-media">
