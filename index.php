@@ -2052,9 +2052,6 @@ $proofVisuals = [];
           <div class="zig-text"><h3 class="zig-title"><?= h($s['b3_title']) ?></h3><p class="zig-body"><?= h($s['b3_desc']) ?></p></div>
           <div class="zig-media benefit-media"><?= art_block('benefit-3.jpg') ?></div>
         </div></div></div>
-        <div class="cta-reminder">
-          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
-        </div>
       </section>
 
       <div class="spaced-cta"><a class="button ripple" href="#book"><?= h($s['cta_text']) ?></a></div>
