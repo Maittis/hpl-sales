@@ -945,7 +945,7 @@ function art_block(string $file, string $fallbackClass = ''): string
        800px measure: eyebrow, title, paragraph, then the photo underneath. */
     .ratings-stories { border-top:1px solid rgba(255,255,255,.09); margin-top:28px; padding-top:26px; }
     .ratings-stories-heading { color:#fff; font-family:'Anton',sans-serif; font-size:22px; font-weight:400; letter-spacing:0; margin:0 0 20px; text-align:center; }
-    .ratings-story-grid { display:grid; gap:20px; grid-template-columns:repeat(3,1fr); }
+    .ratings-story-grid { align-items:start; display:grid; gap:20px; grid-template-columns:repeat(3,1fr); }
     .ratings-story { background:rgba(255,255,255,.04); border:1px solid rgba(244,202,91,.22); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
     .ratings-story-body { display:flex; flex:1 1 auto; flex-direction:column; padding:16px 16px 14px; }
     .ratings-story-eyebrow { color:var(--gold); font-size:10px; font-weight:700; letter-spacing:.14em; margin:0 0 8px; text-transform:uppercase; }
