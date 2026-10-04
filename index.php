@@ -962,6 +962,21 @@ function art_block(string $file, string $fallbackClass = ''): string
     .testimonial-avatar { background:linear-gradient(135deg,var(--gold),var(--gold-light)); border-radius:50%; color:var(--navy-dark); display:flex; font-size:14px; font-weight:700; height:36px; justify-content:center; width:36px; }
     .testimonial-name { color:#fff; font-size:14px; font-weight:700; }
     .testimonial-location { color:rgba(255,255,255,.5); font-size:12px; }
+    /* Trust stories sit in one column: one person per row, what they say first
+       then their photo, stacked down the page. Even rows flip so the eye keeps
+       travelling instead of scanning a flat list. */
+    .trust-story-list { display:flex; flex-direction:column; gap:34px; margin:32px auto 0; max-width:1120px; }
+    .trust-story { align-items:center; background:rgba(255,255,255,.04); border:1px solid rgba(244,202,91,.2); border-radius:16px; display:flex; gap:34px; padding:26px; text-align:left; }
+    .trust-story:nth-child(even) { flex-direction:row-reverse; }
+    .trust-story-body, .trust-story-media { flex:1 1 0; min-width:0; }
+    .trust-story-quote { color:rgba(255,255,255,.82); font-size:17px; line-height:1.65; margin:0 0 18px; }
+    .trust-story-quote::before { content:"\201C"; }
+    .trust-story-quote::after { content:"\201D"; }
+    .trust-story-author { align-items:center; display:flex; gap:11px; }
+    .trust-story-avatar { align-items:center; background:linear-gradient(135deg,var(--gold),var(--gold-light)); border-radius:50%; color:var(--navy-dark); display:flex; font-size:14px; font-weight:800; height:36px; justify-content:center; width:36px; }
+    .trust-story-meta { display:flex; flex-direction:column; }
+    .trust-story-media { aspect-ratio:4/3; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
+    .trust-story-media img { display:block; height:100%; object-fit:cover; width:100%; }
     .accordions { margin:0 auto; max-width:700px; text-align:left; }
       .visit-head { margin:0 auto 34px; max-width:720px; }
       .visit-label { color:var(--gold-light); display:block; font-size:13px; font-weight:700; letter-spacing:.18em; margin:0 0 10px; text-transform:uppercase; }
@@ -1369,6 +1384,10 @@ function art_block(string $file, string $fallbackClass = ''): string
   .ratings-stories { margin-top:16px; }
   .ratings-stories-heading { font-size:19px; }
   .ratings-story-grid { grid-template-columns:1fr; }
+  .trust-story-list { gap:22px; margin-top:24px; }
+  .trust-story, .trust-story:nth-child(even) { flex-direction:column; gap:18px; padding:20px; }
+  .trust-story-quote { font-size:15px; margin-bottom:14px; }
+  .trust-story-media { aspect-ratio:16/9; }
   .testimonial-cards { grid-template-columns:1fr; margin-top:24px; }
   .testimonial-stars .star { font-size:16px; }
   .testimonial-text { font-size:13px; }
@@ -2066,6 +2085,64 @@ $proofVisuals = [];
       </section>
 
       <div class="spaced-cta"><a class="button ripple" href="#book"><?= h($s['cta_text']) ?></a></div>
+
+      <?php
+      /* One-column trust stories: one person per row - what they say about
+         trusting us, then their photo. Held in a plain array rather than admin
+         keys so this section adds nothing to the settings tables. Photos read
+         img/trust-story-N.jpg and fall back to an existing field photo until
+         those are uploaded, so nothing renders broken. */
+      $trustStories = [
+          [
+              'name'     => 'Chileshe M.',
+              'location' => 'Lusaka, Zambia',
+              'quote'    => 'I had been quoted twice before I walked in here, and both times I was told the cheapest machine would do the same job. HPL was the only shop that asked what ground I was working before it said anything. That honesty is why I trusted them with the money.',
+              'image'    => 'trust-story-1.jpg',
+              'fallback' => 'slide-1.jpg',
+          ],
+          [
+              'name'     => 'Mutinta K.',
+              'location' => 'Kitwe, Zambia',
+              'quote'    => 'I called on a Sunday expecting to leave a voicemail. A person picked up, knew my machine by name, and told me exactly which part to look at before I drove two hours with it. When I turned up, it was fixed and nobody tried to sell me anything else.',
+              'image'    => 'trust-story-2.jpg',
+              'fallback' => 'slide-2.jpg',
+          ],
+          [
+              'name'     => 'Mwamba B.',
+              'location' => 'Ndola, Zambia',
+              'quote'    => 'What sold me was not the pitch, it was the follow-up three weeks later. They asked how the machine was performing on my ground and actually listened to the answer. I have bought from three suppliers in this trade, and this is the only one that has called back first.',
+              'image'    => 'trust-story-3.jpg',
+              'fallback' => 'slide-3.jpg',
+          ],
+      ];
+      ?>
+      <section class="section trust-stories">
+        <div class="section-label">In their words</div>
+        <h2>Why detectorists trust us</h2>
+        <div class="trust-story-list">
+<?php foreach ($trustStories as $trustStory): ?>
+<?php
+  $trustFile = is_file(__DIR__ . '/img/' . $trustStory['image']) ? $trustStory['image'] : $trustStory['fallback'];
+  $trustInitial = function_exists('mb_substr') ? mb_substr($trustStory['name'], 0, 1) : substr($trustStory['name'], 0, 1);
+?>
+          <article class="trust-story">
+            <div class="trust-story-body">
+              <blockquote class="trust-story-quote"><?= h($trustStory['quote']) ?></blockquote>
+              <div class="trust-story-author">
+                <span class="trust-story-avatar" aria-hidden="true"><?= h(strtoupper($trustInitial)) ?></span>
+                <span class="trust-story-meta">
+                  <span class="trust-story-name"><?= h($trustStory['name']) ?></span>
+                  <span class="trust-story-location"><?= h($trustStory['location']) ?></span>
+                </span>
+              </div>
+            </div>
+            <div class="trust-story-media">
+              <img src="<?= hpl_img_url($trustFile) ?>" alt="<?= h($trustStory['name']) ?> from <?= h($trustStory['location']) ?>" loading="lazy">
+            </div>
+          </article>
+<?php endforeach; ?>
+        </div>
+      </section>
 
       <!-- Trust Indicators Section -->
       <section class="trust-section">
