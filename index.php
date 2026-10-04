@@ -745,6 +745,9 @@ function art_block(string $file, string $fallbackClass = ''): string
     .zig-body { color:rgba(255,255,255,.74); font-size:16px; line-height:1.65; margin:0; max-width:44ch; }
     .zig-media { aspect-ratio:16/9; background:#0b122a; border:1px solid rgba(244,202,91,.28); border-radius:14px; overflow:hidden; }
     .zig-media img { display:block; height:100%; object-fit:cover; width:100%; }
+    /* A clip in a row needs to be the containing block for its own player: the
+       embed positions its iframe absolutely, and .zig-media is not positioned. */
+    .zig-media.story-media { position:relative; }
     /* Benefit art keeps its own fixed 180px height rather than taking the
        16/9 crop used by the photo rows. Width stays fluid, as it was when
        these were three-up grid cards. */
@@ -1803,7 +1806,74 @@ $proofVisuals = [];
       </section>
       <?php endif; ?>
 
-      <?php $slideItems = []; for ($i = 1; $i <= 6; $i++) { $f = 'slide-' . $i . '.jpg'; if (file_exists(__DIR__ . '/img/' . $f)) { $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')]; } } ?><section data-pf-group="photos" class="section center slides"><div class="section-label"><?= h($s['slides_label']) ?></div><h2><?= h($s['slides_heading']) ?></h2><?php if (empty($slideItems)): ?><div class="slides-empty">Field photos will appear here once added from the admin panel.</div><?php else: ?><div class="slides-stage"><div class="slides-frame" id="slidesFrame"><?php foreach ($slideItems as $si => $item): ?>                  <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= hpl_img_url($item['file']) ?>" alt="<?= h($item['caption'] !== '' ? $item['caption'] : 'Customer field photo') ?>" data-caption="<?= h($item['caption']) ?>" loading="<?= $si === 0 ? 'eager' : 'lazy' ?>"><?php endforeach; ?><p class="slides-cap" id="slidesCap"></p></div><div class="slides-dots" id="slidesDots"></div></div><?php endif; ?></section>
+      <?php
+      /* More field stories: the field photos and the customer clips interleaved
+         into one zig-zag run. Both are read from the sources the rest of the page
+         already uses - the slide-N.jpg files and the configured proof videos - so
+         adding a photo or a clip in the admin panel is all it takes to extend it.
+         id="slidesFrame" stays on the row wrapper because the field photo
+         lightbox below reads it to find the photos it can open. */
+      $slideItems = [];
+      for ($i = 1; $i <= 6; $i++) {
+          $f = 'slide-' . $i . '.jpg';
+          if (file_exists(__DIR__ . '/img/' . $f)) {
+              $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')];
+          }
+      }
+      $fieldStories = [];
+      $photoNo = 0;
+      $videoNo = 0;
+      $videoIndex = 0;
+      $lastPhoto = count($slideItems) - 1;
+      foreach ($slideItems as $idx => $slide) {
+          $photoNo++;
+          $fieldStories[] = [
+              'kind'  => 'photo',
+              'file'  => $slide['file'],
+              'cap'   => $slide['caption'],
+              'title' => $slide['caption'] !== '' ? $slide['caption'] : 'Field photo ' . $photoNo,
+          ];
+          /* A clip goes in the gap after each photo while clips remain, so the
+             section alternates photo / clip instead of sitting as two blocks of
+             one medium. The last photo closes the run. */
+          if ($idx < $lastPhoto && isset($proofItems[$videoIndex])) {
+              $videoNo++;
+              $clip = $proofItems[$videoIndex];
+              $fieldStories[] = [
+                  'kind'  => 'video',
+                  'item'  => $clip,
+                  'title' => $clip['caption'] !== '' ? $clip['caption'] : 'Field clip ' . $videoNo,
+              ];
+              $videoIndex++;
+          }
+      }
+      ?>
+      <section data-pf-group="photos" class="section center slides">
+        <div class="section-label"><?= h($s['slides_label']) ?></div>
+        <h2><?= h($s['slides_heading']) ?></h2>
+        <?php if (empty($fieldStories)): ?>
+        <div class="slides-empty">Field photos will appear here once added from the admin panel.</div>
+        <?php else: ?>
+        <div class="zig" id="slidesFrame">
+          <?php foreach ($fieldStories as $story): ?>
+          <div class="zig-row">
+            <div class="zig-text">
+              <h3 class="zig-title"><?= h($story['title']) ?></h3>
+            </div>
+            <?php if ($story['kind'] === 'video'): ?>
+            <div class="zig-media story-media">
+              <?= hpl_proof_media($story['item'], 'preload="none"') ?>
+            </div>
+            <?php else: ?>
+            <div class="zig-media">
+              <img src="<?= hpl_img_url($story['file']) ?>" alt="<?= h($story['cap'] !== '' ? $story['cap'] : 'Customer field photo') ?>" data-caption="<?= h($story['cap']) ?>" loading="lazy">
+            </div>
+            <?php endif; ?>
+          </div>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+      </section>
 
       <?php
         $fieldProofImage1 = file_exists(__DIR__ . '/img/field-proof-1.jpg') ? hpl_img_url('field-proof-1.jpg') : hpl_img_url('slide-1.jpg');
@@ -2822,38 +2892,40 @@ form.addEventListener('keydown', function (e) {
       });
     })();
     (function () {
-      /* One fixed player for the whole section.
-         The iframe is emitted with data-embed-src and no src, so nothing streams
-         until the section is reached, and it is unloaded again on the way out so
-         a playing video never talks over the page behind it. */
-      var sec = document.querySelector('.proof');
-      if (!sec) return;
-      var frame = sec.querySelector('.proof-embed iframe');
-      if (!frame) return;
+      /* Every player on the page, each one handled on its own.
+         An iframe is emitted with data-embed-src and no src, so nothing streams
+         until the player is reached, and it is unloaded again on the way out so
+         a playing video never talks over the page behind it. A section can hold
+         more than one player now, so each is observed individually rather than
+         taking the first match inside a single section. */
+      var frames = Array.prototype.slice.call(document.querySelectorAll('.proof-embed iframe'));
+      if (!frames.length) return;
 
-      function loadPlayer() {
-        if (frame.hasAttribute('data-on')) return;
-        frame.setAttribute('src', frame.getAttribute('data-embed-src') || '');
-        frame.setAttribute('data-on', '1');
-      }
-      function unloadPlayer() {
-        if (!frame.hasAttribute('data-on')) return;
-        frame.removeAttribute('src');
-        frame.removeAttribute('data-on');
-      }
-
-      if (!('IntersectionObserver' in window)) {
-        loadPlayer();
-        return;
-      }
-      new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) {
+      frames.forEach(function (frame) {
+        function loadPlayer() {
+          if (frame.hasAttribute('data-on')) return;
+          frame.setAttribute('src', frame.getAttribute('data-embed-src') || '');
+          frame.setAttribute('data-on', '1');
+        }
+        function unloadPlayer() {
+          if (!frame.hasAttribute('data-on')) return;
+          frame.removeAttribute('src');
+          frame.removeAttribute('data-on');
+        }
+        var host = frame.closest('section') || frame.parentElement;
+        if (!host || !('IntersectionObserver' in window)) {
           loadPlayer();
           return;
         }
-        sec.querySelectorAll('video').forEach(function (v) { if (v && !v.paused) { v.pause(); } });
-        unloadPlayer();
-      }, { rootMargin: '300px 0px' }).observe(sec);
+        new IntersectionObserver(function (entries) {
+          if (entries[0].isIntersecting) {
+            loadPlayer();
+            return;
+          }
+          host.querySelectorAll('video').forEach(function (v) { if (v && !v.paused) { v.pause(); } });
+          unloadPlayer();
+        }, { rootMargin: '300px 0px' }).observe(host);
+      });
     })();
     (function () {
       /* Pause decorative animation while it is off screen. Infinite animations
