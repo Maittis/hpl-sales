@@ -878,6 +878,12 @@ function art_block(string $file, string $fallbackClass = ''): string
       .review-screenshot-grid { gap:14px; grid-template-columns:1fr; max-width:460px; }
       .zig { gap:26px; max-width:520px; }
   .zig-row, .zig-row:nth-child(even) { flex-direction:column; gap:16px; }
+  /* The row turns into a column here, and .zig-media is flex:1 1 0. In a column
+     that flex-basis:0 lands on the height, so the box collapsed to a couple of
+     pixels and took every photo and player inside it to zero - the text beside it
+     kept reading normally, which is why phones showed words and no media at all.
+     flex:0 0 auto hands the main size back to aspect-ratio:16/9. */
+  .zig-media, .zig-media.story-media { flex:0 0 auto; width:100%; }
     }
     .proof-gallery { display:grid; gap:30px; grid-template-columns:repeat(3,1fr); margin:0 auto; max-width:860px; padding:6px 0 10px; }
     .proof-item { align-self:start; background:#fff; box-shadow:0 14px 28px rgba(9,15,36,.16); padding:12px 12px 18px; position:relative; transition:transform .25s ease; }
