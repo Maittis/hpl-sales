@@ -688,7 +688,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .button.hero-find-cta:hover { background:var(--gold-light); box-shadow:0 0 40px rgba(244,202,91,.5); transform:scale(1.02); }
     .section { color:#fff; padding:46px 34px; }
     .section.center { text-align:center; }
-    .section h2 {font-weight:400;  color:#fff; font-family:'Anton',sans-serif; font-size:34px; letter-spacing:0; line-height:1.05; margin:0 0 12px; }
+    .section h2 {font-weight:400;  color:#fff; font-family:'Anton',sans-serif; font-size:34px; letter-spacing:0; line-height:1.05; margin:0 0 12px; text-transform:uppercase; }
     .section p { color:rgba(255,255,255,.78); font-size:16px; line-height:1.6; margin:0 auto; max-width:640px; }
     .wash { background:var(--navy); }
     .proof { background:var(--navy); text-align:center; padding-bottom:24px; }
