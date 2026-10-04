@@ -684,6 +684,10 @@ function art_block(string $file, string $fallbackClass = ''): string
     .button { background:var(--gold); border:0; color:var(--navy-dark); cursor:pointer; display:inline-block; font-size:14px; font-weight:700; letter-spacing:.06em; padding:16px 38px; text-transform:uppercase; }
     .button, .nav-cta { box-shadow:0 0 24px rgba(244,202,91,.36); }
     .button:hover { background:var(--gold-light); }
+    /* Most sections carry no action of their own, and the page is long, so the
+       same booking prompt repeats as the visitor scrolls. Wrapper only - the
+       button keeps its existing gold styling. */
+    .cta-reminder { display:flex; justify-content:center; margin:40px auto 0; max-width:1120px; }
     .button.hero-find-cta { align-items:center; background:var(--gold); border:6px solid #713400; border-radius:999px; box-shadow:0 0 24px rgba(244,202,91,.36); color:var(--navy-dark); display:inline-flex; font-size:17px; font-weight:700; justify-content:center; line-height:1.3; min-height:94px; padding:20px 38px; text-align:center; width:min(460px,100%); transition:transform .2s ease, box-shadow .2s ease, background .2s ease; }
     .button.hero-find-cta:hover { background:var(--gold-light); box-shadow:0 0 40px rgba(244,202,91,.5); transform:scale(1.02); }
     .section { color:#fff; padding:46px 34px; }
@@ -1745,7 +1749,11 @@ p.lb-hint,
         </div>
       </div>
 
-      <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; /* This testimonial plays as the visitor reaches it, so use the muted autoplay variant rather than the stored click-to-play URL. */ if (isset($featuredProof['src_auto'])) { $featuredProof['src'] = $featuredProof['src_auto']; } ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p></section>
+      <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; /* This testimonial plays as the visitor reaches it, so use the muted autoplay variant rather than the stored click-to-play URL. */ if (isset($featuredProof['src_auto'])) { $featuredProof['src'] = $featuredProof['src_auto']; } ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p>
+        <div class="cta-reminder">
+          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        </div>
+      </section>
 
       <?php
 $proofVisuals = [];
@@ -1803,6 +1811,10 @@ $proofVisuals = [];
           <?php endforeach; ?>
         </div>
         <?php endif; ?>
+      
+        <div class="cta-reminder">
+          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        </div>
       </section>
       <?php endif; ?>
 
@@ -1896,6 +1908,10 @@ $proofVisuals = [];
           <?php endforeach; ?>
         </div>
         <?php endif; ?>
+      
+        <div class="cta-reminder">
+          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        </div>
       </section>
 
       <?php
@@ -2020,6 +2036,10 @@ $proofVisuals = [];
             </div>
           </div>
         </div>
+      
+        <div class="cta-reminder">
+          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        </div>
       </section>
 
       <section id="what-you-get"><div class="benefits-band"><h2><?= h($s['benefits_label']) ?></h2></div><div class="section"><div class="zig"><div class="zig-row">
@@ -2031,7 +2051,11 @@ $proofVisuals = [];
         </div><div class="zig-row">
           <div class="zig-text"><h3 class="zig-title"><?= h($s['b3_title']) ?></h3><p class="zig-body"><?= h($s['b3_desc']) ?></p></div>
           <div class="zig-media benefit-media"><?= art_block('benefit-3.jpg') ?></div>
-        </div></div></div></section>
+        </div></div></div>
+        <div class="cta-reminder">
+          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        </div>
+      </section>
 
       <div class="spaced-cta"><a class="button ripple" href="#book"><?= h($s['cta_text']) ?></a></div>
 
@@ -2235,6 +2259,10 @@ $proofVisuals = [];
             </div>
           </div>
         </div>
+      
+        <div class="cta-reminder">
+          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        </div>
       </section>
 
 <?php if ($customerAdviceItem): ?>
@@ -2249,6 +2277,10 @@ $proofVisuals = [];
           </video>
 <?php endif; ?>
         </figure>
+      
+        <div class="cta-reminder">
+          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        </div>
       </section>
 <?php endif; ?>
 
@@ -2256,7 +2288,11 @@ $proofVisuals = [];
 <?php for ($i = 1; $i <= 4; $i++) { ?>
 <details<?php if ($i === 1) { ?> open<?php } ?>><summary><?= h($s['faq' . $i . '_q']) ?></summary><?php foreach (preg_split('/\r\n|\r|\n/', $s['faq' . $i . '_a']) as $paragraph) { if (trim($paragraph) !== '') { ?><p><?= h($paragraph) ?></p><?php } } ?></details>
 <?php } ?>
-      </div></section>
+      </div>
+        <div class="cta-reminder">
+          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        </div>
+      </section>
 
 <?php
   /* Physical address, showroom photos and a map, sitting between the FAQ and
