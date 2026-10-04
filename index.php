@@ -2270,10 +2270,31 @@ $proofVisuals = [];
             </div>
           </div>
           <!-- Customer stories: eyebrow, title, paragraph, image. Photos read
-               img/zambia-1.jpg .. zambia-3.jpg and fall back to an existing field
+               img/zambia-1.jpg .. zambia-6.jpg and fall back to an existing field
                photo until those are uploaded, so nothing renders broken. -->
           <?php
           $ratingsStories = [
+              [
+                  'eyebrow' => 'Chingola, Zambia',
+                  'title'   => 'Came from a machine that could not live with the iron',
+                  'text'    => 'Bwalya had been working a cheap unit that chattered on every patch of iron and slag, so she stopped trusting it and nearly stopped digging altogether. The change was not luck. On ground like that, a machine which separates the target from the scrap lets you keep working instead of switching off.',
+                  'image'   => 'zambia-4.jpg',
+                  'fallback'=> 'slide-1.jpg',
+              ],
+              [
+                  'eyebrow' => 'Kabwe, Zambia',
+                  'title'   => 'Learning the craft before buying the machine',
+                  'text'    => 'Mulungu owned no equipment and spent weeks going out with his uncle before spending anything. That part is the one people skip. By the time he bought a machine he already knew how to sweep, so the first months went on learning the ground rather than learning the settings.',
+                  'image'   => 'zambia-5.jpg',
+                  'fallback'=> 'slide-2.jpg',
+              ],
+              [
+                  'eyebrow' => 'Livingstone, Zambia',
+                  'title'   => 'Chasing ordinary targets, not one big find',
+                  'text'    => 'Nachula runs a small pit, and part of what comes out goes straight back into the household. He is not waiting on a once-in-a-lifetime piece. He is after steady, repeatable targets that turn up often enough to be worth the week, which is a different discipline altogether.',
+                  'image'   => 'zambia-6.jpg',
+                  'fallback'=> 'slide-3.jpg',
+              ],
               [
                   'eyebrow' => 'Lusaka, Zambia',
                   'title'   => 'A worked dump that finally gave something back',
