@@ -701,7 +701,7 @@ function art_block(string $file, string $fallbackClass = ''): string
        820px is deliberately a little narrower than the promo player above it
        (1000px), so the testimonial reads as supporting proof rather than a second
        hero, while still filling the column on desktop. */
-    .proof-single { margin:26px auto 0; max-width:820px; position:relative; width:min(94vw, 820px); }
+    .proof-single { margin:26px auto 0; max-width:820px; position:relative; width:100%; }
     .proof-single .proof-embed { aspect-ratio:16/9; height:100%; width:100%; }
     .proof-single figcaption { background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:13px; font-weight:700; left:0; padding:28px 14px 12px; position:absolute; right:0; text-align:left; }
     /* Keep Bunny embeds full-bleed inside the card so they feel like native video
@@ -716,7 +716,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-embed iframe:not([data-on]) { visibility:hidden; }
     .proof-embed video { display:block; height:100%; object-fit:cover; width:100%; }
     .proof-empty { background:var(--navy); color:#fff; font-size:14px; margin:0 auto; max-width:420px; padding:60px 20px; }
-    @media (max-width:860px) { .proof-single { width:min(96vw, 820px); } }
+    @media (max-width:860px) { .proof-single { width:100%; } }
     .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
     .slides-frame { aspect-ratio:16/9; background:var(--navy); margin:0 auto; max-height:56vh; overflow:hidden; position:relative; }
     .slides-frame img { height:100%; inset:0; object-fit:cover; opacity:0; position:absolute; transform:scale(1.03); transition:opacity .28s ease, transform .7s ease; width:100%; }
@@ -1372,10 +1372,16 @@ function art_block(string $file, string $fallbackClass = ''): string
     }
     .back-to-top:hover { background:var(--gold-light); }
     @media (max-width:640px) {
-  /* Keep media inside the viewport so nothing slides left or right under the
-     thumb. Text is deliberately left at the desktop reading size - trimming it
-     here was too small on real phones. */
+  /* Phones: trim the reading size so paragraphs stop dominating. Main body copy
+     sits at 15px, supporting lines at 14px. Form fields deliberately stay at
+     16px - anything smaller makes iOS zoom the page on focus. The player is
+     width:100% rather than a vw value: vw counts the scrollbar and ignores the
+     18px section padding, which pushed this box past the right edge and left a
+     gap there. */
+  body { font-size:16px; }
   img, iframe, video, embed, object { max-width:100%; }
+  .section p, .zig-body, .trust-section p, .final p, .hero-intro { font-size:15px; }
+  details p, .visit-row p { font-size:14px; }
   .cookie-banner { padding:16px 14px; }
   .cookie-content { flex-direction:column; align-items:flex-start; gap:12px; }
   .cookie-buttons { width:100%; justify-content:space-between; }
@@ -1825,10 +1831,6 @@ $proofVisuals = [];
           ] as $file => $visual) {
             if (file_exists(__DIR__ . '/img/' . $file)) { $proofVisuals[] = $visual + ['file' => $file]; }
           }
-        $customerReviewFiles = array_values(array_filter(glob(__DIR__ . '/img/customer-review-*') ?: [], static function ($file) {
-          return (bool)preg_match('/\.(jpe?g|png|webp|gif)$/i', $file);
-        }));
-        sort($customerReviewFiles, SORT_NATURAL | SORT_FLAG_CASE);
       ?>
       <?php if ($proofVisuals): ?>
       <section class="section proof-visuals">
@@ -1847,15 +1849,6 @@ $proofVisuals = [];
           </div>
           <?php endforeach; ?>
         </div>
-        <?php if ($customerReviewFiles): ?>
-        <h3 class="review-screenshot-heading">Customer reviews</h3>
-        <div class="review-screenshot-grid">
-          <?php foreach ($customerReviewFiles as $reviewFile): ?>
-          <figure><img src="<?= hpl_img_url(basename($reviewFile)) ?>" alt="Customer review screenshot" loading="lazy"></figure>
-          <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
-      
         <div class="cta-reminder">
           <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
         </div>
