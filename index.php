@@ -1224,8 +1224,7 @@ function art_block(string $file, string $fallbackClass = ''): string
       touch-action:pan-x;
       -webkit-overflow-scrolling:touch;
     }
-.testimonial-card,
-    /* Swipe indicators */
+/* Swipe indicators */
     .swipe-hint {
       align-items:center;
       animation:swipeHint 2s ease-in-out infinite;
@@ -1405,7 +1404,10 @@ function art_block(string $file, string $fallbackClass = ''): string
   .trust-story, .trust-story:nth-child(even) { flex-direction:column; gap:18px; padding:20px; }
   .trust-story-quote { font-size:15px; margin-bottom:14px; }
   .trust-story-media { aspect-ratio:16/9; }
-  .testimonial-cards { grid-template-columns:1fr; margin-top:24px; }
+  /* minmax(0,1fr), not 1fr: a bare 1fr is minmax(auto,1fr), so the track refuses to
+     shrink below the card's minimum content width and pushes past the right edge
+     of a narrow phone. Letting the track reach zero is what keeps it flush. */
+  .testimonial-cards { grid-template-columns:minmax(0, 1fr); margin-top:24px; }
   .testimonial-stars .star { font-size:16px; }
   .testimonial-text { font-size:13px; }
   .wa-float { bottom:70px; padding:10px 14px 10px 12px; right:16px; }
