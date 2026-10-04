@@ -351,7 +351,14 @@ if (!function_exists('hpl_embed_host_ok')) {
         $caption = (string)($item['caption'] ?? '');
 
         if (($item['kind'] ?? 'video') === 'embed') {
+            /* An embed has no poster attribute the way <video> does, and the frame is
+               kept hidden until the observer sets src. Until the player document
+               actually arrives there is nothing on screen but an empty dark box, which
+               does not read as a video at all. This stand-in sits under the frame so the
+               section looks like a player from the first paint; the script retires it as
+               soon as the player reports load. */
             return '<div class="proof-embed" style="aspect-ratio:16 / 9; height:100%; width:100%;">'
+                . '<span class="proof-embed-poster" aria-hidden="true"><i class="proof-embed-play"></i></span>'
                 . '<iframe data-embed-src="' . h($src) . '"'
                 . ' title="' . h($caption !== '' ? $caption : 'Customer story video') . '"'
                 . ' loading="lazy"'
@@ -715,6 +722,13 @@ function art_block(string $file, string $fallbackClass = ''): string
        instead of showing a black box that flashes before the player appears. */
     .proof-embed iframe:not([data-on]) { visibility:hidden; }
     .proof-embed video { display:block; height:100%; object-fit:cover; width:100%; }
+    /* Stand-in shown while the player document is still on the wire. It sits over
+       the empty frame so the box reads as a video player immediately rather than as a
+       blank rectangle for however long the player takes to arrive. */
+    .proof-embed-poster { align-items:center; display:flex; inset:0; justify-content:center; pointer-events:none; position:absolute; z-index:1; }
+    .proof-embed-play { border:2px solid rgba(255,255,255,.9); border-radius:50%; display:block; height:62px; position:relative; width:62px; }
+    .proof-embed-play::after { border-bottom:11px solid transparent; border-left:17px solid #fff; border-top:11px solid transparent; content:''; left:52%; position:absolute; top:50%; transform:translate(-50%,-50%); }
+    .proof-embed[data-ready] .proof-embed-poster { display:none; }
     .proof-empty { background:var(--navy); color:#fff; font-size:14px; margin:0 auto; max-width:420px; padding:60px 20px; }
     @media (max-width:860px) { .proof-single { width:100%; } }
     .slides-stage { margin:0 auto; max-width:880px; overflow:hidden; position:relative; }
@@ -3133,15 +3147,26 @@ form.addEventListener('keydown', function (e) {
       if (!frames.length) return;
 
       frames.forEach(function (frame) {
+        var box = frame.closest('.proof-embed');
+        function markReady() {
+          if (box) box.setAttribute('data-ready', '1');
+        }
+        /* The stand-in only makes sense while there is nothing to show, so retire it
+           on the player's own load event rather than on a guess. */
+        frame.addEventListener('load', markReady);
         function loadPlayer() {
           if (frame.hasAttribute('data-on')) return;
           frame.setAttribute('src', frame.getAttribute('data-embed-src') || '');
           frame.setAttribute('data-on', '1');
+          /* Never let the stand-in sit on top of a player that is already working:
+             if the load event is missed, drop it shortly after the frame goes live. */
+          setTimeout(markReady, 8000);
         }
         function unloadPlayer() {
           if (!frame.hasAttribute('data-on')) return;
           frame.removeAttribute('src');
           frame.removeAttribute('data-on');
+          if (box) box.removeAttribute('data-ready');
         }
         var host = frame.closest('section') || frame.parentElement;
         if (!host || !('IntersectionObserver' in window)) {
