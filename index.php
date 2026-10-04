@@ -943,7 +943,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .rating-bar-value { color:rgba(255,255,255,.6); font-size:13px; font-weight:600; min-width:40px; text-align:right; }
     /* Customer stories live inside the ratings container, so they keep to its
        800px measure: eyebrow, title, paragraph, then the photo underneath. */
-    .ratings-stories { border-top:1px solid rgba(255,255,255,.09); margin-top:28px; padding-top:26px; }
+    .ratings-stories { margin-top:20px; }
     .ratings-stories-heading { color:#fff; font-family:'Anton',sans-serif; font-size:22px; font-weight:400; letter-spacing:0; margin:0 0 20px; text-align:center; }
     .ratings-story-grid { align-items:start; display:grid; gap:20px; grid-template-columns:repeat(3,1fr); }
     .ratings-story { background:rgba(255,255,255,.04); border:1px solid rgba(244,202,91,.22); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
@@ -1366,7 +1366,7 @@ function art_block(string $file, string $fallbackClass = ''): string
   .ratings-breakdown { gap:10px; }
   .rating-bar-label { font-size:12px; min-width:60px; }
   .rating-bar-value { font-size:12px; min-width:35px; }
-  .ratings-stories { margin-top:22px; padding-top:20px; }
+  .ratings-stories { margin-top:16px; }
   .ratings-stories-heading { font-size:19px; }
   .ratings-story-grid { grid-template-columns:1fr; }
   .testimonial-cards { grid-template-columns:1fr; margin-top:24px; }
