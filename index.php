@@ -941,6 +941,17 @@ function art_block(string $file, string $fallbackClass = ''): string
     .rating-bar-track { background:rgba(255,255,255,.1); border-radius:6px; flex:1; height:8px; overflow:hidden; }
     .rating-bar-fill { background:linear-gradient(90deg,var(--gold),var(--gold-light)); border-radius:6px; height:100%; transition:width 1s ease-out; }
     .rating-bar-value { color:rgba(255,255,255,.6); font-size:13px; font-weight:600; min-width:40px; text-align:right; }
+    /* Customer stories live inside the ratings container, so they keep to its
+       800px measure: eyebrow, title, paragraph, then the photo underneath. */
+    .ratings-stories { border-top:1px solid rgba(255,255,255,.09); margin-top:28px; padding-top:26px; }
+    .ratings-stories-heading { color:#fff; font-family:'Anton',sans-serif; font-size:22px; font-weight:400; letter-spacing:0; margin:0 0 20px; text-align:center; }
+    .ratings-story-grid { display:grid; gap:20px; grid-template-columns:repeat(3,1fr); }
+    .ratings-story { background:rgba(255,255,255,.04); border:1px solid rgba(244,202,91,.22); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
+    .ratings-story-body { display:flex; flex:1 1 auto; flex-direction:column; padding:16px 16px 14px; }
+    .ratings-story-eyebrow { color:var(--gold); font-size:10px; font-weight:700; letter-spacing:.14em; margin:0 0 8px; text-transform:uppercase; }
+    .ratings-story-title { color:#fff; font-family:'Anton',sans-serif; font-size:17px; font-weight:400; letter-spacing:0; line-height:1.18; margin:0 0 9px; }
+    .ratings-story-text { color:rgba(255,255,255,.72); font-size:13px; line-height:1.6; margin:0; }
+    .ratings-story img { border-top:1px solid rgba(255,255,255,.09); display:block; height:auto; width:100%; }
     .testimonial-cards { display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); margin-top:32px; }
     .testimonial-card { background:rgba(255,255,255,.05); border:1px solid rgba(244,202,91,.2); border-radius:12px; padding:20px; transition:transform .3s ease, box-shadow .3s ease; }
     .testimonial-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.2); }
@@ -1355,6 +1366,9 @@ function art_block(string $file, string $fallbackClass = ''): string
   .ratings-breakdown { gap:10px; }
   .rating-bar-label { font-size:12px; min-width:60px; }
   .rating-bar-value { font-size:12px; min-width:35px; }
+  .ratings-stories { margin-top:22px; padding-top:20px; }
+  .ratings-stories-heading { font-size:19px; }
+  .ratings-story-grid { grid-template-columns:1fr; }
   .testimonial-cards { grid-template-columns:1fr; margin-top:24px; }
   .testimonial-stars .star { font-size:16px; }
   .testimonial-text { font-size:13px; }
@@ -2253,6 +2267,50 @@ $proofVisuals = [];
                   <span class="testimonial-location">South Africa</span>
                 </div>
               </div>
+            </div>
+          </div>
+          <!-- Customer stories: eyebrow, title, paragraph, image. Photos read
+               img/zambia-1.jpg .. zambia-3.jpg and fall back to an existing field
+               photo until those are uploaded, so nothing renders broken. -->
+          <?php
+          $ratingsStories = [
+              [
+                  'eyebrow' => 'Lusaka, Zambia',
+                  'title'   => 'A worked dump that finally gave something back',
+                  'text'    => 'Chileshe had walked the same old mine dump for months with little to show. One weekend with the MAGNETAR 5000 and a slower, wider swing, he started lifting targets he had stepped over before. Nothing exotic, just a machine that stopped shouting at every piece of iron in the spoil.',
+                  'image'   => 'zambia-1.jpg',
+                  'fallback'=> 'slide-1.jpg',
+              ],
+              [
+                  'eyebrow' => 'Kitwe, Zambia',
+                  'title'   => 'One complete setup instead of piecing it together',
+                  'text'    => 'Mwamba needed more than a detector: pumps, hoses and a cradle to work deeper ground. Everything was set up and explained in one go, so he was not left guessing at parts that do not fit together. He now runs the same ground with a second team.',
+                  'image'   => 'zambia-2.jpg',
+                  'fallback'=> 'slide-2.jpg',
+              ],
+              [
+                  'eyebrow' => 'Ndola, Zambia',
+                  'title'   => 'First find on ground her family already owned',
+                  'text'    => 'Kabaso had land but no idea where to start, and did not want to buy the wrong machine. The session was spent on ground she had never walked with a detector. She still keeps the first piece she lifted, as the reason she kept going.',
+                  'image'   => 'zambia-3.jpg',
+                  'fallback'=> 'slide-3.jpg',
+              ],
+          ];
+          ?>
+          <div class="ratings-stories">
+            <h3 class="ratings-stories-heading">Stories from Zambia</h3>
+            <div class="ratings-story-grid">
+              <?php foreach ($ratingsStories as $story): ?>
+              <article class="ratings-story">
+                <div class="ratings-story-body">
+                  <p class="ratings-story-eyebrow"><?= h($story['eyebrow']) ?></p>
+                  <h4 class="ratings-story-title"><?= h($story['title']) ?></h4>
+                  <p class="ratings-story-text"><?= h($story['text']) ?></p>
+                </div>
+                <?php $file = file_exists(__DIR__ . '/img/' . $story['image']) ? $story['image'] : $story['fallback']; ?>
+                <img src="<?= hpl_img_url($file) ?>" alt="<?= h($story['title']) ?>" loading="lazy">
+              </article>
+              <?php endforeach; ?>
             </div>
           </div>
         </div>
