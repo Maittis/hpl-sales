@@ -2710,6 +2710,25 @@ $proofVisuals = [];
     <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top" title="Back to top">&uarr;</button>
   </div>
   <script>
+    /* Run as soon as the markup exists, not on window.load.
+       window.load waits for every image and every third-party player iframe on
+       the page - 35 images and 9 iframes here. On a phone that wait can drag on
+       for many seconds, and a single slow or stalled request stops it entirely.
+       Anything gated behind it leaves whole sections sitting at opacity 0, which
+       is exactly how a visitor ends up seeing text with no photos and no players.
+       These effects only need the DOM, and the observers inside them do their own
+       "is it on screen yet" work, so there is nothing to gain by waiting.
+       Defined out here at the top level on purpose: the rest of this file is a
+       run of separate IIFEs, so anything declared inside one of them is invisible
+       to the next. */
+    function onDomReady(fn) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+      } else {
+        fn();
+      }
+    }
+
     (function () {
       var sessionId = 'sess_' + Math.random().toString(36).substr(2, 16) + Date.now().toString(36);
       var cookiesAccepted = localStorage.getItem('hpl_cookies_accepted');
@@ -3526,7 +3545,7 @@ form.addEventListener('keydown', function (e) {
       }
 
       window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('load', animateTrustIndicators);
+      onDomReady(animateTrustIndicators);
     })();
 
     // Mobile Enhancements
@@ -3696,7 +3715,7 @@ form.addEventListener('keydown', function (e) {
       }
 
       // Initialize effects
-      window.addEventListener('load', function () {
+      onDomReady(function () {
         initScrollAnimations();
         initRippleEffect();
       });
