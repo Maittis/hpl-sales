@@ -42,12 +42,12 @@ for ($i = 1; $i <= 6; $i++) {
 }
 
 $tyVideos = [];
-for ($i = 1; $i <= 15; $i++) {
-    $src = hpl_media_url((string)($s['proof_video_' . $i] ?? ''));
+for ($i = 1; $i <= 6; $i++) {
+    $src = hpl_media_url((string)($s['ty_video_' . $i] ?? ''));
     if ($src === '') {
         continue;
     }
-    $tyVideos[] = ['src' => $src, 'caption' => (string)($s['proof_video_' . $i . '_caption'] ?? '')];
+    $tyVideos[] = ['src' => $src, 'caption' => (string)($s['ty_video_' . $i . '_caption'] ?? '')];
 }
 
 /* Same normalisation and fallback as index.php, guarded so whichever file
