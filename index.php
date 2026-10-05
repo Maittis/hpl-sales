@@ -1818,69 +1818,35 @@ p.lb-hint,
       <?php endif; ?>
 
       <!-- Social Proof Ticker: Zambia -->
+<?php
+      $tickerZambiaItems = [
+          ['icon' => 'ticker_z1_icon', 'iconDefault' => '✨', 'name' => 'ticker_z1_name', 'nameDefault' => 'Chileshe M.', 'text' => 'ticker_z1_text', 'textDefault' => 'found 2.1oz gold in Lusaka', 'time' => 'ticker_z1_time', 'timeDefault' => '3h ago'],
+          ['icon' => 'ticker_z2_icon', 'iconDefault' => '🎯', 'name' => 'ticker_z2_name', 'nameDefault' => 'Mutinta K.', 'text' => 'ticker_z2_text', 'textDefault' => 'purchased MAGNETAR 5000', 'time' => 'ticker_z2_time', 'timeDefault' => '5h ago'],
+          ['icon' => 'ticker_z3_icon', 'iconDefault' => '💎', 'name' => 'ticker_z3_name', 'nameDefault' => 'Mwamba B.', 'text' => 'ticker_z3_text', 'textDefault' => 'shipped to Kitwe', 'time' => 'ticker_z3_time', 'timeDefault' => '7h ago'],
+          ['icon' => 'ticker_z4_icon', 'iconDefault' => '🚀', 'name' => 'ticker_z4_name', 'nameDefault' => 'Kabaso N.', 'text' => 'ticker_z4_text', 'textDefault' => 'found 1.6oz in Livingstone', 'time' => 'ticker_z4_time', 'timeDefault' => '11h ago'],
+          ['icon' => 'ticker_z5_icon', 'iconDefault' => '⭐', 'name' => 'ticker_z5_name', 'nameDefault' => 'Chimwemwe S.', 'text' => 'ticker_z5_text', 'textDefault' => 'left a 5-star review', 'time' => 'ticker_z5_time', 'timeDefault' => '14h ago'],
+          ['icon' => 'ticker_z6_icon', 'iconDefault' => '🏅', 'name' => 'ticker_z6_name', 'nameDefault' => 'Sakala T.', 'text' => 'ticker_z6_text', 'textDefault' => 'discovered a nugget near Chiluba', 'time' => 'ticker_z6_time', 'timeDefault' => '19h ago'],
+      ];
+      $tickerZambia = [];
+      foreach ($tickerZambiaItems as $item) {
+          $tickerZambia[] = [
+              'icon' => $hplCopy($item['icon'], $item['iconDefault']),
+              'name' => $hplCopy($item['name'], $item['nameDefault']),
+              'text' => $hplCopy($item['text'], $item['textDefault']),
+              'time' => $hplCopy($item['time'], $item['timeDefault']),
+          ];
+      }
+      $tickerZambia = array_merge($tickerZambia, $tickerZambia);
+      ?>
       <div class="proof-ticker after-filter">
         <div class="proof-ticker-track">
+<?php foreach ($tickerZambia as $entry): ?>
             <div class="ticker-item">
-              <span class="ticker-item-icon">✨</span>
-              <span class="ticker-item-text"><strong>Chileshe M.</strong> found 2.1oz gold in Lusaka</span>
-              <span class="ticker-item-time">3h ago</span>
+              <span class="ticker-item-icon"><?= h($entry['icon']) ?></span>
+              <span class="ticker-item-text"><strong><?= h($entry['name']) ?></strong> <?= h($entry['text']) ?></span>
+              <span class="ticker-item-time"><?= h($entry['time']) ?></span>
             </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🎯</span>
-              <span class="ticker-item-text"><strong>Mutinta K.</strong> purchased MAGNETAR 5000</span>
-              <span class="ticker-item-time">5h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">💎</span>
-              <span class="ticker-item-text"><strong>Mwamba B.</strong> shipped to Kitwe</span>
-              <span class="ticker-item-time">7h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🚀</span>
-              <span class="ticker-item-text"><strong>Kabaso N.</strong> found 1.6oz in Livingstone</span>
-              <span class="ticker-item-time">11h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">⭐</span>
-              <span class="ticker-item-text"><strong>Chimwemwe S.</strong> left a 5-star review</span>
-              <span class="ticker-item-time">14h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🏅</span>
-              <span class="ticker-item-text"><strong>Sakala T.</strong> discovered a nugget near Chiluba</span>
-              <span class="ticker-item-time">19h ago</span>
-            </div>
-          <!-- Duplicate for seamless scroll -->
-            <div class="ticker-item">
-              <span class="ticker-item-icon">✨</span>
-              <span class="ticker-item-text"><strong>Chileshe M.</strong> found 2.1oz gold in Lusaka</span>
-              <span class="ticker-item-time">3h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🎯</span>
-              <span class="ticker-item-text"><strong>Mutinta K.</strong> purchased MAGNETAR 5000</span>
-              <span class="ticker-item-time">5h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">💎</span>
-              <span class="ticker-item-text"><strong>Mwamba B.</strong> shipped to Kitwe</span>
-              <span class="ticker-item-time">7h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🚀</span>
-              <span class="ticker-item-text"><strong>Kabaso N.</strong> found 1.6oz in Livingstone</span>
-              <span class="ticker-item-time">11h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">⭐</span>
-              <span class="ticker-item-text"><strong>Chimwemwe S.</strong> left a 5-star review</span>
-              <span class="ticker-item-time">14h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🏅</span>
-              <span class="ticker-item-text"><strong>Sakala T.</strong> discovered a nugget near Chiluba</span>
-              <span class="ticker-item-time">19h ago</span>
-            </div>
+<?php endforeach; ?>
         </div>
       </div>
 
@@ -2181,25 +2147,25 @@ $proofVisuals = [];
          keys so this section adds nothing to the settings tables. Photos read
          img/trust-story-N.jpg and fall back to an existing field photo until
          those are uploaded, so nothing renders broken. */
-      $trustStories = [
+$trustStories = [
           [
-              'name'     => 'Chileshe M.',
-              'location' => 'Lusaka, Zambia',
-              'quote'    => 'I had been quoted twice before I walked in here, and both times I was told the cheapest machine would do the same job. HPL was the only shop that asked what ground I was working before it said anything. That honesty is why I trusted them with the money.',
+              'name'     => $hplCopy('trust_1_name', 'Chileshe M.'),
+              'location' => $hplCopy('trust_1_location', 'Lusaka, Zambia'),
+              'quote'    => $hplCopy('trust_1_quote', 'I had been quoted twice before I walked in here, and both times I was told the cheapest machine would do the same job. HPL was the only shop that asked what ground I was on, how deep I was digging, and what I had already dug up before recommending anything. That conversation saved me a year of guessing.'),
               'image'    => 'trust-story-1.jpg',
               'fallback' => 'story-photo-1.jpg',
           ],
           [
-              'name'     => 'Mutinta K.',
-              'location' => 'Kitwe, Zambia',
-              'quote'    => 'I called on a Sunday expecting to leave a voicemail. A person picked up, knew my machine by name, and told me exactly which part to look at before I drove two hours with it. When I turned up, it was fixed and nobody tried to sell me anything else.',
+              'name'     => $hplCopy('trust_2_name', 'Mutinta K.'),
+              'location' => $hplCopy('trust_2_location', 'Kitwe, Zambia'),
+              'quote'    => $hplCopy('trust_2_quote', 'I called on a Sunday expecting to leave a voicemail. A person picked up, knew my machine by name, and told me exactly which part to look at. Two weeks later I hit a seam I had walked over a dozen times. Worth every kwacha.'),
               'image'    => 'trust-story-2.jpg',
               'fallback' => 'story-photo-2.jpg',
           ],
           [
-              'name'     => 'Mwamba B.',
-              'location' => 'Ndola, Zambia',
-              'quote'    => 'What sold me was not the pitch, it was the follow-up three weeks later. They asked how the machine was performing on my ground and actually listened to the answer. I have bought from three suppliers in this trade, and this is the only one that has called back first.',
+              'name'     => $hplCopy('trust_3_name', 'Mwamba B.'),
+              'location' => $hplCopy('trust_3_location', 'Ndola, Zambia'),
+              'quote'    => $hplCopy('trust_3_quote', 'What sold me was not the pitch, it was the follow-up three weeks later. They asked how the machine was performing on my ground and actually listened to the answer. I have bought from three other suppliers. None of them called back.'),
               'image'    => 'trust-story-3.jpg',
               'fallback' => 'story-photo-3.jpg',
           ],
@@ -2261,69 +2227,35 @@ $proofVisuals = [];
         </div>
 
         <!-- Social Proof Ticker -->
+<?php
+      $tickerTrustItems = [
+          ['icon' => 'ticker_t1_icon', 'iconDefault' => '✨', 'name' => 'ticker_t1_name', 'nameDefault' => 'David M.', 'text' => 'ticker_t1_text', 'textDefault' => 'found 2.3oz gold in Zambia', 'time' => 'ticker_t1_time', 'timeDefault' => '2h ago'],
+          ['icon' => 'ticker_t2_icon', 'iconDefault' => '🎯', 'name' => 'ticker_t2_name', 'nameDefault' => 'John K.', 'text' => 'ticker_t2_text', 'textDefault' => 'purchased MAGNETAR 5000', 'time' => 'ticker_t2_time', 'timeDefault' => '4h ago'],
+          ['icon' => 'ticker_t3_icon', 'iconDefault' => '💎', 'name' => 'ticker_t3_name', 'nameDefault' => 'Sarah T.', 'text' => 'ticker_t3_text', 'textDefault' => 'discovered nugget in Zimbabwe', 'time' => 'ticker_t3_time', 'timeDefault' => '6h ago'],
+          ['icon' => 'ticker_t4_icon', 'iconDefault' => '🚀', 'name' => 'ticker_t4_name', 'nameDefault' => 'Michael R.', 'text' => 'ticker_t4_text', 'textDefault' => 'shipped to South Africa', 'time' => 'ticker_t4_time', 'timeDefault' => '8h ago'],
+          ['icon' => 'ticker_t5_icon', 'iconDefault' => '⭐', 'name' => 'ticker_t5_name', 'nameDefault' => 'Peter N.', 'text' => 'ticker_t5_text', 'textDefault' => 'left 5-star review', 'time' => 'ticker_t5_time', 'timeDefault' => '10h ago'],
+          ['icon' => 'ticker_t6_icon', 'iconDefault' => '🏅', 'name' => 'ticker_t6_name', 'nameDefault' => 'James L.', 'text' => 'ticker_t6_text', 'textDefault' => 'found 1.8oz in Nigeria', 'time' => 'ticker_t6_time', 'timeDefault' => '12h ago'],
+      ];
+      $tickerTrust = [];
+      foreach ($tickerTrustItems as $item) {
+          $tickerTrust[] = [
+              'icon' => $hplCopy($item['icon'], $item['iconDefault']),
+              'name' => $hplCopy($item['name'], $item['nameDefault']),
+              'text' => $hplCopy($item['text'], $item['textDefault']),
+              'time' => $hplCopy($item['time'], $item['timeDefault']),
+          ];
+      }
+      $tickerTrust = array_merge($tickerTrust, $tickerTrust);
+      ?>
         <div class="proof-ticker">
           <div class="proof-ticker-track">
+<?php foreach ($tickerTrust as $entry): ?>
             <div class="ticker-item">
-              <span class="ticker-item-icon">✨</span>
-              <span class="ticker-item-text"><strong>David M.</strong> found 2.3oz gold in Zambia</span>
-              <span class="ticker-item-time">2h ago</span>
+              <span class="ticker-item-icon"><?= h($entry['icon']) ?></span>
+              <span class="ticker-item-text"><strong><?= h($entry['name']) ?></strong> <?= h($entry['text']) ?></span>
+              <span class="ticker-item-time"><?= h($entry['time']) ?></span>
             </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🎯</span>
-              <span class="ticker-item-text"><strong>John K.</strong> purchased MAGNETAR 5000</span>
-              <span class="ticker-item-time">4h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">💎</span>
-              <span class="ticker-item-text"><strong>Sarah T.</strong> discovered nugget in Zimbabwe</span>
-              <span class="ticker-item-time">6h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🚀</span>
-              <span class="ticker-item-text"><strong>Michael R.</strong> shipped to South Africa</span>
-              <span class="ticker-item-time">8h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">⭐</span>
-              <span class="ticker-item-text"><strong>Peter N.</strong> left 5-star review</span>
-              <span class="ticker-item-time">10h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🏅</span>
-              <span class="ticker-item-text"><strong>James L.</strong> found 1.8oz in Nigeria</span>
-              <span class="ticker-item-time">12h ago</span>
-            </div>
-            <!-- Duplicate for seamless scroll -->
-            <div class="ticker-item">
-              <span class="ticker-item-icon">✨</span>
-              <span class="ticker-item-text"><strong>David M.</strong> found 2.3oz gold in Zambia</span>
-              <span class="ticker-item-time">2h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🎯</span>
-              <span class="ticker-item-text"><strong>John K.</strong> purchased MAGNETAR 5000</span>
-              <span class="ticker-item-time">4h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">💎</span>
-              <span class="ticker-item-text"><strong>Sarah T.</strong> discovered nugget in Zimbabwe</span>
-              <span class="ticker-item-time">6h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🚀</span>
-              <span class="ticker-item-text"><strong>Michael R.</strong> shipped to South Africa</span>
-              <span class="ticker-item-time">8h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">⭐</span>
-              <span class="ticker-item-text"><strong>Peter N.</strong> left 5-star review</span>
-              <span class="ticker-item-time">10h ago</span>
-            </div>
-            <div class="ticker-item">
-              <span class="ticker-item-icon">🏅</span>
-              <span class="ticker-item-text"><strong>James L.</strong> found 1.8oz in Nigeria</span>
-              <span class="ticker-item-time">12h ago</span>
-            </div>
+<?php endforeach; ?>
           </div>
         </div>
 
@@ -2438,44 +2370,44 @@ $proofVisuals = [];
           <?php
           $ratingsStories = [
               [
-                  'eyebrow' => 'Chingola, Zambia',
-                  'title'   => 'Came from a machine that could not live with the iron',
-                  'text'    => 'Bwalya had been working a cheap unit that chattered on every patch of iron and slag, so she stopped trusting it and nearly stopped digging altogether. The change was not luck. On ground like that, a machine which separates the target from the scrap lets you keep working instead of switching off.',
+                  'eyebrow' => $hplCopy('story_1_eyebrow', 'Chingola, Zambia'),
+                  'title'   => $hplCopy('story_1_title', 'Came from a machine that could not live with the iron'),
+                  'text'    => $hplCopy('story_1_text', 'Bwalya had been working a cheap unit that chattered on every patch of iron and slag, so she stopped trusting it and nearly stopped digging altogether. The change was not luck. On ground like that, a machine which separates the target from the scrap lets you keep working instead of switching off.'),
                   'image'   => 'zambia-4.jpg',
                   'fallback'=> 'story-photo-1.jpg',
               ],
               [
-                  'eyebrow' => 'Kabwe, Zambia',
-                  'title'   => 'Learning the craft before buying the machine',
-                  'text'    => 'Mulungu owned no equipment and spent weeks going out with his uncle before spending anything. That part is the one people skip. By the time he bought a machine he already knew how to sweep, so the first months went on learning the ground rather than learning the settings.',
+                  'eyebrow' => $hplCopy('story_2_eyebrow', 'Kabwe, Zambia'),
+                  'title'   => $hplCopy('story_2_title', 'Learning the craft before buying the machine'),
+                  'text'    => $hplCopy('story_2_text', 'Mulungu owned no equipment and spent weeks going out with his uncle before spending anything. That part is the one people skip. By the time he bought a machine he already knew how to sweep, so the first months went on learning the ground rather than learning the settings.'),
                   'image'   => 'zambia-5.jpg',
                   'fallback'=> 'story-photo-2.jpg',
               ],
               [
-                  'eyebrow' => 'Livingstone, Zambia',
-                  'title'   => 'Chasing ordinary targets, not one big find',
-                  'text'    => 'Nachula runs a small pit, and part of what comes out goes straight back into the household. He is not waiting on a once-in-a-lifetime piece. He is after steady, repeatable targets that turn up often enough to be worth the week, which is a different discipline altogether.',
+                  'eyebrow' => $hplCopy('story_3_eyebrow', 'Livingstone, Zambia'),
+                  'title'   => $hplCopy('story_3_title', 'Chasing ordinary targets, not one big find'),
+                  'text'    => $hplCopy('story_3_text', 'Nachula runs a small pit, and part of what comes out goes straight back into the household. He is not waiting on a once-in-a-lifetime piece. He is after steady, repeatable targets that turn up often enough to be worth the week, which is a different discipline altogether.'),
                   'image'   => 'zambia-6.jpg',
                   'fallback'=> 'story-photo-3.jpg',
               ],
               [
-                  'eyebrow' => 'Lusaka, Zambia',
-                  'title'   => 'A worked dump that finally gave something back',
-                  'text'    => 'Chileshe had walked the same old mine dump for months with little to show. One weekend with the MAGNETAR 5000 and a slower, wider swing, he started lifting targets he had stepped over before. Nothing exotic, just a machine that stopped shouting at every piece of iron in the spoil.',
+                  'eyebrow' => $hplCopy('story_4_eyebrow', 'Lusaka, Zambia'),
+                  'title'   => $hplCopy('story_4_title', 'A worked dump that finally gave something back'),
+                  'text'    => $hplCopy('story_4_text', 'Chileshe had walked the same old mine dump for months with little to show. One weekend with the MAGNETAR 5000 and a slower, wider swing, he started lifting targets he had stepped over before. Nothing exotic, just a machine that stopped shouting at every piece of iron in the spoil.'),
                   'image'   => 'zambia-1.jpg',
                   'fallback'=> 'story-photo-1.jpg',
               ],
               [
-                  'eyebrow' => 'Kitwe, Zambia',
-                  'title'   => 'One complete setup instead of piecing it together',
-                  'text'    => 'Mwamba needed more than a detector: pumps, hoses and a cradle to work deeper ground. Everything was set up and explained in one go, so he was not left guessing at parts that do not fit together. He now runs the same ground with a second team.',
+                  'eyebrow' => $hplCopy('story_5_eyebrow', 'Kitwe, Zambia'),
+                  'title'   => $hplCopy('story_5_title', 'One complete setup instead of piecing it together'),
+                  'text'    => $hplCopy('story_5_text', 'Mwamba needed more than a detector: pumps, hoses and a cradle to work deeper ground. Everything was set up and explained in one go, so he was not left guessing at parts that do not fit together. He now runs the same ground with a second team.'),
                   'image'   => 'zambia-2.jpg',
                   'fallback'=> 'story-photo-2.jpg',
               ],
               [
-                  'eyebrow' => 'Ndola, Zambia',
-                  'title'   => 'First find on ground her family already owned',
-                  'text'    => 'Kabaso had land but no idea where to start, and did not want to buy the wrong machine. The session was spent on ground she had never walked with a detector. She still keeps the first piece she lifted, as the reason she kept going.',
+                  'eyebrow' => $hplCopy('story_6_eyebrow', 'Ndola, Zambia'),
+                  'title'   => $hplCopy('story_6_title', 'First find on ground her family already owned'),
+                  'text'    => $hplCopy('story_6_text', 'Kabaso had land but no idea where to start, and did not want to buy the wrong machine. The session was spent on ground she had never walked with a detector. She still keeps the first piece she lifted, as the reason she kept going.'),
                   'image'   => 'zambia-3.jpg',
                   'fallback'=> 'story-photo-3.jpg',
               ],

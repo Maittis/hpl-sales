@@ -106,6 +106,14 @@ $waNumber = hpl_wa_number($s)['digits'];
 // Name substituted here rather than inside the helper so this page can greet the
 // lead by their own name instead of the anonymous 'there'.
 $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
+
+$hplCopy = static function (string $key, string $fallback) use ($s): string {
+    $value = $s[$key] ?? '';
+    if (is_string($value) && trim($value) !== '') {
+        return $value;
+    }
+    return $fallback;
+};
 ?><!doctype html>
 <html lang="en">
 <head>
@@ -165,13 +173,13 @@ $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
 <body>
   <div class="wrap">
     <div class="ty-hero">
-      <span class="badge"><?= h($s['ty_badge']) ?></span>
-      <h1><?= h($s['ty_h']) ?><?= $firstName !== '' ? ', ' . h($firstName) : '' ?>!</h1>
-      <p class="ty-sub"><?= h($s['ty_sub']) ?></p>
+      <span class="badge"><?= h($hplCopy('ty_badge', $s['ty_badge'] ?? 'Request received')) ?></span>
+      <h1><?= h($hplCopy('ty_h', $s['ty_h'] ?? 'Thank you')) ?><?= $firstName !== '' ? ', ' . h($firstName) : '' ?>!</h1>
+      <p class="ty-sub"><?= h($hplCopy('ty_sub', $s['ty_sub'] ?? 'Thanks for reaching out.')) ?></p>
 
       <div class="ty-video-block">
-        <div class="panel-label"><?= h($s['ty_vlabel']) ?></div>
-        <h2><?= h($s['ty_vh']) ?></h2>
+        <div class="panel-label"><?= h($hplCopy('ty_vlabel', $s['ty_vlabel'] ?? 'A message for you')) ?></div>
+        <h2><?= h($hplCopy('ty_vh', $s['ty_vh'] ?? 'Thank you from the HPL team')) ?></h2>
 <?php if ($tyVideo !== ''): ?>
         <div class="ty-video">
           <video controls playsinline preload="metadata">
@@ -182,7 +190,7 @@ $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
 <?php else: ?>
         <div class="ty-video">
           <div class="ty-video-embed">
-            <iframe src="https://player.mediadelivery.net/embed/767583/a00df9be-a8b6-4a29-8456-3a63a095035c?autoplay=true&amp;loop=false&amp;muted=true&amp;preload=true&amp;responsive=true" loading="lazy" title="<?= h($s['ty_vh']) ?>" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen" allowfullscreen></iframe>
+            <iframe src="https://player.mediadelivery.net/embed/767583/a00df9be-a8b6-4a29-8456-3a63a095035c?autoplay=true&amp;loop=false&amp;muted=true&amp;preload=true&amp;responsive=true" loading="lazy" title="<?= h($hplCopy('ty_vh', $s['ty_vh'] ?? 'Thank you from the HPL team')) ?>" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen" allowfullscreen></iframe>
           </div>
         </div>
 <?php endif; ?>
@@ -190,18 +198,18 @@ $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
     </div>
 
     <div class="next">
-      <h2><?= h($s['ty_next_h']) ?></h2>
+      <h2><?= h($hplCopy('ty_next_h', $s['ty_next_h'] ?? 'What happens next')) ?></h2>
       <ol>
-        <li><b>Step 1</b><?= h($s['ty_step1']) ?></li>
-        <li><b>Step 2</b><?= h($s['ty_step2']) ?></li>
-        <li><b>Step 3</b><?= h($s['ty_step3']) ?></li>
+        <li><b>Step 1</b><?= h($hplCopy('ty_step1', $s['ty_step1'] ?? 'We review your details.')) ?></li>
+        <li><b>Step 2</b><?= h($hplCopy('ty_step2', $s['ty_step2'] ?? 'We will contact you shortly.')) ?></li>
+        <li><b>Step 3</b><?= h($hplCopy('ty_step3', $s['ty_step3'] ?? 'Get ready to get started.')) ?></li>
       </ol>
     </div>
 
 <?php if (!empty($tyPhotos)): ?>
     <div class="panel">
-      <div class="panel-label"><?= h($s['ty_finds_label']) ?></div>
-      <h2><?= h($s['ty_finds_h']) ?></h2>
+      <div class="panel-label"><?= h($hplCopy('ty_finds_label', $s['ty_finds_label'] ?? 'Real finds')) ?></div>
+      <h2><?= h($hplCopy('ty_finds_h', $s['ty_finds_h'] ?? 'What people are finding with it')) ?></h2>
       <div class="grid">
 <?php foreach ($tyPhotos as $p): ?>
         <figure>
@@ -217,8 +225,8 @@ $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
 
 <?php if (!empty($tyVideos)): ?>
     <div class="panel">
-      <div class="panel-label"><?= h($s['ty_stories_label']) ?></div>
-      <h2><?= h($s['ty_stories_h']) ?></h2>
+      <div class="panel-label"><?= h($hplCopy('ty_stories_label', $s['ty_stories_label'] ?? 'Customer stories')) ?></div>
+      <h2><?= h($hplCopy('ty_stories_h', $s['ty_stories_h'] ?? 'Hear it from the field')) ?></h2>
       <div class="grid vid-grid">
 <?php foreach ($tyVideos as $v): ?>
         <figure>
@@ -235,14 +243,14 @@ $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
 <?php endif; ?>
 
 <?php if (empty($tyPhotos) && empty($tyVideos) && $tyVideo === ''): ?>
-    <p class="empty"><?= h($s['ty_fallback']) ?></p>
+    <p class="empty"><?= h($hplCopy('ty_fallback', $s['ty_fallback'] ?? 'Your confirmation is in. We will be in touch shortly.')) ?></p>
 <?php endif; ?>
 
     <div class="cta">
 <?php if ($waUrl !== ''): ?>
-      <a class="btn" href="<?= h($waUrl) ?>" target="_blank" rel="noopener">Message us on WhatsApp</a>
+      <a class="btn" href="<?= h($waUrl) ?>" target="_blank" rel="noopener"><?= h($hplCopy('ty_whatsapp_button', $s['ty_whatsapp_button'] ?? 'Message us on WhatsApp')) ?></a>
 <?php endif; ?>
-      <a class="btn ghost" href="index.php"><?= h($s['ty_back']) ?></a>
+      <a class="btn ghost" href="index.php"><?= h($hplCopy('ty_back', $s['ty_back'] ?? 'Back to the site')) ?></a>
     </div>
 
     <div class="foot">
