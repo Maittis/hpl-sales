@@ -556,10 +556,6 @@ const DETECTOR_ART = '<div class="detector"><div class="handle"></div><div class
    and an unchanged one still hit the cache. */
 function hpl_img_url(string $file): string
 {
-    /* Several of these filenames are the same photograph stored under more than
-       one name. Serving one URL for each unique image stops the browser fetching
-       the same picture once per section. */
-    $file = hpl_canonical_photo($file);
     $path = __DIR__ . '/img/' . $file;
     $stamp = is_file($path) ? (string)@filemtime($path) : '';
     return h('img/' . $file) . ($stamp !== '' ? '?v=' . $stamp : '');
@@ -2035,8 +2031,8 @@ $proofVisuals = [];
       </section>
 
       <?php
-        $fieldProofImage1 = file_exists(__DIR__ . '/img/field-proof-1.jpg') ? hpl_img_url('field-proof-1.jpg') : hpl_img_url('slide-1.jpg');
-        $fieldProofImage2 = file_exists(__DIR__ . '/img/field-proof-2.jpg') ? hpl_img_url('field-proof-2.jpg') : hpl_img_url('slide-2.jpg');
+        $fieldProofImage1 = file_exists(__DIR__ . '/img/field-proof-1.jpg') ? hpl_img_url('field-proof-1.jpg') : hpl_img_url('story-photo-1.jpg');
+        $fieldProofImage2 = file_exists(__DIR__ . '/img/field-proof-2.jpg') ? hpl_img_url('field-proof-2.jpg') : hpl_img_url('story-photo-2.jpg');
       ?>
       <?php if (($s['field_proof_enabled'] ?? '1') === '1'): ?>
       <section class="section proof-mix proof-field-section">
@@ -2188,21 +2184,21 @@ $proofVisuals = [];
               'location' => 'Lusaka, Zambia',
               'quote'    => 'I had been quoted twice before I walked in here, and both times I was told the cheapest machine would do the same job. HPL was the only shop that asked what ground I was working before it said anything. That honesty is why I trusted them with the money.',
               'image'    => 'trust-story-1.jpg',
-              'fallback' => 'slide-1.jpg',
+              'fallback' => 'story-photo-1.jpg',
           ],
           [
               'name'     => 'Mutinta K.',
               'location' => 'Kitwe, Zambia',
               'quote'    => 'I called on a Sunday expecting to leave a voicemail. A person picked up, knew my machine by name, and told me exactly which part to look at before I drove two hours with it. When I turned up, it was fixed and nobody tried to sell me anything else.',
               'image'    => 'trust-story-2.jpg',
-              'fallback' => 'slide-2.jpg',
+              'fallback' => 'story-photo-2.jpg',
           ],
           [
               'name'     => 'Mwamba B.',
               'location' => 'Ndola, Zambia',
               'quote'    => 'What sold me was not the pitch, it was the follow-up three weeks later. They asked how the machine was performing on my ground and actually listened to the answer. I have bought from three suppliers in this trade, and this is the only one that has called back first.',
               'image'    => 'trust-story-3.jpg',
-              'fallback' => 'slide-3.jpg',
+              'fallback' => 'story-photo-3.jpg',
           ],
       ];
       ?>
@@ -2443,42 +2439,42 @@ $proofVisuals = [];
                   'title'   => 'Came from a machine that could not live with the iron',
                   'text'    => 'Bwalya had been working a cheap unit that chattered on every patch of iron and slag, so she stopped trusting it and nearly stopped digging altogether. The change was not luck. On ground like that, a machine which separates the target from the scrap lets you keep working instead of switching off.',
                   'image'   => 'zambia-4.jpg',
-                  'fallback'=> 'slide-1.jpg',
+                  'fallback'=> 'story-photo-1.jpg',
               ],
               [
                   'eyebrow' => 'Kabwe, Zambia',
                   'title'   => 'Learning the craft before buying the machine',
                   'text'    => 'Mulungu owned no equipment and spent weeks going out with his uncle before spending anything. That part is the one people skip. By the time he bought a machine he already knew how to sweep, so the first months went on learning the ground rather than learning the settings.',
                   'image'   => 'zambia-5.jpg',
-                  'fallback'=> 'slide-2.jpg',
+                  'fallback'=> 'story-photo-2.jpg',
               ],
               [
                   'eyebrow' => 'Livingstone, Zambia',
                   'title'   => 'Chasing ordinary targets, not one big find',
                   'text'    => 'Nachula runs a small pit, and part of what comes out goes straight back into the household. He is not waiting on a once-in-a-lifetime piece. He is after steady, repeatable targets that turn up often enough to be worth the week, which is a different discipline altogether.',
                   'image'   => 'zambia-6.jpg',
-                  'fallback'=> 'slide-3.jpg',
+                  'fallback'=> 'story-photo-3.jpg',
               ],
               [
                   'eyebrow' => 'Lusaka, Zambia',
                   'title'   => 'A worked dump that finally gave something back',
                   'text'    => 'Chileshe had walked the same old mine dump for months with little to show. One weekend with the MAGNETAR 5000 and a slower, wider swing, he started lifting targets he had stepped over before. Nothing exotic, just a machine that stopped shouting at every piece of iron in the spoil.',
                   'image'   => 'zambia-1.jpg',
-                  'fallback'=> 'slide-1.jpg',
+                  'fallback'=> 'story-photo-1.jpg',
               ],
               [
                   'eyebrow' => 'Kitwe, Zambia',
                   'title'   => 'One complete setup instead of piecing it together',
                   'text'    => 'Mwamba needed more than a detector: pumps, hoses and a cradle to work deeper ground. Everything was set up and explained in one go, so he was not left guessing at parts that do not fit together. He now runs the same ground with a second team.',
                   'image'   => 'zambia-2.jpg',
-                  'fallback'=> 'slide-2.jpg',
+                  'fallback'=> 'story-photo-2.jpg',
               ],
               [
                   'eyebrow' => 'Ndola, Zambia',
                   'title'   => 'First find on ground her family already owned',
                   'text'    => 'Kabaso had land but no idea where to start, and did not want to buy the wrong machine. The session was spent on ground she had never walked with a detector. She still keeps the first piece she lifted, as the reason she kept going.',
                   'image'   => 'zambia-3.jpg',
-                  'fallback'=> 'slide-3.jpg',
+                  'fallback'=> 'story-photo-3.jpg',
               ],
           ];
           ?>
