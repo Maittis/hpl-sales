@@ -936,7 +936,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .proof-social-screenshot { background:#f3f6fb; border:1px solid rgba(17,26,56,.08); border-radius:12px; min-height:190px; overflow:hidden; position:relative; }
     .proof-social-screenshot.has-image { aspect-ratio:4/5; margin:0 auto; max-width:420px; min-height:0; }
     .proof-social-screenshot.has-image::before { display:none; }
-    .proof-social-screenshot.has-image > img { display:block; height:100%; object-fit:contain; width:100%; }
+    .proof-social-screenshot.has-image > img { display:block; height:100%; object-fit:cover; object-position:center center; width:100%; }
     .proof-social-screenshot::before { background:linear-gradient(135deg, rgba(255,255,255,.8), rgba(231,236,243,.3)); content:''; inset:0; position:absolute; }
     .proof-social-screenshot.whatsapp { background:linear-gradient(180deg,#d7f7d7,#f5f9f5); }
     .proof-social-screenshot.facebook { background:linear-gradient(180deg,#edf3ff,#ecf2ff); }
@@ -1038,7 +1038,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     .ratings-story-eyebrow { color:var(--gold); font-size:10px; font-weight:700; letter-spacing:.14em; margin:0 0 8px; text-transform:uppercase; }
     .ratings-story-title { color:#fff; font-family:var(--font-heading); font-size:17px; font-weight:400; letter-spacing:0; line-height:1.18; margin:0 0 9px; }
     .ratings-story-text { color:rgba(255,255,255,.72); font-size:13px; line-height:1.6; margin:0; }
-    .ratings-story img { border-top:1px solid rgba(255,255,255,.09); display:block; height:auto; width:100%; }
+    .ratings-story img { aspect-ratio:4/3; border-top:1px solid rgba(255,255,255,.09); display:block; flex:0 0 auto; height:auto; object-fit:cover; object-position:center center; width:100%; }
     .testimonial-cards { display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); margin-top:32px; }
     .testimonial-card { background:rgba(255,255,255,.05); border:1px solid rgba(244,202,91,.2); border-radius:12px; padding:20px; transition:transform .3s ease, box-shadow .3s ease; }
     .testimonial-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.2); }
@@ -1078,7 +1078,7 @@ function art_block(string $file, string $fallbackClass = ''): string
       .visit-cta { display:inline-flex; margin-top:24px; }
       .visit-media { display:grid; gap:18px; }
       .visit-gallery { display:grid; gap:14px; grid-template-columns:repeat(3,minmax(0,1fr)); }
-      .visit-gallery img { aspect-ratio:4/3; border:1px solid rgba(244,202,91,.22); border-radius:12px; display:block; height:100%; object-fit:cover; width:100%; }
+      .visit-gallery img { aspect-ratio:4/3; border:1px solid rgba(244,202,91,.22); border-radius:12px; display:block; height:100%; object-fit:cover; object-position:center center; overflow:hidden; width:100%; }
       .visit-gallery .visit-gallery-lead { grid-column:span 3; aspect-ratio:16/9; }
       .visit-map { border:1px solid rgba(244,202,91,.28); border-radius:16px; overflow:hidden; }
       .visit-map iframe { border:0; display:block; height:100%; width:100%; }
