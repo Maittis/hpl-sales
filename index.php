@@ -1480,7 +1480,10 @@ function art_block(string $file, string $fallbackClass = ''): string
   .trust-story-list { gap:22px; margin-top:24px; }
   .trust-story, .trust-story:nth-child(even) { flex-direction:column; gap:18px; padding:20px; }
   .trust-story-quote { font-size:15px; margin-bottom:14px; }
-  .trust-story-media { aspect-ratio:16/9; }
+  /* Column direction makes align-items:center apply to the horizontal axis, so the
+     media box shrink-wraps and its height:100% image collapses to zero. Stating a
+     width gives the aspect-ratio box a definite size to resolve against. */
+  .trust-story-media { aspect-ratio:16/9; width:100%; }
   /* minmax(0,1fr), not 1fr: a bare 1fr is minmax(auto,1fr), so the track refuses to
      shrink below the card's minimum content width and pushes past the right edge
      of a narrow phone. Letting the track reach zero is what keeps it flush. */
