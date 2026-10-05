@@ -143,6 +143,8 @@ $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
     .ty-video-block h2 {font-weight:700;  font-family:'Manrope','Plus Jakarta Sans',sans-serif; font-size:clamp(20px,3vw,26px); letter-spacing:-.02em; margin:0 0 16px; }
     .ty-video { aspect-ratio:16/9; background:#000; border:1px solid rgba(255,255,255,.16); border-radius:14px; box-shadow:0 18px 50px rgba(0,0,0,.35); overflow:hidden; width:100%; }
     .ty-video video { display:block; height:100%; object-fit:contain; width:100%; }
+    .ty-video-embed { height:100%; position:relative; width:100%; }
+    .ty-video-embed iframe { border:0; display:block; height:100%; left:0; position:absolute; top:0; width:100%; }
     .ty-video-empty { align-items:center; background:rgba(255,255,255,.05); border-style:dashed; color:rgba(255,255,255,.65); display:flex; font-size:14.5px; justify-content:center; padding:20px; text-align:center; }
     .grid { display:grid; gap:14px; grid-template-columns:repeat(3,1fr); }
     .grid figure { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:12px; margin:0; overflow:hidden; }
@@ -182,8 +184,10 @@ $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
           </video>
         </div>
 <?php else: ?>
-        <div class="ty-video ty-video-empty">
-          <span><?= h($s['ty_vplaceholder']) ?></span>
+        <div class="ty-video">
+          <div class="ty-video-embed">
+            <iframe src="https://player.mediadelivery.net/embed/767583/a00df9be-a8b6-4a29-8456-3a63a095035c?autoplay=true&amp;loop=false&amp;muted=true&amp;preload=true&amp;responsive=true" loading="lazy" title="<?= h($s['ty_vh']) ?>" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen" allowfullscreen></iframe>
+          </div>
         </div>
 <?php endif; ?>
       </div>
