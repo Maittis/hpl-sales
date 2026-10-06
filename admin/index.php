@@ -284,6 +284,10 @@ $fields = [
     ['key' => 'trust_3_name', 'label' => 'Trust story 3 name', 'type' => 'text', 'group' => 'Trust stories'],
     ['key' => 'trust_3_location', 'label' => 'Trust story 3 location', 'type' => 'text', 'group' => 'Trust stories'],
     ['key' => 'trust_3_quote', 'label' => 'Trust story 3 quote', 'type' => 'textarea', 'group' => 'Trust stories'],
+    ['key' => 'trust_label', 'label' => 'Trust section label', 'type' => 'text', 'group' => 'Trust stories'],
+    ['key' => 'trust_heading', 'label' => 'Trust section heading', 'type' => 'text', 'group' => 'Trust stories'],
+    ['key' => 'trust_sub', 'label' => 'Trust section subtext', 'type' => 'textarea', 'group' => 'Trust stories'],
+
     ['key' => 'ratings_heading',      'label' => 'Ratings heading',             'type' => 'text', 'group' => 'Section labels'],
     ['key' => 'ratings_count_text',   'label' => 'Ratings review count line',   'type' => 'text', 'group' => 'Section labels'],
     ['key' => 'ratings_stories_heading', 'label' => 'Ratings stories heading',   'type' => 'text', 'group' => 'Section labels'],

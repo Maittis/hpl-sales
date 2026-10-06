@@ -1716,7 +1716,7 @@ p.lb-hint,
         <span class="live-pill"><i></i><?= h($s['live_pill']) ?></span>
         <h1><?= h($s['hero_h1']) ?><span><?= h($s['hero_h1_span']) ?></span></h1>
         <p class="hero-sub"><?= h($s['hero_sub']) ?></p>
-        <p class="hero-intro"><?= h($s['hero_intro']) ?></p>
+        <p class="hero-intro"><?= h($hplCopy('hero_intro', $s['hero_intro'] ?? '')) ?></p>
         <div class="detector-panel promo-embed">
           <?php
             /* Promotional video is served from Bunny Stream. The library and
@@ -2172,8 +2172,8 @@ $trustStories = [
       ];
       ?>
       <section class="section trust-stories">
-        <div class="section-label">In their words</div>
-        <h2>Why detectorists trust us</h2>
+        <div class="section-label"><?= h($hplCopy('trust_label', 'In their words')) ?></div>
+        <h2><?= h($hplCopy('trust_heading', 'Why detectorists trust us')) ?></h2>
         <div class="trust-story-list">
 <?php foreach ($trustStories as $trustStory): ?>
 <?php
@@ -2202,7 +2202,7 @@ $trustStories = [
       <!-- Trust Indicators Section -->
       <section class="trust-section">
         <h2><?= h($hplCopy('ratings_heading', 'Trusted by Detectorists Across Africa')) ?></h2>
-        <p>Join hundreds of successful gold prospectors who trust HPL equipment for their discoveries.</p>
+        <p><?= h($hplCopy('trust_sub', 'Join hundreds of successful gold prospectors who trust HPL equipment for their discoveries.')) ?></p>
 
         <!-- Trust picture cards -->
         <div class="zig">
