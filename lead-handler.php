@@ -13,6 +13,12 @@ if (!function_exists('hpl_lead_questions')) {
     /**
      * The five required qualification questions plus the optional message.
      *
+     * Question labels are pulled from the settings table when available so the
+     * admin can reword them from the panel; the option keys are still hardcoded
+     * and immutable because hpl_lead_message() validates the submitted values
+     * against them, so changing a value would either let junk through or reject
+     * a real answer.
+     *
      * Options are stored as value => supporting note. The value half is the
      * whitelist, and the note is the small line under each card.
      *
@@ -20,9 +26,10 @@ if (!function_exists('hpl_lead_questions')) {
      */
     function hpl_lead_questions(): array
     {
+        $s = hpl_settings();
         return [
             'lead_looking_for' => [
-                'label'    => 'What are you looking for?',
+                'label'    => (string)trim($s['form_q_looking_for'] ?? '') !== '' ? (string)$s['form_q_looking_for'] : 'What are you looking for?',
                 'required' => true,
                 'options'  => [
                     'Gold Detector'             => 'The machine that finds buried gold.',
@@ -32,7 +39,7 @@ if (!function_exists('hpl_lead_questions')) {
                 ],
             ],
             'lead_finding' => [
-                'label'    => 'What are you looking to find?',
+                'label'    => (string)trim($s['form_q_finding'] ?? '') !== '' ? (string)$s['form_q_finding'] : 'What are you looking to find?',
                 'required' => true,
                 'options'  => [
                     'Gold Nuggets'            => 'Loose nuggets in the soil.',
@@ -43,7 +50,7 @@ if (!function_exists('hpl_lead_questions')) {
                 ],
             ],
             'lead_experience' => [
-                'label'    => 'Have you used a gold detector before?',
+                'label'    => (string)trim($s['form_q_experience'] ?? '') !== '' ? (string)$s['form_q_experience'] : 'Have you used a gold detector before?',
                 'required' => true,
                 'options'  => [
                     'Yes'                          => 'You know what to expect from a machine.',
@@ -52,7 +59,7 @@ if (!function_exists('hpl_lead_questions')) {
                 ],
             ],
             'lead_customer_type' => [
-                'label'    => 'What best describes you?',
+                'label'    => (string)trim($s['form_q_customer_type'] ?? '') !== '' ? (string)$s['form_q_customer_type'] : 'What best describes you?',
                 'required' => true,
                 'options'  => [
                     'I am already mining'                 => 'You are working a claim or site.',
@@ -62,7 +69,7 @@ if (!function_exists('hpl_lead_questions')) {
                 ],
             ],
             'lead_timing' => [
-                'label'    => 'When are you planning to buy?',
+                'label'    => (string)trim($s['form_q_timing'] ?? '') !== '' ? (string)$s['form_q_timing'] : 'When are you looking to start detecting?',
                 'required' => true,
                 'options'  => [
                     "I'm ready now"       => 'You would like to start as soon as possible.',
@@ -72,8 +79,8 @@ if (!function_exists('hpl_lead_questions')) {
                 ],
             ],
             'lead_message' => [
-                'label'    => 'Tell us anything else you would like us to know',
-                'hint'     => 'Example: "I have a mining area in Kitwe and I\'m looking for a detector for deep gold."',
+                'label'    => (string)trim($s['form_q_message'] ?? '') !== '' ? (string)$s['form_q_message'] : 'Tell us anything else you would like us to know',
+                'hint'     => (string)trim($s['form_message_hint'] ?? '') !== '' ? (string)$s['form_message_hint'] : 'Example: "I have a mining area in Kitwe and I\'m looking for a detector for deep gold."',
                 'required' => false,
             ],
         ];

@@ -669,7 +669,7 @@ function art_block(string $file, string $fallbackClass = ''): string
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= h($s['topline']) ?></title>
+  <title><?= h($s['topline'] ?? 'HPL Gold Detectors | Built for the serious prospector') ?></title>
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
   <link rel="icon" type="image/png" sizes="48x48" href="img/favicon-48.png">
@@ -760,6 +760,9 @@ function art_block(string $file, string $fallbackClass = ''): string
     .cta-reminder { display:flex; justify-content:center; margin:40px auto 0; max-width:1120px; }
     .button.hero-find-cta { align-items:center; background:var(--gold); border:6px solid #713400; border-radius:999px; box-shadow:0 0 24px rgba(244,202,91,.36); color:var(--navy-dark); display:inline-flex; font-size:17px; font-weight:700; justify-content:center; line-height:1.3; min-height:94px; padding:20px 38px; text-align:center; width:min(460px,100%); transition:transform .2s ease, box-shadow .2s ease, background .2s ease; }
     .button.hero-find-cta:hover { background:var(--gold-light); box-shadow:0 0 40px rgba(244,202,91,.5); transform:scale(1.02); }
+    a[href="#book"].book-gated { cursor:not-allowed; opacity:0.45; filter:grayscale(35%); pointer-events:none; }
+    #book.book-hidden { max-height:0; opacity:0; overflow:hidden; padding-top:0; padding-bottom:0; margin-top:0; transition:max-height 0.7s ease-out, opacity 0.4s ease, margin 0.4s ease, padding 0.4s ease; }
+    #book.book-revealed { max-height:6000px; opacity:1; transition:max-height 0.7s ease-in, opacity 0.5s ease; }
     .section { color:#fff; padding:46px 34px; }
     .section.center { text-align:center; }
     .section h2 {font-weight:400;  color:#fff; font-family:var(--font-heading); font-size:var(--size-h2); letter-spacing:0; line-height:1.05; margin:0 0 12px; text-transform:uppercase; }
@@ -1706,17 +1709,17 @@ p.lb-hint,
 <body>
   <div class="pull-refresh" id="pullRefresh">
     <span class="pull-refresh-icon">↻</span>
-    <span class="pull-refresh-text">Release to refresh</span>
+      <span class="pull-refresh-text"><?= h($hplCopy('pull_refresh_text', 'Release to refresh')) ?></span>
   </div>
   <div class="page">
-    <div class="topline"><?= h($s['topline']) ?></div>
-    <header><div class="nav"><a class="brand logo-chip" href="#top"><img class="header-logo" src="<?= hpl_img_url('hpllogo.jpeg') ?>" alt="HPL Gold Detectors"></a><nav class="nav-links"><a href="#what-you-get"><?= h($s['nav_1']) ?></a><a href="#faq"><?= h($s['nav_2']) ?></a></nav><a class="nav-cta" href="#book"><?= h($s['nav_cta']) ?></a></div></header>
+    <div class="topline"><?= h($s['topline'] ?? 'HPL Gold Detectors | Built for the serious prospector') ?></div>
+    <header><div class="nav"><a class="brand logo-chip" href="#top"><img class="header-logo" src="<?= hpl_img_url('hpllogo.jpeg') ?>" alt="<?= h($hplCopy('logo_alt', 'HPL Gold Detectors')) ?>"></a><nav class="nav-links"><a href="#what-you-get"><?= h($s['nav_1'] ?? 'The Detector') ?></a><a href="#faq"><?= h($s['nav_2'] ?? 'FAQ') ?></a></nav><a class="nav-cta" href="#book"><?= h($s['nav_cta'] ?? 'Get yours now') ?></a></div></header>
     <main id="top">
       <section class="hero" id="hero">
-        <span class="live-pill"><i></i><?= h($s['live_pill']) ?></span>
-        <h1><?= h($s['hero_h1']) ?><span><?= h($s['hero_h1_span']) ?></span></h1>
-        <p class="hero-sub"><?= h($s['hero_sub']) ?></p>
-        <p class="hero-intro"><?= h($hplCopy('hero_intro', $s['hero_intro'] ?? '')) ?></p>
+        <span class="live-pill"><i></i><?= h($s['live_pill'] ?? 'New Gold Detectors — Now Shipping') ?></span>
+        <h1><?= h($s['hero_h1'] ?? 'Are you leaving gold in the ') ?><span><?= h($s['hero_h1_span'] ?? 'ground?') ?></span></h1>
+        <p class="hero-sub"><?= h($s['hero_sub'] ?? 'Introducing our Gold Detectors — field-tested for the ground you actually search.') ?></p>
+        <p class="hero-intro"><?= h($hplCopy('hero_intro', $s['hero_intro'] ?? 'Watch the video to see how to use it, where to search, and why this machine finds targets others miss.')) ?></p>
         <div class="detector-panel promo-embed">
           <?php
             /* Promotional video is served from Bunny Stream. The library and
@@ -1741,12 +1744,12 @@ p.lb-hint,
           </div>
           <noscript>
             <div class="promo-frame-fallback">
-              <a href="<?= h($bunnySrc) ?>" target="_blank" rel="noopener">Watch the HPL promo video</a>
+              <a href="<?= h($bunnySrc) ?>" target="_blank" rel="noopener"><?= h($hplCopy('promo_fallback_text', 'Watch the HPL promo video')) ?></a>
             </div>
           </noscript>
         </div>
-        <p class="hero-copy"><?= h($s['hero_caption']) ?></p>
-        <a class="button hero-find-cta" href="#book" aria-disabled="true" data-ready-label="<?= h($s['cta_text']) ?>">WATCH THE VIDEO TO UNLOCK</a>
+        <p class="hero-copy"><?= h($s['hero_caption'] ?? 'A practical guide to choosing, setting up, and using the right detector for your ground, goals, and experience.') ?></p>
+        <a class="button hero-find-cta" href="#book" aria-disabled="true" data-ready-label="<?= h($s['cta_text'] ?? 'I\'M READY TO FIND GOLD') ?>"><?= h($hplCopy('hero_cta_locked', 'WATCH THE VIDEO TO UNLOCK')) ?></a>
       </section>
 
       <?php
@@ -1882,7 +1885,7 @@ $proofVisuals = [];
       ?>
       <?php if ($proofVisuals): ?>
       <section class="section proof-visuals">
-        <div class="section-label">From the field</div>
+        <div class="section-label"><?= h($hplCopy('field_photos_label', 'From the field')) ?></div>
         <h2><?= h($hplCopy('field_photos_heading', 'Real equipment. Real ground.')) ?></h2>
         <div class="zig">
           <?php foreach ($proofVisuals as $visual): ?>
@@ -1917,24 +1920,24 @@ $proofVisuals = [];
               $slideItems[] = ['file' => $f, 'caption' => (string)($s['slide_' . $i . '_caption'] ?? '')];
           }
       }
-      /* Body copy for the rows below. Keyed by number because the admin has no
-         field for it yet: photo N takes key N of the first list, clip N takes key
-         N of the second. */
-      $fieldPhotoBodies = [
-          1 => 'A worked mine dump is the most honest test there is. Iron litter, slag and old cuttings on every swing, and the target still came through clean and repeatable instead of dissolving into the iron.',
-          2 => 'Two weeks from a first outing to a first piece, on ground that had already been worked by others. The learning is mostly in the swing - slow, wide, close to the soil - and once that settles the machine does its half.',
-          3 => 'Three days of wet sand before the win, on the one ground that punishes a machine for talking over iron. The target held its shape at the edge of coverage, which is exactly where cheap detectors give up.',
-          4 => 'Relics sit in the shallows beside old camps, in iron ground that hides everything else. What you need here is patience and a target you can still trust at the limit of your sweep.',
-          5 => 'A fresh washout is good odds while it lasts. Work the seam as it opens and it pays; wait a day and the water has filled it back in. The whole game is getting there while the ground is open.',
-          6 => 'Twenty minutes on a worked patch and a cluster of coins. Finds this quick are the ones that keep people out on weekends - fast, and they prove the setup before you commit to a full dig.',
-      ];
-      $fieldClipBodies = [
-          1 => 'The find on video, from the first signal to the piece in the hand. Worth watching if you would rather see how the machine behaves on a live target than read about it.',
-          2 => 'The full dig, filmed where it happened. It is the quickest way to judge a detector honestly, because the swing and the call are both still visible instead of edited out.',
-          3 => 'Another ground, another target, same discipline. These clips are here because detector performance is easy to claim and easy to film, so we filmed it instead.',
-          4 => 'A short one from a relic hunt, kept short because the interesting part is the sweep and the decision to dig, not the walk in.',
-          5 => 'The last clip for now. Same ground, same settings - and the point still stands that the machine only helps if you work it properly.',
-      ];
+/* Body copy for the rows below. Keyed by number because the admin has no
+          field for it yet: photo N takes key N of the first list, clip N takes key
+          N of the second. */
+       $fieldPhotoBodies = [
+           1 => $hplCopy('field_photo_body_1', 'A worked mine dump is the most honest test there is. Iron litter, slag and old cuttings on every swing, and the target still came through clean and repeatable instead of dissolving into the iron.'),
+           2 => $hplCopy('field_photo_body_2', 'Two weeks from a first outing to a first piece, on ground that had already been worked by others. The learning is mostly in the swing - slow, wide, close to the soil - and once that settles the machine does its half.'),
+           3 => $hplCopy('field_photo_body_3', 'Three days of wet sand before the win, on the one ground that punishes a machine for talking over iron. The target held its shape at the edge of coverage, which is exactly where cheap detectors give up.'),
+           4 => $hplCopy('field_photo_body_4', 'Relics sit in the shallows beside old camps, in iron ground that hides everything else. What you need here is patience and a target you can still trust at the limit of your sweep.'),
+           5 => $hplCopy('field_photo_body_5', 'A fresh washout is good odds while it lasts. Work the seam as it opens and it pays; wait a day and the water has filled it back in. The whole game is getting there while the ground is open.'),
+           6 => $hplCopy('field_photo_body_6', 'Twenty minutes on a worked patch and a cluster of coins. Finds this quick are the ones that keep people out on weekends - fast, and they prove the setup before you commit to a full dig.'),
+       ];
+       $fieldClipBodies = [
+           1 => $hplCopy('field_clip_body_1', 'The find on video, from the first signal to the piece in the hand. Worth watching if you would rather see how the machine behaves on a live target than read about it.'),
+           2 => $hplCopy('field_clip_body_2', 'The full dig, filmed where it happened. It is the quickest way to judge a detector honestly, because the swing and the call are both still visible instead of edited out.'),
+           3 => $hplCopy('field_clip_body_3', 'Another ground, another target, same discipline. These clips are here because detector performance is easy to claim and easy to film, so we filmed it instead.'),
+           4 => $hplCopy('field_clip_body_4', 'A short one from a relic hunt, kept short because the interesting part is the sweep and the decision to dig, not the walk in.'),
+           5 => $hplCopy('field_clip_body_5', 'The last clip for now. Same ground, same settings - and the point still stands that the machine only helps if you work it properly.'),
+       ];
       $fieldStories = [];
       $photoNo = 0;
       $videoNo = 0;
@@ -1946,7 +1949,7 @@ $proofVisuals = [];
               'kind'  => 'photo',
               'file'  => $slide['file'],
               'cap'   => $slide['caption'],
-              'title' => $slide['caption'] !== '' ? $slide['caption'] : 'Field photo ' . $photoNo,
+              'title' => $slide['caption'] !== '' ? $slide['caption'] : $hplCopy('field_photo_fallback', 'Field photo') . ' ' . $photoNo,
               'body'  => $fieldPhotoBodies[$photoNo] ?? '',
           ];
           /* A clip goes in the gap after each photo while clips remain, so the
@@ -2052,13 +2055,13 @@ $proofVisuals = [];
 
       <section class="section proof-mix">
         <div class="section-label"><?= h($hplCopy('voices_label', 'Customer voices')) ?></div>
-        <h2>See what our customers are saying</h2>
+        <h2><?= h($hplCopy('voices_heading', 'See what our customers are saying')) ?></h2>
         <div class="zig">
           <div class="zig-row">
             <div class="zig-text">
-              <h3 class="zig-title">WhatsApp</h3>
-              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#2dd4bf,#14b8a6);"></span>Today</p>
-              <p class="zig-body voice-todo">TODO &mdash; paste the customer's real WhatsApp Today message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.</p>
+              <h3 class="zig-title"><?= h($hplCopy('voice_whatsapp_title', 'WhatsApp')) ?></h3>
+              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#2dd4bf,#14b8a6);"></span><?= h($hplCopy('voice_whatsapp_meta', 'Today')) ?></p>
+              <p class="zig-body <?= h($hplCopy('voice_whatsapp_text', '') === '' ? 'voice-todo' : '') ?>"><?= h($hplCopy('voice_whatsapp_text', 'TODO &mdash; paste the customer\'s real WhatsApp Today message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.')) ?></p>
             </div>
             <div class="zig-media voice-media">
               <div class="proof-social-screenshot whatsapp<?= file_exists(__DIR__ . '/img/customer-voice-whatsapp.jpg') ? ' has-image' : '' ?>">
@@ -2078,9 +2081,9 @@ $proofVisuals = [];
           </div>
           <div class="zig-row">
             <div class="zig-text">
-              <h3 class="zig-title">Facebook</h3>
-              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);"></span>Post</p>
-              <p class="zig-body voice-todo">TODO &mdash; paste the customer's real Facebook Post message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.</p>
+              <h3 class="zig-title"><?= h($hplCopy('voice_facebook_title', 'Facebook')) ?></h3>
+              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);"></span><?= h($hplCopy('voice_facebook_meta', 'Post')) ?></p>
+              <p class="zig-body <?= h($hplCopy('voice_facebook_text', '') === '' ? 'voice-todo' : '') ?>"><?= h($hplCopy('voice_facebook_text', 'TODO &mdash; paste the customer\'s real Facebook Post message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.')) ?></p>
             </div>
             <div class="zig-media voice-media">
               <div class="proof-social-screenshot facebook<?= file_exists(__DIR__ . '/img/customer-voice-facebook.jpg') ? ' has-image' : '' ?>">
@@ -2100,9 +2103,9 @@ $proofVisuals = [];
           </div>
           <div class="zig-row">
             <div class="zig-text">
-              <h3 class="zig-title">TikTok</h3>
-              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#f472b6,#a855f7);"></span>Video</p>
-              <p class="zig-body voice-todo">TODO &mdash; paste the customer's real TikTok Video message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.</p>
+              <h3 class="zig-title"><?= h($hplCopy('voice_tiktok_title', 'TikTok')) ?></h3>
+              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#f472b6,#a855f7);"></span><?= h($hplCopy('voice_tiktok_meta', 'Video')) ?></p>
+              <p class="zig-body <?= h($hplCopy('voice_tiktok_text', '') === '' ? 'voice-todo' : '') ?>"><?= h($hplCopy('voice_tiktok_text', 'TODO &mdash; paste the customer\'s real TikTok Video message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.')) ?></p>
             </div>
             <div class="zig-media voice-media">
               <div class="proof-social-screenshot tiktok<?= file_exists(__DIR__ . '/img/customer-voice-tiktok.jpg') ? ' has-image' : '' ?>">
@@ -2208,8 +2211,8 @@ $trustStories = [
         <div class="zig">
           <div class="zig-row">
             <div class="zig-text">
-              <h3 class="zig-title">500+ Happy Customers</h3>
-              <p class="zig-body">Detectorists in 12+ countries have put an HPL machine to work on their own ground. The photos on this page are the proof: real equipment, real recoveries, and owners who come back to tell us where they found it.</p>
+              <h3 class="zig-title"><?= h($hplCopy('trust_customers_title', '500+ Happy Customers')) ?></h3>
+              <p class="zig-body"><?= h($hplCopy('trust_customers_text', 'Detectorists in 12+ countries have put an HPL machine to work on their own ground. The photos on this page are the proof: real equipment, real recoveries, and owners who come back to tell us where they found it.')) ?></p>
             </div>
             <div class="zig-media">
               <img src="<?= hpl_img_url('stat-1.jpg') ?>" alt="HPL customers and detectorists in the field" loading="lazy">
@@ -2217,8 +2220,8 @@ $trustStories = [
           </div>
           <div class="zig-row">
             <div class="zig-text">
-              <h3 class="zig-title"><?= h($hplCopy('trust_zig_title', '2000+ Ounces Found')) ?></h3>
-              <p class="zig-body">More than two thousand ounces have come out of the ground with our detectors, and the people who bought them rate them 4.9 out of 5. We would rather earn that number in the field than advertise it.</p>
+              <h3 class="zig-title"><?= h($hplCopy('trust_ounces_title', $hplCopy('trust_zig_title', '2000+ Ounces Found'))) ?></h3>
+              <p class="zig-body"><?= h($hplCopy('trust_ounces_text', 'More than two thousand ounces have come out of the ground with our detectors, and the people who bought them rate them 4.9 out of 5. We would rather earn that number in the field than advertise it.')) ?></p>
             </div>
             <div class="zig-media">
               <img src="<?= hpl_img_url('stat-2.jpg') ?>" alt="Gold recovered with HPL gold detectors" loading="lazy">
@@ -2320,12 +2323,12 @@ $trustStories = [
                 <span class="star filled">★</span>
                 <span class="star filled">★</span>
               </div>
-              <p class="testimonial-text">"Best detector I've ever used. Found gold on my first trip out. The team was incredibly helpful with setup."</p>
+              <p class="testimonial-text"><?= h($hplCopy('testimonial_1_text', '"Best detector I\'ve ever used. Found gold on my first trip out. The team was incredibly helpful with setup."')) ?></p>
               <div class="testimonial-author">
-                <span class="testimonial-avatar">DM</span>
+                <span class="testimonial-avatar"><?= h($hplCopy('testimonial_1_initial', 'DM')) ?></span>
                 <div>
-                  <span class="testimonial-name">David M.</span>
-                  <span class="testimonial-location">Zambia</span>
+                  <span class="testimonial-name"><?= h($hplCopy('testimonial_1_name', 'David M.')) ?></span>
+                  <span class="testimonial-location"><?= h($hplCopy('testimonial_1_location', 'Zambia')) ?></span>
                 </div>
               </div>
             </div>
@@ -2337,12 +2340,12 @@ $trustStories = [
                 <span class="star filled">★</span>
                 <span class="star filled">★</span>
               </div>
-              <p class="testimonial-text">"Professional service and top-quality equipment. Highly recommend for serious detectorists."</p>
+              <p class="testimonial-text"><?= h($hplCopy('testimonial_2_text', '"Professional service and top-quality equipment. Highly recommend for serious detectorists."')) ?></p>
               <div class="testimonial-author">
-                <span class="testimonial-avatar">SK</span>
+                <span class="testimonial-avatar"><?= h($hplCopy('testimonial_2_initial', 'SK')) ?></span>
                 <div>
-                  <span class="testimonial-name">Sarah K.</span>
-                  <span class="testimonial-location">Zimbabwe</span>
+                  <span class="testimonial-name"><?= h($hplCopy('testimonial_2_name', 'Sarah K.')) ?></span>
+                  <span class="testimonial-location"><?= h($hplCopy('testimonial_2_location', 'Zimbabwe')) ?></span>
                 </div>
               </div>
             </div>
@@ -2354,12 +2357,12 @@ $trustStories = [
                 <span class="star filled">★</span>
                 <span class="star half">★</span>
               </div>
-              <p class="testimonial-text">"Great machine, excellent support. Found 1.5oz in my first month. Will definitely buy again."</p>
+              <p class="testimonial-text"><?= h($hplCopy('testimonial_3_text', '"Great machine, excellent support. Found 1.5oz in my first month. Will definitely buy again."')) ?></p>
               <div class="testimonial-author">
-                <span class="testimonial-avatar">JT</span>
+                <span class="testimonial-avatar"><?= h($hplCopy('testimonial_3_initial', 'JT')) ?></span>
                 <div>
-                  <span class="testimonial-name">James T.</span>
-                  <span class="testimonial-location">South Africa</span>
+                  <span class="testimonial-name"><?= h($hplCopy('testimonial_3_name', 'James T.')) ?></span>
+                  <span class="testimonial-location"><?= h($hplCopy('testimonial_3_location', 'South Africa')) ?></span>
                 </div>
               </div>
             </div>
@@ -2565,11 +2568,11 @@ $trustStories = [
 <?php if ($leadSent): ?>
         <div class="lead-success" id="leadSuccess" role="status" tabindex="-1">
           <span class="lead-success-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-          <h3>Thank You!</h3>
-          <p>Your enquiry has been received. A member of our HPL team will contact you shortly to discuss your requirements and recommend the right equipment.</p>
-          <p class="lead-success-note">We aim to respond within one business day.</p>
+          <h3><?= h($hplCopy('form_success_heading', 'Thank You!')) ?></h3>
+          <p><?= h($hplCopy('form_success_text', 'Your enquiry has been received. A member of our HPL team will contact you shortly to discuss your requirements and recommend the right equipment.')) ?></p>
+          <p class="lead-success-note"><?= h($hplCopy('form_success_note', 'We aim to respond within one business day.')) ?></p>
           <div class="lead-success-actions">
-            <a href="thank-you.php" class="lead-success-btn lead-success-btn-secondary">Go to Thank You Page</a>
+            <a href="thank-you.php" class="lead-success-btn lead-success-btn-secondary"><?= h($hplCopy('form_success_back', 'Go to Thank You Page')) ?></a>
           </div>
         </div>
 <?php else: ?>
@@ -2587,18 +2590,18 @@ $trustStories = [
 
           <div class="form-step" data-step="1">
             <header class="form-step-head">
-              <h3>Let's start with your details</h3>
-              <p>Please enter your information so our HPL team can contact you.</p>
+              <h3><?= h($hplCopy('form_step1_heading', "Let's start with your details")) ?></h3>
+              <p><?= h($hplCopy('form_step1_sub', 'Please enter your information so our HPL team can contact you.')) ?></p>
             </header>
 
             <div class="field" data-field="lead_name">
-              <label for="leadName">Full Name <span class="req">*</span></label>
+              <label for="leadName"><?= h($hplCopy('form_label_name', 'Full Name')) ?> <span class="req">*</span></label>
               <input type="text" id="leadName" name="lead_name" value="<?= h($leadFields['lead_name']) ?>" autocomplete="name" required<?= lead_invalid($leadErrors, 'lead_name') ?>>
               <?= lead_field_error($leadErrors, 'lead_name') ?>
             </div>
 
             <div class="field" data-field="lead_phone">
-              <label for="leadPhone">WhatsApp Number <span class="req">*</span></label>
+              <label for="leadPhone"><?= h($hplCopy('form_label_phone', 'WhatsApp Number')) ?> <span class="req">*</span></label>
               <span class="phone-row">
                 <span class="cc-wrap">
                   <span class="cc-label"><img class="cc-flag" id="ccFlag" src="img/flags/<?= h(cc_flag((string)$leadFields['lead_cc'])) ?>.png" alt=""><span class="cc-text" id="ccText"><?= h(cc_label((string)$leadFields['lead_cc'])) ?></span></span>
@@ -2614,14 +2617,14 @@ $trustStories = [
             </div>
 
             <div class="field" data-field="lead_email">
-              <label for="leadEmail">Email Address <span class="opt">optional</span></label>
+              <label for="leadEmail"><?= h($hplCopy('form_label_email', 'Email Address')) ?> <span class="opt">optional</span></label>
               <input type="email" id="leadEmail" name="lead_email" value="<?= h($leadFields['lead_email']) ?>" placeholder="you@example.com" autocomplete="email"<?= lead_invalid($leadErrors, 'lead_email') ?>>
               <?= lead_field_error($leadErrors, 'lead_email') ?>
             </div>
 
             <div class="field-row">
               <div class="field" data-field="lead_country">
-                <label for="leadCountry">Country <span class="req">*</span></label>
+                <label for="leadCountry"><?= h($hplCopy('form_label_country', 'Country')) ?> <span class="req">*</span></label>
                 <select id="leadCountry" name="lead_country" required<?= lead_invalid($leadErrors, 'lead_country') ?>>
                   <option value="">Select country</option>
 <?php foreach (hpl_lead_country_names() as $countryName): ?>
@@ -2632,19 +2635,19 @@ $trustStories = [
               </div>
 
               <div class="field" data-field="lead_city">
-                <label for="leadCity">City / Town <span class="req">*</span></label>
+                <label for="leadCity"><?= h($hplCopy('form_label_city', 'City / Town')) ?> <span class="req">*</span></label>
                 <input type="text" id="leadCity" name="lead_city" value="<?= h($leadFields['lead_city']) ?>" autocomplete="address-level2" required<?= lead_invalid($leadErrors, 'lead_city') ?>>
                 <?= lead_field_error($leadErrors, 'lead_city') ?>
               </div>
             </div>
 
-            <div class="form-nav"><button class="button" type="button" id="leadNext">Continue</button></div>
+            <div class="form-nav"><button class="button" type="button" id="leadNext"><?= h($hplCopy('form_continue', 'Continue')) ?></button></div>
           </div>
 
           <div class="form-step" data-step="2" hidden>
             <header class="form-step-head">
-              <h3>Tell us about what you need</h3>
-              <p>These answers help us send you the right equipment, not a generic price list.</p>
+              <h3><?= h($hplCopy('form_step2_heading', 'Tell us about what you need')) ?></h3>
+              <p><?= h($hplCopy('form_step2_sub', 'These answers help us send you the right equipment, not a generic price list.')) ?></p>
             </header>
 
 <?php $leadQuestions = hpl_lead_questions(); ?>
@@ -2667,18 +2670,18 @@ $trustStories = [
 
             <div class="field" data-field="lead_message">
               <label for="leadMessage"><?= h($leadQuestions['lead_message']['label']) ?> <span class="opt">optional</span></label>
-              <textarea id="leadMessage" name="lead_message" rows="4" placeholder="Example: I have a mining area in Kitwe and I am looking for a detector for deep gold."><?= h($leadFields['lead_message']) ?></textarea>
+              <textarea id="leadMessage" name="lead_message" rows="4" placeholder="<?= h($hplCopy('form_message_hint', 'Example: I have a mining area in Kitwe and I am looking for a detector for deep gold.')) ?>"><?= h($leadFields['lead_message']) ?></textarea>
               <?= lead_field_error($leadErrors, 'lead_message') ?>
             </div>
 
             <label class="advice-check" for="leadAdvice">
               <input type="checkbox" id="leadAdvice" name="lead_needs_advice" value="1"<?= $leadNeedsAdvice ? ' checked' : '' ?>>
-              <span>I'm not sure what equipment I need &mdash; please advise me.</span>
+              <span><?= h($hplCopy('form_advice_label', "I'm not sure what equipment I need &mdash; please advise me.")) ?></span>
             </label>
 
-            <div class="form-nav">
-              <button class="btn-ghost" type="button" id="leadBack">Back</button>
-              <button class="button" type="submit" id="leadSubmit">Submit &amp; Talk to HPL</button>
+<div class="form-nav">
+              <button class="btn-ghost" type="button" id="leadBack"><?= h($hplCopy('form_back', 'Back')) ?></button>
+              <button class="button" type="submit" id="leadSubmit"><?= h($hplCopy('form_submit_btn', 'Submit & Talk to HPL')) ?></button>
             </div>
           </div>
         </form>
@@ -2687,7 +2690,7 @@ $trustStories = [
     </main>
     <footer role="contentinfo" aria-label="Site Footer"><div class="footer-inner">
       <div class="footer-top">
-        <a class="footer-brand logo-chip" href="#top"><img class="footer-logo" src="<?= hpl_img_url('hpllogo.jpeg') ?>" alt="HPL Gold Detectors"></a>
+        <a class="footer-brand logo-chip" href="#top"><img class="footer-logo" src="<?= hpl_img_url('hpllogo.jpeg') ?>" alt="<?= h($hplCopy('logo_alt', 'HPL Gold Detectors')) ?>"></a>
         <button class="footer-menu-btn" type="button" id="footerMenuBtn" aria-label="Open Footer Menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
       </div>
       <nav class="footer-nav" id="footerNav" aria-label="Footer Navigation"><ul>
@@ -2715,7 +2718,7 @@ $trustStories = [
     </div>
     <?php /* Hidden outright when there is no usable number: an anchor with an empty
        href is focusable, looks clickable, and goes nowhere. */ if ($quickContactUrl !== '') { ?>
-    <a class="wa-float" href="<?= h($quickContactUrl) ?>" target="_blank" rel="noopener" aria-label="<?= h('Message the HPL team on WhatsApp') ?>">
+    <a class="wa-float" href="<?= h($quickContactUrl) ?>" target="_blank" rel="noopener" aria-label="<?= h($hplCopy('wa_float_aria', 'Message the HPL team on WhatsApp')) ?>">
       <span class="wa-float-icon" aria-hidden="true">✆</span>
       <span class="wa-float-label"><?= h($quickContactLabel) ?></span>
     </a>
@@ -2723,6 +2726,26 @@ $trustStories = [
     <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top" title="Back to top">&uarr;</button>
   </div>
   <script>
+    /* Settings for client-side validation messages */
+    window.hplFormSettings = {
+      step1Heading: <?= json_encode($hplCopy('form_step1_heading', "Let's start with your details")) ?>,
+      step1Sub: <?= json_encode($hplCopy('form_step1_sub', 'Please enter your information so our HPL team can contact you.')) ?>,
+      step2Heading: <?= json_encode($hplCopy('form_step2_heading', 'Tell us about what you need')) ?>,
+      step2Sub: <?= json_encode($hplCopy('form_step2_sub', 'These answers help us send you the right equipment, not a generic price list.')) ?>,
+      stepLabels: [
+        <?= json_encode($hplCopy('form_step1_label', 'Step 1 of 2 · Your details')) ?>,
+        <?= json_encode($hplCopy('form_step2_label', 'Step 2 of 2 · Your requirements')) ?>
+      ],
+      validation: {
+        nameRequired: <?= json_encode($hplCopy('form_error_name_required', 'Please enter your full name.')) ?>,
+        phoneRequired: <?= json_encode($hplCopy('form_error_phone_required', 'Please enter your WhatsApp number.')) ?>,
+        emailInvalid: <?= json_encode($hplCopy('form_error_email_invalid', 'Please check that email address, or leave it blank.')) ?>,
+        countryRequired: <?= json_encode($hplCopy('form_error_country_required', 'Please select your country.')) ?>,
+        cityRequired: <?= json_encode($hplCopy('form_error_city_required', 'Please enter your city or town.')) ?>,
+        questionRequired: <?= json_encode($hplCopy('form_error_question_required', 'Please choose an option to continue.')) ?>
+      },
+      promoReadyLabel: <?= json_encode($hplCopy('cta_text', "I'm Ready to Find Gold")) ?>
+    };
     /* Run as soon as the markup exists, not on window.load.
        window.load waits for every image and every third-party player iframe on
        the page - 35 images and 9 iframes here. On a phone that wait can drag on
@@ -2800,37 +2823,92 @@ $trustStories = [
         });
       }
 
-/* ---------- Bunny Stream promo: visitor-started playback ---------- */
+/* ---------- Bunny Stream promo: 9-second watch gate ---------- */
       (function () {
         var frame = document.getElementById('promoPlayer');
         if (!frame) return;
-        var cta = document.querySelector('.hero-find-cta');
+
+        var UNLOCK_SECONDS = 9;
+        var unlocked = false;
         var player = null;
+        var ticker = null;
 
         function track(type, data) { if (window.hplTrack) window.hplTrack(type, data); }
 
-        function unlockCta() {
-          if (!cta || cta.getAttribute('aria-disabled') !== 'true') return;
-          cta.textContent = cta.getAttribute('data-ready-label') || "I'M READY TO FIND GOLD";
-          cta.setAttribute('aria-disabled', 'false');
+        function lockAllCtas() {
+          var ctas = document.querySelectorAll('a[href="#book"]');
+          ctas.forEach(function(btn) {
+            if (btn.getAttribute('aria-disabled') === 'true') return;
+            btn.setAttribute('aria-disabled', 'true');
+            btn.classList.add('book-gated');
+          });
         }
 
-        if (cta) {
-          cta.addEventListener('click', function (event) {
-            if (cta.getAttribute('aria-disabled') === 'true') event.preventDefault();
+        function unlockAll() {
+          if (unlocked) return;
+          unlocked = true;
+          localStorage.setItem('hpl_cta_unlocked', '1');
+
+          var ctas = document.querySelectorAll('a[href="#book"]');
+          ctas.forEach(function(btn) {
+            btn.setAttribute('aria-disabled', 'false');
+            btn.classList.remove('book-gated');
+            if (btn.classList.contains('hero-find-cta')) {
+              btn.textContent = btn.getAttribute('data-ready-label') || window.hplFormSettings.promoReadyLabel;
+            }
           });
+
+          var form = document.getElementById('book');
+          if (form) {
+            form.classList.add('book-revealed');
+            form.classList.remove('book-hidden');
+          }
+        }
+
+        function startTicker() {
+          stopTicker();
+          var wallStart = Date.now();
+          ticker = setInterval(function() {
+            if (!player || unlocked) { stopTicker(); return; }
+            try {
+              player.getCurrentTime(function(t) {
+                if (typeof t === 'number' && t >= UNLOCK_SECONDS) {
+                  unlockAll();
+                  stopTicker();
+                }
+              });
+            } catch(e) {
+              if (Date.now() - wallStart >= UNLOCK_SECONDS * 1000) {
+                unlockAll();
+                stopTicker();
+              }
+            }
+          }, 250);
+        }
+
+        function stopTicker() {
+          if (ticker) { clearInterval(ticker); ticker = null; }
         }
 
         function bind() {
           player = new playerjs.Player(frame);
 
           player.on('ready', function () {
-            player.getPaused(function (paused) { if (!paused) unlockCta(); });
+            player.getPaused(function (paused) { if (!paused && !unlocked) startTicker(); });
           });
 
           player.on('play', function () {
-            unlockCta();
             track('video_play', { video: 'promo' });
+            if (!unlocked) startTicker();
+          });
+
+          player.on('pause', function () {
+            stopTicker();
+          });
+
+          player.on('ended', function () {
+            stopTicker();
+            unlockAll();
           });
         }
 
@@ -2839,9 +2917,19 @@ $trustStories = [
         lib.src = 'https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js';
         lib.async = true;
         lib.onload = bind;
-          /* If player.js cannot load, Bunny's own controls still play the video. */
+        /* If player.js cannot load, Bunny's own controls still play the video. */
         lib.onerror = function () { /* embed is self-sufficient */ };
         document.head.appendChild(lib);
+
+        onDomReady(function() {
+          if (localStorage.getItem('hpl_cta_unlocked') === '1') {
+            unlockAll();
+          } else {
+            lockAllCtas();
+            var form = document.getElementById('book');
+            if (form) form.classList.add('book-hidden');
+          }
+        });
       })();
 
       var scrollTracked = { 25: false, 50: false, 75: false, 100: false };
@@ -2894,7 +2982,7 @@ $trustStories = [
       var current = 0;
       var QUESTIONS = ['lead_looking_for', 'lead_finding', 'lead_experience', 'lead_customer_type', 'lead_timing'];
       var STEP1 = ['lead_name', 'lead_phone', 'lead_email', 'lead_country', 'lead_city'];
-      var STEP_LABELS = ['Step 1 of 2 \u00b7 Your details', 'Step 2 of 2 \u00b7 Your requirements'];
+      var STEP_LABELS = window.hplFormSettings.stepLabels;
 
       function paintProgress() {
         if (progressFill) progressFill.style.width = (current === 0 ? 50 : 100) + '%';
@@ -2950,14 +3038,14 @@ $trustStories = [
         var city = form.querySelector('#leadCity');
         var email = form.querySelector('#leadEmail');
 
-        if (!name || !name.value.trim()) { setError('lead_name', 'Please enter your full name.'); return false; }
-        if (!phone || phone.value.replace(/\D/g, '').length < 6) { setError('lead_phone', 'Please enter your WhatsApp number.'); return false; }
+        if (!name || !name.value.trim()) { setError('lead_name', window.hplFormSettings.validation.nameRequired); return false; }
+        if (!phone || phone.value.replace(/\D/g, '').length < 6) { setError('lead_phone', window.hplFormSettings.validation.phoneRequired); return false; }
         if (email && email.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
-          setError('lead_email', 'Please check that email address, or leave it blank.');
+          setError('lead_email', window.hplFormSettings.validation.emailInvalid);
           return false;
         }
-        if (!country || !country.value) { setError('lead_country', 'Please select your country.'); return false; }
-        if (!city || !city.value.trim()) { setError('lead_city', 'Please enter your city or town.'); return false; }
+        if (!country || !country.value) { setError('lead_country', window.hplFormSettings.validation.countryRequired); return false; }
+        if (!city || !city.value.trim()) { setError('lead_city', window.hplFormSettings.validation.cityRequired); return false; }
         return true;
       }
 
@@ -2966,7 +3054,7 @@ $trustStories = [
         for (var i = 0; i < QUESTIONS.length; i++) {
           if (!form.querySelector('input[name="' + QUESTIONS[i] + '"]:checked')) {
             for (var j = 0; j < QUESTIONS.length; j++) clearError(QUESTIONS[j]);
-            setError(QUESTIONS[i], 'Please choose an option to continue.');
+            setError(QUESTIONS[i], window.hplFormSettings.validation.questionRequired);
             return false;
           }
         }
