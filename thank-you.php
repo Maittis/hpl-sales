@@ -41,9 +41,31 @@ if (!function_exists('hpl_wa_url')) {
 $waUrl = hpl_wa_url($s, $firstName !== '' ? $firstName : '');
 $hplCopy = static function (string $key, string $fallback) use ($s): string {
     $value = $s[$key] ?? '';
-    if (is_string($value) && trim($value) !== '') return $value;
+    if (is_string($value) && trim($value) !== '') { return $value; }
     return $fallback;
 };
+
+if (!function_exists('h')) {
+    function h($s) {
+        return htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+if (!function_exists('hpl_img_url')) {
+    function hpl_img_url(string $file): string {
+        $path = __DIR__ . '/img/' . $file;
+        $stamp = is_file($path) ? (string)@filemtime($path) : '';
+        return 'img/' . $file . ($stamp !== '' ? '?v=' . $stamp : '');
+    }
+}
+if (!function_exists('hpl_media_type')) {
+    function hpl_media_type(string $url): string {
+        $ext = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?: $url, PATHINFO_EXTENSION));
+        if ($ext === 'mp4') return 'video/mp4';
+        if ($ext === 'webm') return 'video/webm';
+        if ($ext === 'mov') return 'video/quicktime';
+        return 'video/mp4';
+    }
+}
 $gallery = ['field-proof-1.jpg','field-proof-2.jpg','proof-1.jpg','proof-2.jpg','proof-3.jpg','slide-1.jpg','slide-2.jpg','slide-3.jpg','slide-4.jpg','slide-5.jpg','slide-6.jpg','ty-1.jpg','ty-2.jpg','ty-3.jpg','ty-4.jpg','ty-5.jpg','ty-6.jpg','visit-1.jpg','visit-2.jpg','visit-3.jpg','stat-1.jpg','stat-2.jpg','story-photo-1.jpg','story-photo-2.jpg','story-photo-3.jpg','benefit-1.jpg','benefit-2.jpg','benefit-3.jpg'];
 $gallery = array_values(array_filter($gallery, fn($f) => file_exists(__DIR__ . '/img/' . $f)));
 $galleryData = json_encode(array_map(fn($f) => hpl_img_url($f), $gallery), JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP);
