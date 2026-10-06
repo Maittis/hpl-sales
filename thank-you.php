@@ -129,6 +129,4 @@ $hplCopy = static function (string $key, string $fallback) use ($s): string {
       <div class="section-label">What happens next</div>
       <h2>Here's what you can expect from the HPL team</h2>
       <div class="steps">
-        <div class="step"><div class="step-num">01</div><h3>We review your details</h3><p>We review the information you provided so we understand what type of equipment and solution may fit your needs.</p></div>
-        <div class="step"><div class="step-num">02</div><h3>We contact you</h3><p>An HPL team member will contact you using the details you provided.</p></div>
-        <div class="step"><div class="step-num">03</di
+        <div class="step"><div class="step-num">01</div><h3>We review your details</h3><p>We review the information you provided so we understan
