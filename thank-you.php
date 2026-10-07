@@ -252,13 +252,6 @@ $tyReceipts = [
       <h1><?= h($hplCopy('ty_h', 'Thanks for reaching out')) ?><?= $firstName !== '' ? ', ' . h($firstName) : '' ?></h1>
       <p class="sub"><?= h($hplCopy('ty_sub', 'Your information has been received by the HPL team. We will review your requirements and contact you to discuss what you are looking for.')) ?></p>
       <p class="watch-note"><?= h($hplCopy('ty_watch_note', 'While you wait — watch the video below so you are fully prepared when we connect.')) ?></p>
-      <div class="response-pill"><?= h($hplCopy('ty_response_time', 'We typically respond within one business day')) ?></div>
-      <div class="cta-row">
-        <?php if ($waUrl !== ''): ?>
-        <a class="btn" href="<?= h($waUrl) ?>" target="_blank" rel="noopener"><?= h($hplCopy('ty_whatsapp_button', 'Message HPL on WhatsApp')) ?></a>
-        <?php endif; ?>
-        <a class="btn ghost" href="index.php"><?= h($hplCopy('ty_back', 'Explore HPL Equipment')) ?></a>
-      </div>
       <div class="main-video" style="margin-top:32px">
         <?php if (trim((string)($s['ty_video_embed'] ?? '')) !== ''): ?>
           <?php if (($poster = trim((string)($s['ty_video_poster'] ?? '')) ) !== '' && file_exists(__DIR__ . '/' . $poster)): ?>
@@ -288,6 +281,13 @@ $tyReceipts = [
         <?php else: ?>
           <div class="video-fallback"><?= h($hplCopy('ty_vplaceholder', 'Our thank-you video is being uploaded. Please check back shortly.')) ?></div>
         <?php endif; ?>
+      </div>
+      <div class="response-pill"><?= h($hplCopy('ty_response_time', 'We typically respond within one business day')) ?></div>
+      <div class="cta-row">
+        <?php if ($waUrl !== ''): ?>
+        <a class="btn" href="<?= h($waUrl) ?>" target="_blank" rel="noopener"><?= h($hplCopy('ty_whatsapp_button', 'Message HPL on WhatsApp')) ?></a>
+        <?php endif; ?>
+        <a class="btn ghost" href="index.php"><?= h($hplCopy('ty_back', 'Explore HPL Equipment')) ?></a>
       </div>
     </header>
 
