@@ -162,9 +162,15 @@ $tyReceipts = [
     .section-header h2{font-family:Anton,sans-serif;font-size:clamp(28px,4vw,44px);margin:0 0 14px;line-height:1.1;letter-spacing:.01em;font-weight:400}
     .section-header p{color:var(--muted);font-size:17px;margin:0;line-height:1.7}
     /* Main video — the only player on the page */
-    .main-video{max-width:896px;margin:0 auto;border:1px solid var(--border-strong);border-radius:20px;overflow:hidden;background:#000;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+    .main-video{max-width:896px;margin:0 auto;border:1px solid var(--border-strong);border-radius:20px;overflow:hidden;background:#000;box-shadow:0 30px 80px rgba(0,0,0,.5);position:relative;aspect-ratio:16/9}
     .main-video video{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
     .main-video .video-fallback{padding:80px 24px;text-align:center;color:var(--muted);font-size:16px}
+    .video-poster-wrap{position:absolute;inset:0;z-index:2;cursor:pointer;border-radius:20px}
+    .video-poster{width:100%;height:100%;object-fit:cover;border-radius:20px}
+    .play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72px;height:72px;border-radius:50%;background:rgba(0,0,0,0.55);border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none;backdrop-filter:blur(2px)}
+    .play-btn::after{content:'';display:block;width:0;height:0;border-left:22px solid #fff;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px}
+    .embed-wrap{position:absolute;inset:0;z-index:1;background:#000}
+    .embed-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
     /* Due diligence */
     .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:0 0 40px}
     .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 24px;text-align:center;transition:background .2s ease,border-color .2s ease}
@@ -253,6 +259,36 @@ $tyReceipts = [
         <?php endif; ?>
         <a class="btn ghost" href="index.php"><?= h($hplCopy('ty_back', 'Explore HPL Equipment')) ?></a>
       </div>
+      <div class="main-video" style="margin-top:32px">
+        <?php if (trim((string)($s['ty_video_embed'] ?? '')) !== ''): ?>
+          <?php if (($poster = trim((string)($s['ty_video_poster'] ?? '')) ) !== '' && file_exists(__DIR__ . '/' . $poster)): ?>
+            <div class="video-poster-wrap">
+              <img class="video-poster" src="<?= h($poster) ?>" alt="">
+              <div class="play-btn" aria-hidden="true"></div>
+            </div>
+          <?php endif; ?>
+          <div class="embed-wrap">
+            <?php
+              $embed = (string)($s['ty_video_embed'] ?? '');
+              $embed = preg_replace('~<div[^>]*>~', '', $embed, 1);
+              $embed = preg_replace('~</div>\s*$~', '', $embed, 1);
+              echo $embed;
+            ?>
+          </div>
+        <?php elseif ($tyVideo !== ''): ?>
+          <?php if (str_starts_with($tyVideo, 'http')): ?>
+            <video controls playsinline preload="metadata" poster="">
+              <source src="<?= h($tyVideo) ?>" type="video/mp4">
+            </video>
+          <?php else: ?>
+            <video controls playsinline preload="metadata">
+              <source src="<?= h($tyVideo) ?>" type="<?= h(hpl_media_type($tyVideo)) ?>">
+            </video>
+          <?php endif; ?>
+        <?php else: ?>
+          <div class="video-fallback"><?= h($hplCopy('ty_vplaceholder', 'Our thank-you video is being uploaded. Please check back shortly.')) ?></div>
+        <?php endif; ?>
+      </div>
     </header>
 
     <section id="start">
@@ -263,7 +299,20 @@ $tyReceipts = [
       </div>
       <div class="main-video">
         <?php if (trim((string)($s['ty_video_embed'] ?? '')) !== ''): ?>
-          <?= $s['ty_video_embed'] ?>
+          <?php if (($poster = trim((string)($s['ty_video_poster'] ?? '')) ) !== '' && file_exists(__DIR__ . '/' . $poster)): ?>
+            <div class="video-poster-wrap">
+              <img class="video-poster" src="<?= h($poster) ?>" alt="">
+              <div class="play-btn" aria-hidden="true"></div>
+            </div>
+          <?php endif; ?>
+          <div class="embed-wrap">
+            <?php
+              $embed = (string)($s['ty_video_embed'] ?? '');
+              $embed = preg_replace('~<div[^>]*>~', '', $embed, 1);
+              $embed = preg_replace('~</div>\s*$~', '', $embed, 1);
+              echo $embed;
+            ?>
+          </div>
         <?php elseif ($tyVideo !== ''): ?>
           <?php if (str_starts_with($tyVideo, 'http')): ?>
             <video controls playsinline preload="metadata" poster="">
@@ -436,5 +485,11 @@ $tyReceipts = [
       <p class="copyright"><?= h($hplCopy('ty_copyright', '© 2026 HPL Gold Detectors. All rights reserved.')) ?></p>
     </footer>
   </div>
+  <script>
+    document.addEventListener('click', function(e) {
+      var wrap = e.target.closest('.video-poster-wrap');
+      if (wrap) wrap.style.display = 'none';
+    });
+  </script>
 </body>
 </html>
