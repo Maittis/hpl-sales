@@ -395,7 +395,7 @@ if (!function_exists('hpl_embed_host_ok')) {
      * $videoAttrs carries the layout-specific attributes (the hook the carousel
      * listens on, and loop where that layout wants it).
      */
-    function hpl_proof_media(array $item, string $videoAttrs = ''): string
+    function hpl_proof_media(array $item, string $videoAttrs = '', string $aspectRatio = '16/9'): string
     {
         $src = (string)($item['src'] ?? '');
         $caption = (string)($item['caption'] ?? '');
@@ -407,7 +407,7 @@ if (!function_exists('hpl_embed_host_ok')) {
                does not read as a video at all. This stand-in sits under the frame so the
                section looks like a player from the first paint; the script retires it as
                soon as the player reports load. */
-            return '<div class="proof-embed" style="aspect-ratio:16 / 9; height:100%; width:100%;">'
+            return '<div class="proof-embed" style="aspect-ratio:$aspectRatio; height:100%; width:100%;">'
                 . '<span class="proof-embed-poster" aria-hidden="true"><i class="proof-embed-play"></i></span>'
                 . '<iframe data-embed-src="' . h($src) . '"'
                 . ' title="' . h($caption !== '' ? $caption : 'Customer story video') . '"'
@@ -774,15 +774,13 @@ function art_block(string $file, string $fallbackClass = ''): string
        820px is deliberately a little narrower than the promo player above it
        (1000px), so the testimonial reads as supporting proof rather than a second
        hero, while still filling the column on desktop. */
-    .proof-single { margin:26px auto 0; max-width:820px; position:relative; width:100%; }
-    .proof-single .proof-embed { aspect-ratio:16/9; height:100%; width:100%; }
-    .proof-single figcaption { background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0)); bottom:0; color:#fff; font-size:13px; font-weight:700; left:0; padding:28px 14px 12px; position:absolute; right:0; text-align:left; }
+    section[data-pf-group="videos"] .proof-single { aspect-ratio:4/3; }
     /* Keep Bunny embeds full-bleed inside the card so they feel like native video
        tiles. No scale() here on purpose: magnifying the frame cropped roughly 16%
        off every edge inside the overflow:hidden card, so a paused player read as a
        cropped photograph. Bunny letterboxes inside the box instead, which is what a
        normal embedded video does. */
-    .proof-embed { align-items:center; aspect-ratio:16/9; background:#0b1226; border-radius:14px; box-shadow:0 16px 34px rgba(0,0,0,.32); display:flex; height:100%; justify-content:center; overflow:hidden; position:relative; width:100%; }
+    .proof-embed { align-items:center; aspect-ratio:4/3; background:#0b1226; border-radius:14px; box-shadow:0 16px 34px rgba(0,0,0,.32); display:flex; height:100%; justify-content:center; overflow:hidden; position:relative; width:100%; }
     .proof-embed iframe { border:0; display:block; height:100%; inset:0; max-height:100%; max-width:100%; object-fit:contain; position:absolute; width:100%; }
     /* Nothing is fetched until the observer sets src, so hide the empty frame
        instead of showing a black box that flashes before the player appears. */
@@ -1853,7 +1851,7 @@ p.lb-hint,
         </div>
       </div>
 
-      <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; /* This testimonial plays as the visitor reaches it, so use the muted autoplay variant rather than the stored click-to-play URL. */ if (isset($featuredProof['src_auto'])) { $featuredProof['src'] = $featuredProof['src_auto']; } ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p>
+      <section data-pf-group="videos" class="section center wash proof"><div class="section-label"><?= h($s['social_label']) ?></div><h2><?= h($s['social_heading']) ?></h2><?php if (empty($proofItems)): ?><div class="proof-empty">Customer videos will appear here once added from the admin panel.</div><?php else: $featuredProof = $proofItems[0]; /* This testimonial plays as the visitor reaches it, so use the muted autoplay variant rather than the stored click-to-play URL. */ if (isset($featuredProof['src_auto'])) { $featuredProof['src'] = $featuredProof['src_auto']; } ?><figure class="proof-single"><?= hpl_proof_media($featuredProof, 'preload="none"', '4/3') ?><?php if ($featuredProof['caption'] !== ''): ?><figcaption><?= h($featuredProof['caption']) ?></figcaption><?php endif; ?></figure><?php endif; ?><p class="proof-caption"><?= h($s['social_caption']) ?></p>
       </section>
 
       <?php
