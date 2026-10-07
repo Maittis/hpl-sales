@@ -2354,19 +2354,7 @@ $trustStories = [
       </section>
 
 <?php if ($customerAdviceItem): ?>
-      <section class="section customer-advice-section">
-        <h2><?= h($hplCopy('customer_advice_heading', 'Customer advice to you')) ?></h2>
-        <figure class="promo-frame customer-advice-player">
-<?php if (($customerAdviceItem['kind'] ?? '') === 'embed'): ?>
-          <iframe class="promo-frame-el" src="<?= h($customerAdviceItem['src']) ?>" title="Customer advice to you" loading="lazy" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="true"></iframe>
-<?php else: ?>
-          <video class="promo-frame-el" controls playsinline preload="metadata">
-            <source src="<?= h($customerAdviceItem['src']) ?>" type="<?= h(hpl_media_type($customerAdviceItem['src'])) ?>">
-          </video>
-<?php endif; ?>
-        </figure>
       
-      </section>
 <?php endif; ?>
 
       <section class="section" id="faq"><div class="accordions">
