@@ -2338,16 +2338,12 @@ $trustStories = [
           ?>
           <div class="ratings-stories">
             <h3 class="ratings-stories-heading"><?= h($hplCopy('ratings_stories_heading', 'Stories from Zambia')) ?></h3>
-            <div class="ratings-story-single">
-              <article class="ratings-story" style="max-width:600px;margin:0 auto;text-align:center;">
-                <div class="ratings-story-body">
-                  <p class="ratings-story-eyebrow"><?= h($ratingsStories[0]['eyebrow']) ?></p>
-                  <h4 class="ratings-story-title"><?= h($ratingsStories[0]['title']) ?></h4>
-                  <p class="ratings-story-text"><?= h($ratingsStories[0]['text']) ?></p>
-                </div>
-                <?php $file = file_exists(__DIR__ . '/img/' . $ratingsStories[0]['image']) ? $ratingsStories[0]['image'] : $ratingsStories[0]['fallback']; ?>
-                <img src="<?= hpl_img_url($file) ?>" alt="<?= h($ratingsStories[0]['title']) ?>" loading="lazy" style="max-width:500px;width:100%;margin:20px auto 0;border-radius:16px;border:1px solid rgba(212,175,55,0.35);box-shadow:0 30px 80px rgba(0,0,0,0.55);">
-              </article>
+            <div class="ratings-story-single" style="text-align:center;">
+              <?php if (file_exists(__DIR__ . '/img/stories-from-zambia.jpg')): ?>
+              <img src="<?= hpl_img_url('stories-from-zambia.jpg') ?>" alt="Stories from Zambia" loading="lazy" style="max-width:500px;width:100%;border-radius:16px;border:1px solid rgba(212,175,55,0.35);box-shadow:0 30px 80px rgba(0,0,0,0.55);">
+              <?php else: ?>
+              <p style="color:var(--muted,#b9c0d6);">Upload a portrait screenshot in the admin panel (stories-from-zambia.jpg).</p>
+              <?php endif; ?>
             </div>
           </div>
         </div>
