@@ -2334,43 +2334,20 @@ $trustStories = [
                   'image'   => 'zambia-6.jpg',
                   'fallback'=> 'story-photo-3.jpg',
               ],
-              [
-                  'eyebrow' => $hplCopy('story_4_eyebrow', 'Lusaka, Zambia'),
-                  'title'   => $hplCopy('story_4_title', 'A worked dump that finally gave something back'),
-                  'text'    => $hplCopy('story_4_text', 'Chileshe had walked the same old mine dump for months with little to show. One weekend with the MAGNETAR 5000 and a slower, wider swing, he started lifting targets he had stepped over before. Nothing exotic, just a machine that stopped shouting at every piece of iron in the spoil.'),
-                  'image'   => 'zambia-1.jpg',
-                  'fallback'=> 'story-photo-1.jpg',
-              ],
-              [
-                  'eyebrow' => $hplCopy('story_5_eyebrow', 'Kitwe, Zambia'),
-                  'title'   => $hplCopy('story_5_title', 'One complete setup instead of piecing it together'),
-                  'text'    => $hplCopy('story_5_text', 'Mwamba needed more than a detector: pumps, hoses and a cradle to work deeper ground. Everything was set up and explained in one go, so he was not left guessing at parts that do not fit together. He now runs the same ground with a second team.'),
-                  'image'   => 'zambia-2.jpg',
-                  'fallback'=> 'story-photo-2.jpg',
-              ],
-              [
-                  'eyebrow' => $hplCopy('story_6_eyebrow', 'Ndola, Zambia'),
-                  'title'   => $hplCopy('story_6_title', 'First find on ground her family already owned'),
-                  'text'    => $hplCopy('story_6_text', 'Kabaso had land but no idea where to start, and did not want to buy the wrong machine. The session was spent on ground she had never walked with a detector. She still keeps the first piece she lifted, as the reason she kept going.'),
-                  'image'   => 'zambia-3.jpg',
-                  'fallback'=> 'story-photo-3.jpg',
-              ],
           ];
           ?>
           <div class="ratings-stories">
             <h3 class="ratings-stories-heading"><?= h($hplCopy('ratings_stories_heading', 'Stories from Zambia')) ?></h3>
-            <div class="ratings-story-grid">
-              <?php foreach ($ratingsStories as $story): ?>
-              <article class="ratings-story">
+            <div class="ratings-story-single">
+              <article class="ratings-story" style="max-width:600px;margin:0 auto;text-align:center;">
                 <div class="ratings-story-body">
-                  <p class="ratings-story-eyebrow"><?= h($story['eyebrow']) ?></p>
-                  <h4 class="ratings-story-title"><?= h($story['title']) ?></h4>
-                  <p class="ratings-story-text"><?= h($story['text']) ?></p>
+                  <p class="ratings-story-eyebrow"><?= h($ratingsStories[0]['eyebrow']) ?></p>
+                  <h4 class="ratings-story-title"><?= h($ratingsStories[0]['title']) ?></h4>
+                  <p class="ratings-story-text"><?= h($ratingsStories[0]['text']) ?></p>
                 </div>
-                <?php $file = file_exists(__DIR__ . '/img/' . $story['image']) ? $story['image'] : $story['fallback']; ?>
-                <img src="<?= hpl_img_url($file) ?>" alt="<?= h($story['title']) ?>" loading="lazy">
+                <?php $file = file_exists(__DIR__ . '/img/' . $ratingsStories[0]['image']) ? $ratingsStories[0]['image'] : $ratingsStories[0]['fallback']; ?>
+                <img src="<?= hpl_img_url($file) ?>" alt="<?= h($ratingsStories[0]['title']) ?>" loading="lazy" style="max-width:500px;width:100%;margin:20px auto 0;border-radius:16px;border:1px solid rgba(212,175,55,0.35);box-shadow:0 30px 80px rgba(0,0,0,0.55);">
               </article>
-              <?php endforeach; ?>
             </div>
           </div>
         </div>
