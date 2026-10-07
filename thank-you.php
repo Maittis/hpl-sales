@@ -291,43 +291,7 @@ $tyReceipts = [
       </div>
     </header>
 
-    <section id="start">
-      <div class="section-header">
-        <span class="section-label"><?= h($hplCopy('ty_start_label', 'Start here')) ?></span>
-        <h2><?= h($hplCopy('ty_start_h', 'Watch This Before We Connect')) ?></h2>
-        <p><?= h($hplCopy('ty_start_sub', 'Everything you need to know about HPL, how we work, and what to expect on the call.')) ?></p>
-      </div>
-      <div class="main-video">
-        <?php if (trim((string)($s['ty_video_embed'] ?? '')) !== ''): ?>
-          <?php if (($poster = trim((string)($s['ty_video_poster'] ?? '')) ) !== '' && file_exists(__DIR__ . '/' . $poster)): ?>
-            <div class="video-poster-wrap">
-              <img class="video-poster" src="<?= h($poster) ?>" alt="">
-              <div class="play-btn" aria-hidden="true"></div>
-            </div>
-          <?php endif; ?>
-          <div class="embed-wrap">
-            <?php
-              $embed = (string)($s['ty_video_embed'] ?? '');
-              $embed = preg_replace('~<div[^>]*>~', '', $embed, 1);
-              $embed = preg_replace('~</div>\s*$~', '', $embed, 1);
-              echo $embed;
-            ?>
-          </div>
-        <?php elseif ($tyVideo !== ''): ?>
-          <?php if (str_starts_with($tyVideo, 'http')): ?>
-            <video controls playsinline preload="metadata" poster="">
-              <source src="<?= h($tyVideo) ?>" type="video/mp4">
-            </video>
-          <?php else: ?>
-            <video controls playsinline preload="metadata">
-              <source src="<?= h($tyVideo) ?>" type="<?= h(hpl_media_type($tyVideo)) ?>">
-            </video>
-          <?php endif; ?>
-        <?php else: ?>
-          <div class="video-fallback"><?= h($hplCopy('ty_vplaceholder', 'Our thank-you video is being uploaded. Please check back shortly.')) ?></div>
-        <?php endif; ?>
-      </div>
-    </section>
+    
 
     <section id="diligence">
       <div class="section-header">
