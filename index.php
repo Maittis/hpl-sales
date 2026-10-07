@@ -2054,74 +2054,17 @@ $proofVisuals = [];
       <section class="section proof-mix">
         <div class="section-label"><?= h($hplCopy('voices_label', 'Customer voices')) ?></div>
         <h2><?= h($hplCopy('voices_heading', 'See what our customers are saying')) ?></h2>
-        <div class="zig">
-          <div class="zig-row">
-            <div class="zig-text">
-              <h3 class="zig-title"><?= h($hplCopy('voice_whatsapp_title', 'WhatsApp')) ?></h3>
-              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#2dd4bf,#14b8a6);"></span><?= h($hplCopy('voice_whatsapp_meta', 'Today')) ?></p>
-              <p class="zig-body <?= h($hplCopy('voice_whatsapp_text', '') === '' ? 'voice-todo' : '') ?>"><?= h($hplCopy('voice_whatsapp_text', 'TODO &mdash; paste the customer\'s real WhatsApp Today message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.')) ?></p>
-            </div>
-            <div class="zig-media voice-media">
-              <div class="proof-social-screenshot whatsapp<?= file_exists(__DIR__ . '/img/customer-voice-whatsapp.jpg') ? ' has-image' : '' ?>">
-                <?php if (file_exists(__DIR__ . '/img/customer-voice-whatsapp.jpg')): ?>
-                <img src="<?= hpl_img_url("customer-voice-whatsapp.jpg") ?>" alt="WhatsApp message from an HPL customer" loading="lazy">
-                <?php else: ?>
-                <div class="mock">
-                  <div class="mock-head"><span class="mock-avatar"></span><span class="mock-name"></span></div>
-                  <span class="mock-line long"></span>
-                  <span class="mock-line mid"></span>
-                  <span class="mock-line short"></span>
-                  <span class="mock-chip"></span>
-                </div>
-                <?php endif; ?>
-              </div>
-            </div>
-          </div>
-          <div class="zig-row">
-            <div class="zig-text">
-              <h3 class="zig-title"><?= h($hplCopy('voice_facebook_title', 'Facebook')) ?></h3>
-              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);"></span><?= h($hplCopy('voice_facebook_meta', 'Post')) ?></p>
-              <p class="zig-body <?= h($hplCopy('voice_facebook_text', '') === '' ? 'voice-todo' : '') ?>"><?= h($hplCopy('voice_facebook_text', 'TODO &mdash; paste the customer\'s real Facebook Post message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.')) ?></p>
-            </div>
-            <div class="zig-media voice-media">
-              <div class="proof-social-screenshot facebook<?= file_exists(__DIR__ . '/img/customer-voice-facebook.jpg') ? ' has-image' : '' ?>">
-                <?php if (file_exists(__DIR__ . '/img/customer-voice-facebook.jpg')): ?>
-                <img src="<?= hpl_img_url("customer-voice-facebook.jpg") ?>" alt="Facebook post from an HPL customer" loading="lazy">
-                <?php else: ?>
-                <div class="mock">
-                  <div class="mock-head"><span class="mock-avatar" style="background:linear-gradient(135deg,#f9a8d4,#ec4899);"></span><span class="mock-name"></span></div>
-                  <span class="mock-line long"></span>
-                  <span class="mock-line mid"></span>
-                  <span class="mock-line short"></span>
-                  <span class="mock-chip" style="background:#dbeafe; width:110px;"></span>
-                </div>
-                <?php endif; ?>
-              </div>
-            </div>
-          </div>
-          <div class="zig-row">
-            <div class="zig-text">
-              <h3 class="zig-title"><?= h($hplCopy('voice_tiktok_title', 'TikTok')) ?></h3>
-              <p class="voice-meta"><span class="proof-social-dot" style="background:linear-gradient(135deg,#f472b6,#a855f7);"></span><?= h($hplCopy('voice_tiktok_meta', 'Video')) ?></p>
-              <p class="zig-body <?= h($hplCopy('voice_tiktok_text', '') === '' ? 'voice-todo' : '') ?>"><?= h($hplCopy('voice_tiktok_text', 'TODO &mdash; paste the customer\'s real TikTok Video message here. No real message text exists for this row yet, so nothing is shown rather than inventing one.')) ?></p>
-            </div>
-            <div class="zig-media voice-media">
-              <div class="proof-social-screenshot tiktok<?= file_exists(__DIR__ . '/img/customer-voice-tiktok.jpg') ? ' has-image' : '' ?>">
-                <?php if (file_exists(__DIR__ . '/img/customer-voice-tiktok.jpg')): ?>
-                <img src="<?= hpl_img_url("customer-voice-tiktok.jpg") ?>" alt="TikTok post featuring an HPL detector" loading="lazy">
-                <?php else: ?>
-                <div class="mock">
-                  <div class="mock-head"><span class="mock-avatar" style="background:linear-gradient(135deg,#fcd34d,#f59e0b);"></span><span class="mock-name"></span></div>
-                  <span class="mock-line long"></span>
-                  <span class="mock-line mid"></span>
-                  <span class="mock-line short"></span>
-                  <span class="mock-chip" style="background:#fce7f3; width:94px;"></span>
-                </div>
-                <?php endif; ?>
-              </div>
-            </div>
-          </div>
+        <div class="single-testimonial">
+          <?php if (file_exists(__DIR__ . '/img/customer-voice-portrait.jpg')): ?>
+          <img src="<?= hpl_img_url('customer-voice-portrait.jpg') ?>" alt="Customer testimonial portrait" loading="lazy" style="max-width:500px;width:100%;border-radius:16px;border:1px solid rgba(212,175,55,0.35);box-shadow:0 30px 80px rgba(0,0,0,0.55);">
+          <?php else: ?>
+          <p style="color:var(--muted,#b9c0d6);">Upload a portrait image in the admin panel (customer-voice-portrait.jpg).</p>
+          <?php endif; ?>
         </div>
+        <div class="cta-reminder">
+          <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
+        </div>
+      </section>
       
         <div class="cta-reminder">
           <a class="button" href="#book"><?= h($s['cta_text']) ?></a>
