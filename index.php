@@ -1097,7 +1097,7 @@ function art_block(string $file, string $fallbackClass = ''): string
     details[open] summary::after { content:'×'; }
     details p { color:rgba(255,255,255,.78); font-size:14px; line-height:1.6; padding:0 16px 10px; }
     .final { background:var(--navy); display-color:#fff; padding:46px 34px; text-align:center; }
-    .final h2 { display-color:#fff; font-size:32px; }
+    .final h2 { color:#fff; font-size:32px; }
     .final p { color:#d7dce6; font-size:16px; margin:10px auto 24px; max-width:560px; }
     .lead-form { background:#fff; border-radius:12px; margin:24px auto 0; max-width:460px; padding:20px 20px 22px; text-align:left; }
     .lead-form label { color:#111827; display:block; font-size:14px; font-weight:700; margin:16px 0 0; }
