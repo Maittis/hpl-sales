@@ -2557,6 +2557,16 @@ $trustStories = [
 <?php $question = $leadQuestions[$qField]; ?>
             <fieldset class="q-block" data-field="<?= h($qField) ?>"<?= isset($leadErrors[$qField]) ? ' data-invalid="1"' : '' ?>>
               <legend><?= h($question['label']) ?> <span class="req">*</span></legend>
+<?php if ($qField === 'lead_looking_for'): ?>
+              <div class="field">
+                <select name="<?= h($qField) ?>" required<?= lead_invalid($leadErrors, $qField) ?>>
+                  <option value="">Select an option</option>
+<?php foreach ($question['options'] as $qValue => $qNote): ?>
+                  <option value="<?= h($qValue) ?>"<?= $leadFields[$qField] === $qValue ? ' selected' : '' ?>><?= h($qValue) ?></option>
+<?php endforeach; ?>
+                </select>
+              </div>
+<?php else: ?>
               <div class="cards">
 <?php foreach ($question['options'] as $qValue => $qNote): ?>
                 <label class="card<?= $leadFields[$qField] === $qValue ? ' is-on' : '' ?>">
@@ -2566,6 +2576,7 @@ $trustStories = [
                 </label>
 <?php endforeach; ?>
               </div>
+<?php endif; ?>
               <?= lead_field_error($leadErrors, $qField) ?>
             </fieldset>
 <?php endforeach; ?>
