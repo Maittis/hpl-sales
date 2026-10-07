@@ -279,6 +279,7 @@ $fields = [
     ['key' => 'ty_back',            'label' => 'Back link text',            'type' => 'text',     'group' => 'Thank you page'],
     ['key' => 'ty_video_drive_id',  'label' => 'Thank-you video Drive ID / URL (optional — used only if no embed is set)', 'type' => 'text',     'group' => 'Thank you page'],
     ['key' => 'ty_video_embed',     'label' => 'Thank-you video embed HTML (Bunny.net / MediaDelivery — paste the full <iframe> block here; takes priority over Drive ID)', 'type' => 'textarea', 'group' => 'Thank you page'],
+    ['key' => 'ty_video_poster',    'label' => 'Thank-you video poster image filename (e.g. img/thankyou.jpg — shows before visitor presses play)', 'type' => 'text', 'group' => 'Thank you page'],
     ['key' => 'ty_vplaceholder',    'label' => 'Video placeholder text',    'type' => 'text',     'group' => 'Thank you page'],
     ['key' => 'ty_start_label',     'label' => 'Video section label',       'type' => 'text',     'group' => 'Thank you page'],
     ['key' => 'ty_start_h',         'label' => 'Video section heading',     'type' => 'text',     'group' => 'Thank you page'],
@@ -590,6 +591,7 @@ $imageSlots = [
     ['key' => 'field_proof_2_image', 'file' => 'field-proof-2.jpg', 'label' => 'Field proof story 2 photo', 'section' => 'Field proof stories'],
     ['key' => 'stat_1',      'file' => 'stat-1.jpg',      'label' => 'Trust card 1 photo — customers (landscape)', 'section' => 'Trust stories'],
     ['key' => 'stat_2',      'file' => 'stat-2.jpg',      'label' => 'Trust card 2 photo — gold found (landscape)', 'section' => 'Trust stories'],
+    ['key' => 'stories_from_zambia', 'file' => 'stories-from-zambia.jpg', 'label' => 'Stories from Zambia - Portrait screenshot', 'section' => 'Customer voices'],
     ['key' => 'slide_1',    'file' => 'slide-1.jpg',    'label' => 'Auto-slide testimonial 1 (landscape)', 'section' => 'Auto-slide testimonials'],
     ['key' => 'slide_2',    'file' => 'slide-2.jpg',    'label' => 'Auto-slide testimonial 2 (landscape)', 'section' => 'Auto-slide testimonials'],
     ['key' => 'slide_3',    'file' => 'slide-3.jpg',    'label' => 'Auto-slide testimonial 3 (landscape)', 'section' => 'Auto-slide testimonials'],
@@ -625,6 +627,8 @@ foreach ($imageSlots as $slot) {
     ['key' => 'customer_voice_whatsapp', 'file' => 'customer-voice-whatsapp.jpg', 'label' => 'WhatsApp screenshot'],
     ['key' => 'customer_voice_facebook', 'file' => 'customer-voice-facebook.jpg', 'label' => 'Facebook screenshot'],
     ['key' => 'customer_voice_tiktok', 'file' => 'customer-voice-tiktok.jpg', 'label' => 'TikTok screenshot'],
+    ['key' => 'customer_voice_portrait', 'file' => 'customer-voice-portrait.jpg', 'label' => 'Customer voices - Portrait image'],
+    ['key' => 'stories_from_zambia', 'file' => 'stories-from-zambia.jpg', 'label' => 'Stories from Zambia - Portrait screenshot'],
   ];
 
 $videoSlots = [
